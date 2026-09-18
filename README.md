@@ -65,10 +65,10 @@ change.
    secret**, name it `GOOGLE_PLACES_API_KEY`, and paste in your key from
    Option A step 1.
 5. That's it. The included workflow (`.github/workflows/update-venues.yml`)
-   runs every Monday, re-fetches the data, and commits `venues.json` if
-   anything changed. Your hosted page always reads the live file, so it
-   stays current without you doing anything. You can also trigger it
-   manually any time from the repo's **Actions** tab.
+   runs every Monday, re-fetches the data, rebuilds `index.html`, and
+   commits both if anything changed. Your hosted page always reads the
+   live file, so it stays current without you doing anything. You can also
+   trigger it manually any time from the repo's **Actions** tab.
 
 ## Customizing
 
@@ -81,7 +81,9 @@ change.
   or `age`. Places Google finds that aren't in your list yet are parked in a
   separate `candidates` list at the bottom of `venues.json` — the page
   ignores them. To add one, move it up into `venues` and fill in the
-  hand-written fields; to drop one, delete it.
+  hand-written fields; to drop one, delete it. Places more than ~25 miles
+  from Naperville and duplicate Google listings of a venue you already
+  have are filtered out automatically.
 - **Change what gets searched:** edit the `CATEGORIES` dict near the top of
   `update_venues.py` (each entry is a category name → a search phrase).
 - **Change the search area:** edit `CENTER` and `RADIUS_METERS` in the same

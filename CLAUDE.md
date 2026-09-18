@@ -30,13 +30,21 @@ on purpose so it keeps working as one portable, offline-capable file.
   returns a value. Google results are matched to existing venues by
   `place_id`, then by id slug, then by "within 150 m and names mostly
   overlap" (see `MATCH_RADIUS_M` / `MATCH_NAME_SCORE`). Unmatched results
-  go to `candidates`.
+  go to `candidates`, except second Google listings of an already-matched
+  venue and anything beyond `MAX_CANDIDATE_DISTANCE_M` (~25 mi) from
+  `CENTER`, which are dropped. Google's raw formatting is tidied on the way
+  in (`clean_*` helpers): no trailing ", USA", phones as `(630) 555-1234`,
+  `utm_*` stripped from websites, coordinates rounded to 7 decimals. Keep
+  hand-entered data in those same shapes so diffs stay quiet.
 - **`test_update_venues.py`** — runs the updater against a fake Places API
   on a temp copy of the data and asserts nothing curated is lost or
   duplicated. Stdlib only. Run it after any change to the updater.
-- **`.github/workflows/update-venues.yml`** — optional GitHub Actions job
-  that runs `update_venues.py` on a schedule, if this repo ever gets pushed
-  to GitHub with Pages enabled.
+- **`.github/workflows/update-venues.yml`** — GitHub Actions job that runs
+  `update_venues.py` then `build.py` every Monday and commits both
+  `venues.json` and the rebuilt `index.html`. Skips itself if the
+  `GOOGLE_PLACES_API_KEY` secret is missing. Because the bot commits
+  `index.html`, always `git pull` before local work; if `index.html` ever
+  conflicts, don't merge it by hand — run `build.py` and take that.
 
 ## Workflow
 
@@ -100,10 +108,14 @@ and run `node --check` on it. (The first commit shipped with a missing
 ## Not yet done
 
 - Pushed to a private GitHub repo (`origin` = github.com/yijiang1/naper-kids,
-  branch `main`). The weekly workflow runs there but skips itself until the
-  `GOOGLE_PLACES_API_KEY` secret is added.
-- `GOOGLE_PLACES_API_KEY` has not been created/tested, so the updater has
-  only ever run against the fake API in `test_update_venues.py`.
+  branch `main`). The `GOOGLE_PLACES_API_KEY` secret is set and the weekly
+  workflow has run successfully against the real API (first run
+  2026-09-18: 19 of 22 venues refreshed; Winding Creek Park, DuPage
+  Children's Museum and Urban Air weren't in Google's top results, which is
+  fine — they just keep their existing data).
+- The `candidates` list in `venues.json` hasn't been reviewed yet — several
+  look worth promoting (Frontier Park, Centennial Park, Central Park,
+  The Fun Playce, Kids Empire, Red Oak Nature Center, St. James Farm…).
 - Shared (cross-visitor) voting was discussed but intentionally not built.
 - Not yet hosted anywhere. GitHub Pages setup is documented in README.md
   but hasn't been done; note that Pages on a *private* repo needs a paid

@@ -54,9 +54,16 @@ def run_updater(fake_results, path):
 def main():
     tmpdir = tempfile.mkdtemp(prefix="naperkids-test-")
     path = os.path.join(tmpdir, "venues.json")
-    shutil.copy(os.path.join(HERE, "venues.json"), path)
-    with io.open(path, encoding="utf-8") as f:
+    # Start from the real curated list, but with no candidates and no place_ids,
+    # so the test exercises the slug/fuzzy matching paths deterministically
+    # regardless of what the weekly bot has written since.
+    with io.open(os.path.join(HERE, "venues.json"), encoding="utf-8") as f:
         before = json.load(f)
+    before["candidates"] = []
+    for v in before["venues"]:
+        v.pop("place_id", None)
+    with io.open(path, "w", encoding="utf-8") as f:
+        json.dump(before, f, indent=2, ensure_ascii=False)
     before_ids = [v["id"] for v in before["venues"]]
     by_id = {v["id"]: v for v in before["venues"]}
     knoch, jaycee = by_id["knoch-park"], by_id["jaycee-playground"]
@@ -66,9 +73,11 @@ def main():
     # --- Run 1: the usual mix of exact, fuzzy, and brand-new results ---------
     fake = {
         "Parks & Playgrounds": [
-            # exact id match, rating changed
-            place("g1", "Knoch Park", knoch["lat"], knoch["lng"], rating=4.6,
-                  phone=knoch["phone"], website=knoch["website"], addr=knoch["address"]),
+            # exact id match, rating changed; raw Google formatting must be tidied
+            place("g1", "Knoch Park", 41.7613506, -88.15650169999999, rating=4.6,
+                  phone="+1 630-848-5000",
+                  website="https://napervilleparks.org/location/knochpark?utm_source=gbp&utm_medium=organic",
+                  addr="724 S West St, Naperville, IL 60540, USA"),
             # different spelling -> must match by "same spot + similar name"
             place("g2", "Naperville Jaycee Playground", jaycee["lat"], jaycee["lng"], rating=4.9),
             # never seen before -> candidate
@@ -77,6 +86,8 @@ def main():
         "Splash Pads & Pools": [
             # ~75 m from the 95th St library; must NOT be matched to the library
             place("g6", "95th Street Splash Pad", splash95["lat"], splash95["lng"], rating=4.9),
+            # a second Google listing for the same splash pad -> ignored, not a candidate
+            place("g8", "Splash pad", splash95["lat"], splash95["lng"], rating=4.8),
         ],
         "Museums & Indoor Play": [
             # Google returns no phone/website -> ours must be kept
@@ -90,12 +101,18 @@ def main():
         "Nature & Zoos": [
             # same place id again (Nature runs after Libraries) -> ignored as a duplicate
             place("g4", "duplicate that must be skipped", 0.0, 0.0),
+            # ~230 km away -> not worth a candidate slot
+            place("g9", "Far Away Wildlife Park", 39.70, -88.30, rating=4.6),
         ],
     }
     data, log = run_updater(fake, path)
     V = {v["id"]: v for v in data["venues"]}
     assert [v["id"] for v in data["venues"]] == before_ids, "venue list changed"
     assert V["knoch-park"]["rating"] == 4.6 and V["knoch-park"]["place_id"] == "g1"
+    assert V["knoch-park"]["address"] == "724 S West St, Naperville, IL 60540", V["knoch-park"]["address"]
+    assert V["knoch-park"]["phone"] == "(630) 848-5000", V["knoch-park"]["phone"]
+    assert V["knoch-park"]["website"] == "https://napervilleparks.org/location/knochpark", V["knoch-park"]["website"]
+    assert V["knoch-park"]["lng"] == -88.1565017, V["knoch-park"]["lng"]
     assert V["knoch-park"]["note"] == knoch["note"] and V["knoch-park"]["category"] == knoch["category"]
     assert V["jaycee-playground"]["place_id"] == "g2", "fuzzy (distance + name) match failed"
     assert V["95th-street-library"].get("place_id") == "g4", "library matched wrongly"
@@ -103,7 +120,8 @@ def main():
     assert V["nichols-library"]["place_id"] == "g5" and V["nichols-library"]["rating"] == 4.5
     assert V["dupage-childrens-museum"]["phone"] == museum["phone"], "phone wiped by an empty Google field"
     assert V["dupage-childrens-museum"]["website"] == museum["website"]
-    assert [c["name"] for c in data["candidates"]] == ["Some Random New Park"], data["candidates"]
+    assert [c["name"] for c in data["candidates"]] == ["Some Random New Park"], [c["name"] for c in data["candidates"]]
+    assert "ignored 1 duplicate listing(s) and 1 too far away" in log, log
     assert list(data["venues"][0].keys())[:3] == ["id", "place_id", "name"]
     assert "Not returned by Google this run" in log
     print("run 1 OK: matching, refresh, candidates")

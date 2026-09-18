@@ -29,11 +29,12 @@ jobs:
             exit 0
           fi
           python3 update_venues.py
+          python3 build.py   # bake the fresh data into index.html for the offline copy
 
       - name: Commit changes if any
         run: |
           git config user.name "naper-kids-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add venues.json
-          git diff --cached --quiet || git commit -m "Auto-update venues.json"
+          git add venues.json index.html
+          git diff --cached --quiet || git commit -m "Auto-update venues.json and rebuild index.html"
           git push

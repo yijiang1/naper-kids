@@ -44,6 +44,7 @@ import re
 import sys
 import urllib.request
 import urllib.error
+import urllib.parse
 
 API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY")
 CENTER = {"lat": 41.7508, "lng": -88.1535}  # Naperville, IL
@@ -56,6 +57,10 @@ OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "venues.j
 # This is only the fallback; place_id and id-slug matches come first.
 MATCH_RADIUS_M = 150.0
 MATCH_NAME_SCORE = 0.75
+
+# Google results farther than this from CENTER are not kept as candidates
+# (RADIUS_METERS is only a *bias*, so places hours away do show up).
+MAX_CANDIDATE_DISTANCE_M = 40000.0  # ~25 miles
 
 # Edit this dict to add/remove categories or tweak what gets searched for.
 CATEGORIES = {
@@ -114,6 +119,43 @@ def search_category(query):
         return json.loads(resp.read().decode("utf-8")).get("places", [])
 
 
+# --- Tidy up Google's raw formatting so the page stays consistent ---------
+
+def clean_address(addr):
+    addr = (addr or "").strip()
+    return re.sub(r",\s*(USA|United States)$", "", addr)
+
+
+def clean_phone(phone):
+    """Normalise US numbers to '(630) 555-1234'; leave anything else alone."""
+    if not phone:
+        return phone
+    digits = re.sub(r"\D", "", phone)
+    if len(digits) == 11 and digits.startswith("1"):
+        digits = digits[1:]
+    if len(digits) == 10:
+        return "({}) {}-{}".format(digits[:3], digits[3:6], digits[6:])
+    return phone.strip()
+
+
+def clean_website(url):
+    """Drop utm_* tracking parameters Google tacks onto business websites."""
+    if not url:
+        return url
+    parts = urllib.parse.urlsplit(url)
+    if not parts.query:
+        return url
+    keep = [(k, v) for k, v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+            if not k.lower().startswith("utm_")]
+    return urllib.parse.urlunsplit(
+        (parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(keep), parts.fragment))
+
+
+def clean_coord(x):
+    # 7 decimals is ~1 cm; avoids float noise like -88.15650169999999.
+    return round(x, 7) if isinstance(x, float) else x
+
+
 def to_venue(place, category):
     name = place.get("displayName", {}).get("text", "Unknown")
     loc = place.get("location", {})
@@ -122,12 +164,12 @@ def to_venue(place, category):
         "place_id": place.get("id"),
         "name": name,
         "category": category,
-        "lat": loc.get("latitude"),
-        "lng": loc.get("longitude"),
-        "address": place.get("formattedAddress", ""),
+        "lat": clean_coord(loc.get("latitude")),
+        "lng": clean_coord(loc.get("longitude")),
+        "address": clean_address(place.get("formattedAddress", "")),
         "rating": place.get("rating"),
-        "phone": place.get("nationalPhoneNumber"),
-        "website": place.get("websiteUri"),
+        "phone": clean_phone(place.get("nationalPhoneNumber")),
+        "website": clean_website(place.get("websiteUri")),
         "hours": None,
         "note": "",
         "cost": "",
@@ -190,6 +232,12 @@ def find_match(fresh, venues, taken):
     return best if best_score >= MATCH_NAME_SCORE else None
 
 
+def is_too_far(v):
+    if v.get("lat") is None or v.get("lng") is None:
+        return False
+    return distance_m(CENTER["lat"], CENTER["lng"], v["lat"], v["lng"]) > MAX_CANDIDATE_DISTANCE_M
+
+
 def refresh_fields(target, fresh):
     """Copy the refreshable fields from `fresh` onto `target`. Returns the names of fields that changed."""
     changed = []
@@ -250,7 +298,12 @@ def main():
     taken = set()
     refreshed = 0
     candidates = {}
+    too_far = 0
+    duplicates = 0
     for c in data["candidates"]:
+        if is_too_far(c):
+            too_far += 1
+            continue
         candidates[c.get("place_id") or c["id"]] = c
     new_candidates = 0
 
@@ -262,6 +315,12 @@ def main():
             if changed:
                 refreshed += 1
                 print("  updated {}: {}".format(match["name"], ", ".join(changed)))
+            continue
+        if find_match(fresh, venues, set()) is not None:
+            duplicates += 1  # a second Google listing for a venue we already matched
+            continue
+        if is_too_far(fresh):
+            too_far += 1
             continue
         key = fresh.get("place_id") or fresh["id"]
         if key in candidates:
@@ -287,8 +346,9 @@ def main():
     print("Kept all {} venues; {} had fields refreshed.".format(len(venues), refreshed))
     if not_seen:
         print("Not returned by Google this run (left unchanged): " + "; ".join(not_seen))
-    print("{} candidate(s) waiting in the 'candidates' list ({} new this run).".format(
-        len(candidates), new_candidates))
+    print("{} candidate(s) waiting in the 'candidates' list ({} new this run; "
+          "ignored {} duplicate listing(s) and {} too far away).".format(
+              len(candidates), new_candidates, duplicates, too_far))
     print("Wrote " + OUTPUT_PATH)
 
 
