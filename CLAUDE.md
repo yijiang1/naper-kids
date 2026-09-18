@@ -1,13 +1,20 @@
 # Naper Kids — dev notes
 
-A single-file personal dashboard of kid-friendly places in Naperville, IL.
-No build system beyond a tiny Python script — this stays plain HTML/CSS/JS
-on purpose so it keeps working as one portable, offline-capable file.
+A single-file personal dashboard of kid-friendly places. Started as a
+Naperville, IL-only list; as of Sep 2026 the scope is the whole Chicago
+metro area (`update_venues.py`'s `CENTER` is still Naperville — it's just
+the personal reference point for distance-sort/"near me", not a scope
+limit — with a ~55 mi `MAX_CANDIDATE_DISTANCE_M` covering the six-county
+metro). The name stayed "Naper Kids" since renaming touches a lot of
+surface area for a personal project; revisit if that starts being
+confusing. No build system beyond a tiny Python script — this stays plain
+HTML/CSS/JS on purpose so it keeps working as one portable, offline-capable
+file.
 
 ## How the pieces fit together
 
-- **`venues.json`** — the actual content. `venues` is the curated list (22
-  entries: id, name, category, lat/lng, address, rating, phone, website,
+- **`venues.json`** — the actual content. `venues` is the curated list (61
+  entries as of Sep 2026: id, name, category, lat/lng, address, rating, phone, website,
   hours, cost, age, note, plus `place_id` once the updater has matched it
   to Google). Also hand-curated, and always optional (missing = the
   default): `season` (`"year-round"` (default) / `"summer"` / `"winter"` /
@@ -37,7 +44,8 @@ on purpose so it keeps working as one portable, offline-capable file.
   names mostly overlap" (see `MATCH_RADIUS_M` / `MATCH_NAME_SCORE`).
   Unmatched results go to `candidates`, except second Google listings of an
   already-matched venue and anything beyond `MAX_CANDIDATE_DISTANCE_M`
-  (~25 mi) from `CENTER`, which are dropped. Google's raw formatting is
+  (~55 mi, covering the Chicago six-county metro) from `CENTER`, which are
+  dropped. Google's raw formatting is
   tidied on the way in (`clean_*` helpers): no trailing ", USA", phones as
   `(630) 555-1234`, `utm_*` stripped from websites, coordinates rounded to
   7 decimals. Keep hand-entered data in those same shapes so diffs stay
@@ -46,7 +54,7 @@ on purpose so it keeps working as one portable, offline-capable file.
   on a temp copy of the data and asserts nothing curated is lost or
   duplicated. Stdlib only. Run it after any change to the updater.
 - **`check_data.py`** — validates `venues.json`: required fields present,
-  ids unique clean slugs, coordinates within ~60 km of `center`, rating in
+  ids unique clean slugs, coordinates within ~90 km of `center`, rating in
   0–5, and `season`/`tags`/`indoor` restricted to their vocabularies. Only
   checks `venues`, not `candidates` (those are allowed to be incomplete).
   Runs in the weekly workflow right before `build.py` so a bad hand edit
@@ -145,9 +153,20 @@ and run `node --check` on it. (The first commit shipped with a missing
   2026-09-18: 19 of 22 venues refreshed; Winding Creek Park, DuPage
   Children's Museum and Urban Air weren't in Google's top results, which is
   fine — they just keep their existing data).
-- The `candidates` list in `venues.json` hasn't been reviewed yet — several
-  look worth promoting (Frontier Park, Centennial Park, Central Park,
-  The Fun Playce, Kids Empire, Red Oak Nature Center, St. James Farm…).
+- The `candidates` list was fully reviewed and cleared in the Sep 2026
+  content pass (ROADMAP.md 2.1/2.2): 26 promoted into `venues`, 18 low-value
+  ones deleted (duplicate library branches, a little free library, generic
+  distant pools, redundant bowling alleys), plus 13 brand-new Chicago-area
+  landmarks hand-added (Shedd Aquarium, Field Museum, Griffin Museum of
+  Science and Industry, Lincoln Park Zoo, Chicago Children's Museum,
+  Chicago Botanic Garden, Adler Planetarium, Peggy Notebaert Nature Museum,
+  LEGOLAND Discovery Center, Naper Settlement, Cantigny Park, Fermilab's
+  Lederman Science Center, Phillips Park Zoo). `candidates` is empty until
+  the next automated run finds more. Hours/prices for all of these were
+  researched, not guessed, but weren't independently re-verified by a human
+  after the fact — worth a spot-check before relying on the pricier/less
+  obvious ones (Morton Arboretum and Ball Factory in particular have no
+  fixed per-visit price, so `cost` says "Check website" for those).
 - Shared (cross-visitor) voting was discussed but intentionally not built.
 - Not yet hosted anywhere. GitHub Pages setup is documented in README.md
   but hasn't been done; note that Pages on a *private* repo needs a paid

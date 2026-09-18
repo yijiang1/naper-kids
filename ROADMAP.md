@@ -18,9 +18,10 @@ adjust, `venues.json` is hand-curated.
 | 1.2 | "Open now" from structured hours | Hours are the field that goes stale first | Medium | ☐ |
 | 1.3 | Amenity tags + filters | "Fenced + toddler + free" is a real query | Medium | ☑ |
 | 1.4 | Indoor flag + rainy-day chip | Instant answer on a wet day | Small | ☑ |
-| 2.1 | Promote the good candidates | More places, same quality bar | Content | ☐ |
-| 2.2 | Add well-known places Google missed | Arboretum, Naper Settlement, etc. | Content | ☐ |
+| 2.1 | Promote the good candidates | More places, same quality bar | Content | ☑ |
+| 2.2 | Add well-known places Google missed | Arboretum, Naper Settlement, etc. | Content | ☑ |
 | 2.3 | Show rating counts | 4.9 (12) ≠ 4.5 (2,000) | Small | ☐ |
+| 2.4 | Seasonal farms / pumpkin patches | Fall-specific content, `season` field already exists | Content | ☐ |
 | 3.1 | Filters + selected place in the URL | Text a link to your spouse | Small | ☐ |
 | 3.2 | Saved home location | Distance sort without a GPS prompt | Small | ☐ |
 | 3.3 | "Been there" log + surprise me | Remember, and break ties | Small | ☐ |
@@ -28,8 +29,10 @@ adjust, `venues.json` is hand-curated.
 | 4.2 | Dark mode | Bedtime planning | Small | ☐ |
 | 4.3 | Weekly link check | Dead websites get noticed | Small | ☐ |
 
-**Landed:** 1.1 + 1.3 + 1.4 + 4.1 (see Done). **Next up:** 1.2, then a
-content pass (2.x), then the sharing conveniences (3.x).
+**Landed:** 1.1 + 1.3 + 1.4 + 4.1, then 2.1 + 2.2 (see Done — this pass also
+widened the whole project's scope from Naperville-only to the greater
+Chicago metro area, ahead of schedule relative to this list's original
+ordering). **Next up:** 1.2, then 2.3, then the sharing conveniences (3.x).
 
 ---
 
@@ -76,46 +79,19 @@ already says to double-check before going.
 
 ## 2. More places, better places
 
-### 2.1 Promote the good candidates
-
-`venues.json` has a `candidates` list from the updater. These look worth
-promoting (move the entry up into `venues`, write `note`/`hours`/`cost`/
-`age`, pick the category, set the new fields above):
-
-- **Parks:** Frontier Park, Central Park, Country Lakes Park, Wil-O-Way
-  Park, Burlington Park
-- **Water:** Centennial Park (this is Centennial Beach — summer, paid)
-- **Indoor play:** The Fun Playce, Playroom Cafe Naperville, Kids Empire
-  (North Aurora / Bolingbrook), Hyper Kidz (Wheaton / Bolingbrook), Ball
-  Factory
-- **Nature:** Red Oak Nature Center, Hidden Oaks Nature Center, Hickory
-  Knolls Discovery Center
-- **Trails:** St. James Farm, Greene Valley, Waterfall Glen, Warrenville
-  Grove
-- **Zoo:** the "Tropic World" candidate is really Brookfield Zoo — add it
-  as Brookfield Zoo if the drive is acceptable
-
-Delete the rest (little free libraries, far-off bowling alleys). Anything
-deleted may reappear on a later run but never shows on the page.
-
-### 2.2 Add well-known places Google's searches missed
-
-Not returned by the category searches, but obvious for Naperville
-families. Verify hours and prices when adding:
-
-- Morton Arboretum (Lisle) — the Children's Garden is the draw; paid
-- Naper Settlement — outdoor history museum downtown; kids' programs
-- Cantigny Park (Wheaton) — gardens, playground, tank park; parking fee
-- Fermilab's Lederman Science Center (Batavia) — free; check access rules
-- Phillips Park Zoo (Aurora) — small, free
-- Seasonal farms / pumpkin patches, if a `season` field exists by then
-
 ### 2.3 Show rating counts
 
 Add `places.userRatingCount` to the field mask (same tier as `rating`),
 store as `rating_count`, and render the card rating as `★ 4.5 (1.2k)`.
 Optional: make the "Top rated" sort weight by count so a 4.9 with 12
 reviews doesn't beat a 4.7 with 1,500.
+
+### 2.4 Seasonal farms / pumpkin patches
+
+Split off from the old 2.2 when that item landed — not researched yet.
+Verify hours/prices before adding, same as any other content item; set
+`season` (harvest season is roughly Sep–Oct for most) once real ones are
+picked.
 
 ---
 
@@ -191,3 +167,9 @@ way to notice a venue that quietly closed.
 - Season awareness (out-of-season toggle + badge), amenity tags + "Must
   have" filters, indoor flag + rainy-day hint, and `check_data.py`
   validation wired into the weekly workflow (Sep 2026)
+- Content pass: reviewed all 44 candidates (26 promoted, 18 deleted), added
+  13 new Chicago-proper landmarks, and widened the whole project's scope
+  from Naperville-only to the greater Chicago six-county metro area —
+  `update_venues.py`'s search radius/candidate cutoff and `check_data.py`'s
+  distance check both widened accordingly, at no extra weekly API-call cost
+  (Sep 2026)

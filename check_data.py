@@ -7,7 +7,7 @@ holding pen and are allowed to be incomplete until promoted):
   - required fields are present: name, category, lat, lng, address, cost,
     age, note
   - ids are unique and are clean slugs (lowercase, hyphen-separated)
-  - coordinates are within ~60 km of "center"
+  - coordinates are within ~90 km of "center" (the Chicago six-county metro)
   - rating (if set) is between 0 and 5
   - season / tags / indoor (if set) only use their fixed vocabularies
 
@@ -28,7 +28,7 @@ DATA_PATH = os.path.join(HERE, "venues.json")
 
 REQUIRED_FIELDS = ("name", "category", "lat", "lng", "address", "cost", "age", "note")
 SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-MAX_DISTANCE_KM = 60.0
+MAX_DISTANCE_KM = 90.0  # matches update_venues.py's MAX_CANDIDATE_DISTANCE_M
 TAG_VOCAB = {"restrooms", "fenced", "shade", "stroller", "food", "water-play", "picnic", "parking"}
 SEASON_VOCAB = {"year-round", "summer", "winter"}
 

@@ -33,7 +33,10 @@ WHAT IT DOES:
 COST:
   Text Search on the new Places API is a paid call, but Google's free
   monthly credit comfortably covers running this occasionally (e.g. weekly
-  or monthly) for one city. Check current pricing before heavy use:
+  or monthly) — still just one call per category (7/week) even now that
+  CATEGORIES searches the whole Chicago area rather than one city; only
+  the search radius and result count per call grew, not the call count.
+  Check current pricing before heavy use:
   https://mapsplatform.google.com/pricing/
 """
 
@@ -48,8 +51,12 @@ import urllib.error
 import urllib.parse
 
 API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY")
+# Kept at Naperville rather than downtown Chicago: it's the personal origin
+# point for distance sort/"near me" defaults, and sits close enough to the
+# metro's geographic middle for the ~55 mi candidate cutoff below to reach
+# the city lakefront on one side and the collar counties on the other.
 CENTER = {"lat": 41.7508, "lng": -88.1535}  # Naperville, IL
-RADIUS_METERS = 16000.0
+RADIUS_METERS = 50000.0  # Google's max circle-bias radius; covers the six-county metro area
 OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "venues.json")
 
 # A Google result counts as "the same place" as an existing venue when it's
@@ -61,17 +68,20 @@ MATCH_NAME_SCORE = 0.75
 
 # Google results farther than this from CENTER are not kept as candidates
 # (RADIUS_METERS is only a *bias*, so places hours away do show up).
-MAX_CANDIDATE_DISTANCE_M = 40000.0  # ~25 miles
+MAX_CANDIDATE_DISTANCE_M = 88000.0  # ~55 miles - the Chicago-area six counties (Cook/DuPage/Kane/Lake/McHenry/Will)
 
 # Edit this dict to add/remove categories or tweak what gets searched for.
+# Broad "Chicago area" wording plus a higher maxResultCount (see FIELD_MASK
+# call below) is what covers the wider region now — deliberately kept to
+# one query per category so the weekly call count doesn't multiply.
 CATEGORIES = {
-    "Parks & Playgrounds": "parks and playgrounds in Naperville IL",
-    "Splash Pads & Pools": "splash pads and pools in Naperville IL",
-    "Museums & Indoor Play": "children's museums and indoor play spaces in Naperville IL",
-    "Libraries": "public libraries in Naperville IL",
-    "Nature & Zoos": "nature centers and zoos near Naperville IL",
-    "Bowling & Arcades": "kids bowling and family entertainment near Naperville IL",
-    "Forest Preserves & Trails": "forest preserves near Naperville IL",
+    "Parks & Playgrounds": "parks and playgrounds for kids in the Chicago area",
+    "Splash Pads & Pools": "splash pads and pools in the Chicago area",
+    "Museums & Indoor Play": "children's museums and indoor play spaces in the Chicago area",
+    "Libraries": "public libraries in the Chicago area",
+    "Nature & Zoos": "nature centers and zoos in the Chicago area",
+    "Bowling & Arcades": "kids bowling and family entertainment in the Chicago area",
+    "Forest Preserves & Trails": "forest preserves in the Chicago area",
 }
 
 # The only fields this script is allowed to change on an existing venue.
@@ -109,7 +119,7 @@ def search_category(query):
                 "radius": RADIUS_METERS,
             }
         },
-        "maxResultCount": 10,
+        "maxResultCount": 20,  # Google's per-call max; same price tier as 10, more of the wider area per run
     }).encode("utf-8")
 
     req = urllib.request.Request(url, data=body, method="POST")

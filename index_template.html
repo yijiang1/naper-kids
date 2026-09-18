@@ -429,7 +429,7 @@
   <div class="header-row">
     <div class="title-block">
       <h1 class="display">Naper Kids</h1>
-      <p>Places to take the kids around Naperville — parks, splash pads, museums, and more.</p>
+      <p>Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, and more.</p>
     </div>
     <div class="search-wrap">
       <input type="text" id="search" placeholder="Search by name or vibe…">
@@ -909,7 +909,7 @@ function renderList(venues){
 }
 
 function initMap(){
-  map = L.map('map', {scrollWheelZoom:false}).setView([41.7508,-88.1535], 11);
+  map = L.map('map', {scrollWheelZoom:false}).setView([41.7508,-88.1535], 9);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
     maxZoom:19,
     attribution:'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, USGS, NGA, EPA, NPS'
