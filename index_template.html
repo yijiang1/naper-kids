@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Naper Kids — things to do with the kids in Naperville</title>
+<meta name="theme-color" content="#3F6B4F">
+<meta name="apple-mobile-web-app-title" content="Naper Kids">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%233F6B4F'/%3E%3Ctext x='32' y='44' font-size='36' font-weight='700' font-family='sans-serif' text-anchor='middle' fill='%23fff'%3EN%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -120,6 +123,42 @@
     background:#2F5C8A;
     border-color:#2F5C8A;
     color:#fff;
+  }
+  .chip.fav.active{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:#fff;
+  }
+  .chip:disabled{opacity:.6;cursor:default;}
+  .tools-right{
+    margin-left:auto;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .sort-select{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    padding:7px 30px 7px 13px;
+    border-radius:999px;
+    font-size:13px;
+    font-family:inherit;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235B6960' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 11px center;
+  }
+  .sort-select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .status-bar{
+    max-width:1160px;
+    margin:8px auto 0;
+    padding:0 20px;
+    font-size:13px;
+    color:var(--ink-soft);
   }
   .free-toggle{
     display:inline-flex;
@@ -261,12 +300,30 @@
     font-weight:600;
     margin:0;
   }
+  .card-side{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:0 0 auto;
+  }
   .card-rating{
     font-size:13px;
     color:var(--gold);
     white-space:nowrap;
-    flex:0 0 auto;
   }
+  .fav-btn{
+    border:none;
+    background:none;
+    cursor:pointer;
+    font-size:19px;
+    line-height:1;
+    padding:0 2px;
+    color:#C5CCBF;
+    font-family:inherit;
+  }
+  .fav-btn:hover, .fav-btn.on{color:var(--gold);}
+  .card-dist{font-weight:600;color:var(--accent);}
+  .card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   .card-cat{
     display:inline-flex;
     align-items:center;
@@ -349,7 +406,20 @@
   <span id="chips" style="display:contents"></span>
 </div>
 
-<div class="toolbar" id="ageChips"></div>
+<div class="toolbar">
+  <span id="ageChips" style="display:contents"></span>
+  <button class="chip fav" id="favChip" title="Show only the places you've starred">★ Favorites</button>
+  <span class="tools-right">
+    <button class="chip" id="btnNearMe" title="Sort by how far each place is from you right now">📍 Near me</button>
+    <select class="sort-select" id="sort" aria-label="Sort places">
+      <option value="default">Sort: default</option>
+      <option value="rating">Sort: top rated</option>
+      <option value="name">Sort: A–Z</option>
+      <option value="distance" disabled>Sort: closest</option>
+    </select>
+  </span>
+</div>
+<div class="status-bar" id="status" hidden></div>
 
 <div class="view-toggle" id="viewToggle">
   <button id="btnListView" class="active">List</button>
@@ -362,7 +432,7 @@
 </main>
 
 <footer>
-  Data pulled from Google Places; admission prices and suggested ages researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the file elsewhere. Hours, openings, and prices change — worth a quick check before you go.
+  Data pulled from Google Places; admission prices and suggested ages researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere. Hours, openings, and prices change — worth a quick check before you go.<span id="dataDate"></span>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -387,9 +457,65 @@ const AGE_BANDS = [
 ];
 
 let allVenues = [];
+let dataMeta = {};
 let activeCategories = new Set();
 let activeAgeBands = new Set();
+let favOnly = false;
+let sortMode = 'default';
+let userPos = null;        // {lat, lng} once "Near me" has been granted
+let userMarker = null;
+let lastFitKey = null;     // which set of venues the map was last fitted to
+let pendingFitBounds = null; // a fit we couldn't do because the map was hidden (mobile list view)
 let map, markersById = {}, selectedId = null;
+
+// Venue text is rendered with innerHTML, so escape it — especially once
+// update_venues.py starts pulling names/addresses straight from Google.
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+const FAV_KEY = 'naperkids_favs_v1';
+function loadFavs(){
+  try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); }
+  catch(e){ return new Set(); }
+}
+let favorites = loadFavs();
+function toggleFav(id){
+  if(favorites.has(id)) favorites.delete(id); else favorites.add(id);
+  try { localStorage.setItem(FAV_KEY, JSON.stringify(Array.from(favorites))); }
+  catch(e){ /* storage unavailable — favorites just won't persist across reloads */ }
+  refresh();
+}
+
+function distMiles(v){
+  if(!userPos) return null;
+  const R = 3958.8;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(v.lat - userPos.lat), dLng = toRad(v.lng - userPos.lng);
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2)
+          + Math.cos(toRad(userPos.lat))*Math.cos(toRad(v.lat))*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+function distLabel(v){
+  const d = distMiles(v);
+  if(d == null) return '';
+  if(d < 0.1) return 'right here';
+  return (d < 10 ? d.toFixed(1) : Math.round(d)) + ' mi';
+}
+
+function sortVenues(list){
+  const arr = list.slice();
+  if(sortMode === 'rating'){
+    arr.sort((a,b) => (b.rating||0) - (a.rating||0) || a.name.localeCompare(b.name));
+  } else if(sortMode === 'name'){
+    arr.sort((a,b) => a.name.localeCompare(b.name));
+  } else if(sortMode === 'distance' && userPos){
+    arr.sort((a,b) => distMiles(a) - distMiles(b));
+  }
+  return arr;
+}
 
 function ageRange(v){
   if(!v.age || v.age.startsWith('All ages')) return {min:0, max:99};
@@ -429,9 +555,10 @@ async function loadData(){
     const res = await fetch('./venues.json', {cache:'no-store'});
     if(!res.ok) throw new Error('no venues.json');
     const data = await res.json();
-    return data.venues || [];
+    if(!Array.isArray(data.venues)) throw new Error('unexpected shape');
+    return data;
   }catch(e){
-    return VENUES_FALLBACK.venues || VENUES_FALLBACK;
+    return Array.isArray(VENUES_FALLBACK) ? {venues: VENUES_FALLBACK} : VENUES_FALLBACK;
   }
 }
 
@@ -471,7 +598,7 @@ function renderChips(){
 }
 
 function updateChipStates(){
-  document.querySelectorAll('.chip').forEach(chip => {
+  document.querySelectorAll('#chips .chip').forEach(chip => {
     if(!chip.dataset.cat){
       chip.classList.toggle('active', activeCategories.size === 0);
     } else {
@@ -528,10 +655,12 @@ function voteRowHtml(v){
   const buttons = VOTE_BANDS.map(b => {
     const n = counts[b.id] || 0;
     const active = mine === b.id;
-    return `<button class="vote-btn${active ? ' voted' : ''}" data-venue="${v.id}" data-band="${b.id}">${b.label}${n ? ` <span class="n">${n}</span>` : ''}</button>`;
+    return `<button class="vote-btn${active ? ' voted' : ''}" data-venue="${esc(v.id)}" data-band="${b.id}">${b.label}${n ? ` <span class="n">${n}</span>` : ''}</button>`;
   }).join('');
   return `<div class="vote-row"><span class="vote-label">Best age?</span>${buttons}</div>`;
 }
+
+function ageOverlaps(v){
   if(activeAgeBands.size === 0) return true;
   const r = ageRange(v);
   return Array.from(activeAgeBands).some(bandId => {
@@ -543,13 +672,15 @@ function voteRowHtml(v){
 function filteredVenues(){
   const q = document.getElementById('search').value.trim().toLowerCase();
   const freeOnly = document.getElementById('freeOnly').checked;
-  return allVenues.filter(v => {
+  const matches = allVenues.filter(v => {
     const catOk = activeCategories.size === 0 || activeCategories.has(v.category);
     const freeOk = !freeOnly || isFree(v);
-    const text = (v.name + ' ' + (v.note||'') + ' ' + v.category).toLowerCase();
+    const favOk = !favOnly || favorites.has(v.id);
+    const text = [v.name, v.note, v.category, v.address].join(' ').toLowerCase();
     const searchOk = !q || text.includes(q);
-    return catOk && freeOk && ageOverlaps(v) && searchOk;
+    return catOk && freeOk && favOk && ageOverlaps(v) && searchOk;
   });
+  return sortVenues(matches);
 }
 
 function starString(rating){
@@ -561,7 +692,7 @@ function costBadge(v){
   if(!v.cost) return '';
   const free = isFree(v);
   const label = free ? 'Free' : (v.cost.length > 26 ? 'Paid' : v.cost);
-  return `<span class="cost-badge ${free ? 'free' : 'paid'}" title="${v.cost.replace(/"/g,'&quot;')}">${label}</span>`;
+  return `<span class="cost-badge ${free ? 'free' : 'paid'}" title="${esc(v.cost)}">${esc(label)}</span>`;
 }
 
 function ageShort(v){
@@ -579,43 +710,65 @@ function ageLabel(v){
 
 function ageBadge(v){
   if(!v.age) return '';
-  return `<span class="age-badge" title="${v.age.replace(/"/g,'&quot;')}">${ageLabel(v)}</span>`;
+  return `<span class="age-badge" title="${esc(v.age)}">${esc(ageLabel(v))}</span>`;
 }
 
 function renderList(venues){
   const list = document.getElementById('list');
+  const scrollTop = list.scrollTop;
   list.innerHTML = '';
   if(venues.length === 0){
-    list.innerHTML = '<div class="empty">Nothing matches that yet — try a different filter or search term.</div>';
+    const msg = (favOnly && favorites.size === 0)
+      ? 'No favorites yet — tap the ☆ on a place to save it here.'
+      : 'Nothing matches that yet — try a different filter or search term.';
+    list.innerHTML = `<div class="empty">${msg}</div>`;
     return;
   }
   venues.forEach(v => {
     const card = document.createElement('div');
     card.className = 'card' + (v.id === selectedId ? ' selected' : '');
     card.dataset.id = v.id;
+    card.tabIndex = 0;
     const color = CATEGORY_COLORS[v.category] || '#888';
+    const fav = favorites.has(v.id);
+    const favTitle = fav ? 'Remove from favorites' : 'Save to favorites';
+    const dist = distLabel(v);
     card.innerHTML = `
       <div class="card-top">
-        <p class="card-name">${v.name}</p>
-        <span class="card-rating">${starString(v.rating)}</span>
+        <p class="card-name">${esc(v.name)}</p>
+        <span class="card-side">
+          <span class="card-rating">${starString(v.rating)}</span>
+          <button class="fav-btn${fav ? ' on' : ''}" title="${favTitle}" aria-label="${favTitle}" aria-pressed="${fav}">${fav ? '★' : '☆'}</button>
+        </span>
       </div>
       <div class="card-cat">
-        <span class="dot" style="background:${color}"></span>${v.category}
+        <span class="dot" style="background:${color}"></span>${esc(v.category)}
         ${costBadge(v)}
         ${ageBadge(v)}
       </div>
-      ${v.note ? `<p class="card-note">${v.note}</p>` : ''}
+      ${v.note ? `<p class="card-note">${esc(v.note)}</p>` : ''}
       <div class="card-meta">
-        <span>${v.address}</span>
-        ${v.hours ? `<span>${v.hours}</span>` : ''}
-        ${v.cost && !isFree(v) ? `<span>${v.cost}</span>` : ''}
-        ${v.age && v.age !== ageShort(v) ? `<span>${v.age}</span>` : ''}
+        ${dist ? `<span class="card-dist">${dist}</span>` : ''}
+        <span>${esc(v.address)}</span>
+        ${v.hours ? `<span>${esc(v.hours)}</span>` : ''}
+        ${v.cost && !isFree(v) ? `<span>${esc(v.cost)}</span>` : ''}
+        ${v.age && v.age !== ageShort(v) ? `<span>${esc(v.age)}</span>` : ''}
         <a href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>
-        ${v.website ? `<a href="${v.website}" target="_blank" rel="noopener">Website</a>` : ''}
+        ${v.website ? `<a href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
       </div>
       ${voteRowHtml(v)}
     `;
     card.onclick = () => selectVenue(v.id, true);
+    card.onkeydown = (e) => {
+      if((e.key === 'Enter' || e.key === ' ') && e.target === card){
+        e.preventDefault();
+        selectVenue(v.id, true);
+      }
+    };
+    card.querySelector('.fav-btn').onclick = (e) => {
+      e.stopPropagation();
+      toggleFav(v.id);
+    };
     card.querySelectorAll('.vote-btn').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation();
@@ -624,6 +777,7 @@ function renderList(venues){
     });
     list.appendChild(card);
   });
+  list.scrollTop = scrollTop;
 }
 
 function initMap(){
@@ -647,30 +801,107 @@ function renderMarkers(venues){
       iconAnchor:[8,8]
     });
     const marker = L.marker([v.lat, v.lng], {icon}).addTo(map);
-    marker.bindPopup(`<b>${v.name}</b><br>${v.category} · ${v.cost || ''}${v.age ? ' · '+ageLabel(v) : ''}${v.note ? '<br>'+v.note : ''}`);
+    const dist = distLabel(v);
+    marker.bindPopup(`<b>${esc(v.name)}</b><br>${esc(v.category)}${v.cost ? ' · ' + esc(v.cost) : ''}${v.age ? ' · ' + esc(ageLabel(v)) : ''}${dist ? ' · ' + dist : ''}${v.note ? '<br>' + esc(v.note) : ''}`);
     marker.on('click', () => selectVenue(v.id, false));
     markersById[v.id] = marker;
     bounds.push([v.lat, v.lng]);
   });
-  if(bounds.length){
-    map.fitBounds(bounds, {padding:[30,30], maxZoom:13});
+  // Only re-fit the map when the set of places actually changes, so starring
+  // or voting on a card doesn't yank the view around.
+  const fitKey = venues.map(v => v.id).sort().join('|');
+  if(bounds.length && fitKey !== lastFitKey){
+    fitMapTo(bounds);
   }
+  lastFitKey = fitKey;
+}
+
+function fitMapTo(bounds){
+  // A display:none map (phone, list view) has no size to fit into, so remember
+  // the request and apply it when the map view is actually shown.
+  const el = map.getContainer();
+  if(el.clientWidth === 0 || el.clientHeight === 0){
+    pendingFitBounds = bounds;
+    return;
+  }
+  pendingFitBounds = null;
+  map.fitBounds(bounds, {padding:[30,30], maxZoom:13});
+}
+
+function placeUserMarker(){
+  if(!userPos) return;
+  if(userMarker) map.removeLayer(userMarker);
+  const icon = L.divIcon({
+    className:'',
+    html:'<div style="width:14px;height:14px;border-radius:50%;background:#2F5C8A;border:3px solid white;box-shadow:0 0 0 2px rgba(47,92,138,0.35),0 1px 3px rgba(0,0,0,0.4)"></div>',
+    iconSize:[14,14],
+    iconAnchor:[7,7]
+  });
+  userMarker = L.marker([userPos.lat, userPos.lng], {icon, zIndexOffset:1000}).addTo(map);
+  userMarker.bindTooltip('You are here', {direction:'top', offset:[0,-8]});
+}
+
+function setStatus(msg){
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.hidden = !msg;
+}
+
+function locateMe(){
+  const btn = document.getElementById('btnNearMe');
+  if(!navigator.geolocation){
+    setStatus("This browser can't share your location.");
+    return;
+  }
+  btn.disabled = true;
+  setStatus('Finding where you are…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    userPos = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+    btn.disabled = false;
+    btn.classList.add('active');
+    const sortEl = document.getElementById('sort');
+    sortEl.querySelector('option[value="distance"]').disabled = false;
+    sortEl.value = 'distance';
+    sortMode = 'distance';
+    setStatus('');
+    placeUserMarker();
+    refresh();
+  }, err => {
+    btn.disabled = false;
+    setStatus(err.code === 1
+      ? "Location access was blocked — allow it for this page in your browser's settings, then try again."
+      : "Couldn't get a location fix right now — try again in a moment.");
+  }, {enableHighAccuracy:false, timeout:10000, maximumAge:5*60*1000});
+}
+
+function showDataDate(){
+  if(!dataMeta.generated_at) return;
+  const d = new Date(dataMeta.generated_at + 'T12:00:00');
+  if(isNaN(d.getTime())) return;
+  document.getElementById('dataDate').textContent =
+    ' Data last refreshed ' + d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}) + '.';
 }
 
 function selectVenue(id, panMap){
   selectedId = id;
   document.querySelectorAll('.card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
-  if(panMap && markersById[id]){
+  if(!panMap || !markersById[id]) return;
+  const focusMarker = () => {
     map.panTo(markersById[id].getLatLng());
     markersById[id].openPopup();
-  }
-  if(window.innerWidth <= 860 && panMap){
-    showView('map');
+  };
+  if(window.innerWidth <= 860){
+    showView('map');          // needs a moment to size the map and apply any deferred fit
+    setTimeout(focusMarker, 80);
+  } else {
+    focusMarker();
   }
 }
 
 function refresh(){
   updateChipStates();
+  updateAgeChipStates();
+  document.getElementById('favChip').classList.toggle('active', favOnly);
   const venues = filteredVenues();
   document.getElementById('countTag').textContent = `${venues.length} place${venues.length===1?'':'s'}`;
   renderList(venues);
@@ -692,7 +923,10 @@ function showView(which){
     mapEl.classList.remove('hide-mobile');
     btnMap.classList.add('active');
     btnList.classList.remove('active');
-    setTimeout(() => map.invalidateSize(), 50);
+    setTimeout(() => {
+      map.invalidateSize();
+      if(pendingFitBounds) fitMapTo(pendingFitBounds);
+    }, 50);
   }
 }
 
@@ -703,9 +937,15 @@ document.getElementById('freeOnly').addEventListener('change', (e) => {
 });
 document.getElementById('btnListView').addEventListener('click', () => showView('list'));
 document.getElementById('btnMapView').addEventListener('click', () => showView('map'));
+document.getElementById('sort').addEventListener('change', (e) => { sortMode = e.target.value; refresh(); });
+document.getElementById('btnNearMe').addEventListener('click', locateMe);
+document.getElementById('favChip').addEventListener('click', () => { favOnly = !favOnly; refresh(); });
 
 (async function(){
-  allVenues = await loadData();
+  dataMeta = await loadData();
+  allVenues = dataMeta.venues;
+  if(!navigator.geolocation) document.getElementById('btnNearMe').hidden = true;
+  showDataDate();
   initMap();
   renderChips();
   renderAgeChips();

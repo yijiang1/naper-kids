@@ -2,14 +2,30 @@
 
 A personal dashboard of kid-friendly places in Naperville, IL — parks, splash
 pads, museums, libraries, nature centers, bowling/arcades, and forest preserve
-trails. List view + map view, filterable by category, searchable.
+trails. List view + map view, filterable by category, age, and cost,
+searchable by name, note, or address.
 
 ## Use it right now
 
 Just open `index.html` in a browser (double-click it). It works completely
-offline, using the data already saved in the file — no setup needed. This is
-a snapshot from **September 12, 2026**; places don't move often, but hours
-and new spots will drift out of date over time.
+offline, using the data already saved in the file — no setup needed. The
+footer shows when the data was last refreshed; places don't move often, but
+hours and new spots will drift out of date over time.
+
+Things you can do on the page:
+
+- **Filter** by category, by the age of your kids, or free-only; **search**
+  by name, note, or address (e.g. "aurora" or a zip code).
+- **★ Favorites** — tap the star on a card to save it, then use the
+  Favorites chip to see just those.
+- **📍 Near me** — sorts everything by distance from where you are and shows
+  the miles on each card. The browser will ask for location permission the
+  first time.
+- **Sort** by rating or name.
+- **Best age?** — vote on which age a place suits best.
+
+Favorites and votes are stored in the browser you're using, not shared —
+open the page on another phone and they won't be there.
 
 ## Keep it updated automatically (optional)
 
@@ -27,10 +43,13 @@ No hosting required.
    ```
    export GOOGLE_PLACES_API_KEY="your-key-here"
    python3 update_venues.py
+   python3 build.py
    ```
-3. Re-open `index.html`. It will pick up the refreshed `venues.json`
-   automatically (it tries to load that file first, and only falls back to
-   the snapshot baked into the page if it can't find it).
+   The first command refreshes `venues.json`; the second bakes the new data
+   into `index.html` so the double-click copy sees it too (a page opened
+   straight from disk can't read `venues.json` next to it, so it relies on
+   what's baked in).
+3. Re-open `index.html`.
 
 Run this every so often — monthly is plenty for how often parks and museums
 change.
@@ -53,15 +72,20 @@ change.
 
 ## Customizing
 
-- **Add a place by hand:** open `venues.json` and add an entry — copy the
-  shape of an existing one. No API key needed for this.
+- **Add a place by hand:** open `venues.json` and add an entry to `venues` —
+  copy the shape of an existing one. No API key needed for this. Then run
+  `python3 build.py`.
+- **Your notes are safe:** the updater only ever changes a venue's rating,
+  address, phone, website, and coordinates. It never removes a venue, never
+  changes its category or name, and never touches `note`, `hours`, `cost`,
+  or `age`. Places Google finds that aren't in your list yet are parked in a
+  separate `candidates` list at the bottom of `venues.json` — the page
+  ignores them. To add one, move it up into `venues` and fill in the
+  hand-written fields; to drop one, delete it.
 - **Change what gets searched:** edit the `CATEGORIES` dict near the top of
   `update_venues.py` (each entry is a category name → a search phrase).
 - **Change the search area:** edit `CENTER` and `RADIUS_METERS` in the same
   file.
-- **Your notes are safe:** re-running the updater keeps whatever you've
-  written in a venue's `note` and `hours` fields — it only refreshes rating,
-  address, phone, and website.
 - **Change how often it updates:** edit the `cron` line in
   `.github/workflows/update-venues.yml` ([crontab.guru](https://crontab.guru)
   is handy for this).
@@ -75,6 +99,7 @@ change.
 | `venues.json` | The data the dashboard reads |
 | `build.py` | Regenerates `index.html` from the two files above |
 | `update_venues.py` | Refreshes `venues.json` from Google Places |
+| `test_update_venues.py` | Checks the updater can't lose your hand-written data (no key needed) |
 | `CLAUDE.md` | Dev notes — architecture, constraints, what's not done yet |
 | `.github/workflows/update-venues.yml` | Runs the script on a schedule if hosted on GitHub |
 
@@ -87,5 +112,13 @@ run:
 ```bash
 python3 build.py
 ```
+
+To check it in a browser the way it'll behave when hosted:
+
+```bash
+python3 -m http.server 8000   # then visit http://localhost:8000
+```
+
+After touching `update_venues.py`, run `python3 test_update_venues.py`.
 
 See `CLAUDE.md` for the fuller architecture notes and known rough edges.
