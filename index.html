@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naper Kids — things to do with the kids in Naperville</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --bg: #F1F3EA;
+    --panel: #FFFFFF;
+    --ink: #223028;
+    --ink-soft: #5B6960;
+    --line: #DDE3D6;
+    --accent: #3F6B4F;
+    --accent-ink: #FFFFFF;
+    --gold: #E3A83B;
+
+    --cat-parks: #3F6B4F;
+    --cat-splash: #3E86A0;
+    --cat-indoor: #8B5FBF;
+    --cat-library: #B5622E;
+    --cat-nature: #5C7A3A;
+    --cat-bowling: #C24E4E;
+    --cat-trails: #2E5339;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+  }
+
+  .display{
+    font-family:'Fredoka',system-ui,sans-serif;
+    font-weight:600;
+  }
+
+  header{
+    padding:20px 20px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel);
+  }
+  .header-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    max-width:1160px;
+    margin:0 auto;
+    flex-wrap:wrap;
+  }
+  .title-block h1{
+    font-size:26px;
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  .title-block p{
+    margin:4px 0 0;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .search-wrap{flex:0 0 260px;}
+  .search-wrap input{
+    width:100%;
+    padding:10px 14px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    font-family:inherit;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .search-wrap input:focus{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+
+  .toolbar{
+    max-width:1160px;
+    margin:14px auto 0;
+    padding:0 20px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .chip{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    padding:7px 13px;
+    border-radius:999px;
+    font-size:13px;
+    font-family:inherit;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .chip .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--dot,var(--ink-soft));
+    flex:0 0 auto;
+  }
+  .chip.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:#fff;
+  }
+  .chip.age.active{
+    background:#2F5C8A;
+    border-color:#2F5C8A;
+    color:#fff;
+  }
+  .free-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:7px 13px;
+    border-radius:999px;
+    font-size:13px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .free-toggle input{accent-color:var(--accent);width:15px;height:15px;margin:0;}
+  .free-toggle.active{border-color:var(--accent);color:var(--accent);font-weight:600;}
+
+  .count-tag{
+    margin-left:auto;
+    color:var(--ink-soft);
+    font-size:13px;
+    padding-right:2px;
+  }
+
+  .cost-badge{
+    display:inline-block;
+    font-size:12px;
+    font-weight:600;
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .cost-badge.free{background:#E3EEE0;color:#33613F;}
+  .cost-badge.paid{background:#F5E7D0;color:#8A5A16;}
+
+  .age-badge{
+    display:inline-block;
+    font-size:12px;
+    font-weight:600;
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+    background:#E4ECF5;
+    color:#2F5C8A;
+  }
+
+  .vote-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .vote-label{font-size:11.5px;color:var(--ink-soft);margin-right:2px;}
+  .vote-btn{
+    font-size:11.5px;
+    padding:4px 9px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-family:inherit;
+  }
+  .vote-btn .n{font-weight:600;color:var(--ink);}
+  .vote-btn.voted{
+    border-color:#2F5C8A;
+    background:#E4ECF5;
+    color:#2F5C8A;
+  }
+  .vote-btn.voted .n{color:#2F5C8A;}
+
+  .view-toggle{
+    display:none;
+    max-width:1160px;
+    margin:12px auto 0;
+    padding:0 20px;
+    gap:8px;
+  }
+  .view-toggle button{
+    flex:1;
+    padding:9px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    font-family:inherit;
+    font-size:14px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .view-toggle button.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+
+  main{
+    max-width:1160px;
+    margin:16px auto 40px;
+    padding:0 20px;
+    display:grid;
+    grid-template-columns:minmax(320px,420px) 1fr;
+    gap:18px;
+    align-items:start;
+  }
+
+  #list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:calc(100vh - 210px);
+    overflow-y:auto;
+    padding-right:4px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .card:hover{border-color:var(--accent);}
+  .card.selected{
+    border-color:var(--accent);
+    box-shadow:0 0 0 2px rgba(63,107,79,0.18);
+  }
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .card-name{
+    font-size:15.5px;
+    font-weight:600;
+    margin:0;
+  }
+  .card-rating{
+    font-size:13px;
+    color:var(--gold);
+    white-space:nowrap;
+    flex:0 0 auto;
+  }
+  .card-cat{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:3px;
+  }
+  .card-cat .dot{width:7px;height:7px;border-radius:50%;background:var(--dot);}
+  .card-note{
+    margin:8px 0 0;
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  .card-meta{
+    margin-top:9px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px 14px;
+  }
+  .card-meta a{color:var(--accent);text-decoration:none;font-weight:500;}
+  .card-meta a:hover{text-decoration:underline;}
+
+  #map{
+    height:calc(100vh - 210px);
+    min-height:420px;
+    border-radius:14px;
+    border:1px solid var(--line);
+  }
+
+  .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13.5px;}
+  .leaflet-popup-content b{font-family:'Fredoka',sans-serif;}
+
+  .empty{
+    padding:40px 10px;
+    text-align:center;
+    color:var(--ink-soft);
+  }
+
+  footer{
+    max-width:1160px;
+    margin:0 auto 30px;
+    padding:0 20px;
+    color:var(--ink-soft);
+    font-size:12.5px;
+  }
+
+  @media (max-width: 860px){
+    main{grid-template-columns:1fr;}
+    #list, #map{max-height:none;height:auto;}
+    .view-toggle{display:flex;}
+    #list.hide-mobile, #map.hide-mobile{display:none;}
+    #map{height:60vh;min-height:340px;}
+    #list{max-height:none;}
+    .search-wrap{flex:1 1 100%;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="title-block">
+      <h1 class="display">Naper Kids</h1>
+      <p>Places to take the kids around Naperville — parks, splash pads, museums, and more.</p>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Search by name or vibe…">
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <label class="free-toggle" id="freeToggleLabel">
+    <input type="checkbox" id="freeOnly">
+    Free only
+  </label>
+  <span id="chips" style="display:contents"></span>
+</div>
+
+<div class="toolbar" id="ageChips"></div>
+
+<div class="view-toggle" id="viewToggle">
+  <button id="btnListView" class="active">List</button>
+  <button id="btnMapView">Map</button>
+</div>
+
+<main>
+  <div id="list"></div>
+  <div id="map"></div>
+</main>
+
+<footer>
+  Data pulled from Google Places; admission prices and suggested ages researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the file elsewhere. Hours, openings, and prices change — worth a quick check before you go.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const VENUES_FALLBACK = {
+  "generated_at": "2026-09-14",
+  "center": {
+    "lat": 41.7508,
+    "lng": -88.1535
+  },
+  "venues": [
+    {
+      "id": "knoch-park",
+      "name": "Knoch Park",
+      "category": "Parks & Playgrounds",
+      "lat": 41.7613506,
+      "lng": -88.1565017,
+      "address": "724 S West St, Naperville, IL 60540",
+      "rating": 4.5,
+      "phone": "+1 630-848-5000",
+      "website": "https://napervilleparks.org/location/knochpark",
+      "hours": "7 AM–10 PM daily",
+      "note": "Big park with a zipline, disc golf course, and a popular sledding hill in winter.",
+      "cost": "Free",
+      "age": "2–12"
+    },
+    {
+      "id": "wolfs-crossing-park",
+      "name": "Wolf's Crossing Community Park",
+      "category": "Splash Pads & Pools",
+      "lat": 41.7048653,
+      "lng": -88.2316755,
+      "address": "3252 Wolf's Crossing Rd, Naperville, IL 60564",
+      "rating": 4.8,
+      "phone": "+1 630-848-5000",
+      "website": "https://napervilleparks.org/location/wolfscrossingcommunitypark",
+      "hours": "7 AM–10 PM daily",
+      "note": "Splash pad, ninja course, and a mini playground built for the littlest kids.",
+      "cost": "Free",
+      "age": "1–10"
+    },
+    {
+      "id": "jaycee-playground",
+      "name": "Naperville Jaycee Playground",
+      "category": "Parks & Playgrounds",
+      "lat": 41.7703872,
+      "lng": -88.1600673,
+      "address": "798 Jackson Ave, Naperville, IL 60540",
+      "rating": 4.9,
+      "phone": null,
+      "website": null,
+      "hours": "Open daily, dawn–dusk",
+      "note": "Shaded and small — an easy add-on to a downtown Riverwalk visit.",
+      "cost": "Free",
+      "age": "2–8"
+    },
+    {
+      "id": "winding-creek-park",
+      "name": "Winding Creek Park",
+      "category": "Parks & Playgrounds",
+      "lat": 41.7403364,
+      "lng": -88.138594,
+      "address": "144 W Bailey Rd, Naperville, IL 60565",
+      "rating": 4.7,
+      "phone": "+1 630-848-5000",
+      "website": "https://napervilleparks.org/location/windingcreekpark",
+      "hours": "7 AM–8 PM daily",
+      "note": "Playground plus a fishing pond. No restrooms on site — plan ahead.",
+      "cost": "Free",
+      "age": "2–10"
+    },
+    {
+      "id": "gartner-park",
+      "name": "Gartner Park",
+      "category": "Parks & Playgrounds",
+      "lat": 41.7489831,
+      "lng": -88.154145,
+      "address": "524 W Gartner Rd, Naperville, IL 60540",
+      "rating": 4.6,
+      "phone": "+1 630-848-5000",
+      "website": "https://napervilleparks.org/location/gartnerpark",
+      "hours": "6 AM–9 PM daily",
+      "note": "Sand play area with separate sections for under-3s and up to age 12.",
+      "cost": "Free",
+      "age": "1–12"
+    },
+    {
+      "id": "95th-street-plaza-splash",
+      "name": "95th Street Community Plaza & Splash Pad",
+      "category": "Splash Pads & Pools",
+      "lat": 41.7080658,
+      "lng": -88.2023202,
+      "address": "3109 Cedar Glade Dr, Naperville, IL 60564",
+      "rating": 4.8,
+      "phone": null,
+      "website": "https://napervilleparks.org/location/95thstreetplaza",
+      "hours": "9 AM–8 PM daily (seasonal)",
+      "note": "Fenced splash pad right next to the 95th St. Library — easy combo trip.",
+      "cost": "Free",
+      "age": "1–10"
+    },
+    {
+      "id": "prairie-point-splash",
+      "name": "Prairie Point Splash Park",
+      "category": "Splash Pads & Pools",
+      "lat": 41.6695844,
+      "lng": -88.3429591,
+      "address": "4120 Plainfield Rd, Oswego, IL 60543",
+      "rating": 4.6,
+      "phone": "+1 630-554-1010",
+      "website": "http://www.oswegolandparkdistrict.org/parks/prairie-point-community-park/",
+      "hours": "8 AM–8 PM daily (seasonal)",
+      "note": "A bit further out, but fenced with restrooms and a playground next door.",
+      "cost": "Free",
+      "age": "1–8"
+    },
+    {
+      "id": "dupage-childrens-museum",
+      "name": "DuPage Children's Museum",
+      "category": "Museums & Indoor Play",
+      "lat": 41.778485,
+      "lng": -88.1479341,
+      "address": "301 N Washington St, Naperville, IL 60540",
+      "rating": 4.4,
+      "phone": "+1 630-637-8000",
+      "website": "http://dupagechildrens.org/",
+      "hours": "Check website — hours vary by day",
+      "note": "Large, hands-on museum downtown. A go-to for rainy days; has a cafe on site.",
+      "cost": "$22/person ages 1+ ($21 seniors); free under 1",
+      "age": "1–10"
+    },
+    {
+      "id": "urban-air-naperville",
+      "name": "Urban Air Trampoline and Adventure Park",
+      "category": "Museums & Indoor Play",
+      "lat": 41.774679,
+      "lng": -88.2042393,
+      "address": "1955 Glacier Park Ave, Naperville, IL 60540",
+      "rating": 4.0,
+      "phone": "+1 331-472-8799",
+      "website": "https://www.urbanair.com/illinois-naperville/",
+      "hours": "Mon–Thu 4–8 PM, Fri 4–9 PM, Sat 10 AM–9 PM, Sun 12–8 PM",
+      "note": "Indoor trampolines, ninja course, arcade. Reviews mention some attractions are inconsistently open — worth calling ahead.",
+      "cost": "~$25/person all-day pass (~$12.50 for 40\" & under); $4 socks required",
+      "age": "5–14"
+    },
+    {
+      "id": "nichols-library",
+      "name": "Naperville Public Library – Nichols Library",
+      "category": "Libraries",
+      "lat": 41.772304,
+      "lng": -88.1519347,
+      "address": "200 W Jefferson Ave, Naperville, IL 60540",
+      "rating": 4.6,
+      "phone": "+1 630-961-4100",
+      "website": "http://www.naperville-lib.org/",
+      "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–9 PM",
+      "note": "Downtown location; the whole bottom floor is dedicated kids' space.",
+      "cost": "Free",
+      "age": "All ages"
+    },
+    {
+      "id": "95th-street-library",
+      "name": "Naperville Public Library – 95th Street Library",
+      "category": "Libraries",
+      "lat": 41.7087225,
+      "lng": -88.2025547,
+      "address": "3015 Cedar Glade Dr, Naperville, IL 60564",
+      "rating": 4.7,
+      "phone": "+1 630-961-4100",
+      "website": "http://www.naperville-lib.org/",
+      "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–9 PM",
+      "note": "Attached to a playground and splash pad — read, then run it off outside.",
+      "cost": "Free",
+      "age": "All ages"
+    },
+    {
+      "id": "naper-blvd-library",
+      "name": "Naperville Public Library – Naper Blvd. Library",
+      "category": "Libraries",
+      "lat": 41.729839,
+      "lng": -88.1180656,
+      "address": "2035 S Naper Blvd, Naperville, IL 60565",
+      "rating": 4.7,
+      "phone": "+1 630-961-4100",
+      "website": "http://www.naperville-lib.org/",
+      "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–5 PM",
+      "note": "Quieter kids' area and easier parking than the downtown branch.",
+      "cost": "Free",
+      "age": "All ages"
+    },
+    {
+      "id": "blackberry-farm",
+      "name": "Blackberry Farm",
+      "category": "Nature & Zoos",
+      "lat": 41.7648084,
+      "lng": -88.3906003,
+      "address": "100 S Barnes Rd, Aurora, IL 60506",
+      "rating": 4.7,
+      "phone": "+1 630-892-1550",
+      "website": "https://www.blackberryfarm.info/",
+      "hours": "Fri 9:30 AM–3:30 PM, Sat 9:30 AM–5 PM, Sun 11 AM–5 PM (seasonal, closed Mon–Thu)",
+      "note": "Historic farm: ponies, train, carousel, petting zoo. Great for toddlers.",
+      "cost": "$11/person ages 1+ non-resident rate; free under 1",
+      "age": "1–8"
+    },
+    {
+      "id": "knoch-knolls-nature-center",
+      "name": "Knoch Knolls Nature Center",
+      "category": "Nature & Zoos",
+      "lat": 41.7141117,
+      "lng": -88.1412172,
+      "address": "320 Knoch Knolls Rd, Naperville, IL 60565",
+      "rating": 4.8,
+      "phone": "+1 630-864-3964",
+      "website": "https://napervilleparks.org/knochknollsnaturecenter",
+      "hours": "Mon–Fri 9 AM–4:30 PM, Sat 9 AM–3 PM, Sun closed",
+      "note": "Paved trails, an aquarium inside, and a disc golf course.",
+      "cost": "Free",
+      "age": "All ages"
+    },
+    {
+      "id": "cosley-zoo",
+      "name": "Cosley Zoo",
+      "category": "Nature & Zoos",
+      "lat": 41.8782158,
+      "lng": -88.1211259,
+      "address": "1356 N Gary Ave, Wheaton, IL 60187",
+      "rating": 4.4,
+      "phone": "+1 630-665-5534",
+      "website": "https://cosleyzoo.org/",
+      "hours": "9 AM–5 PM daily",
+      "note": "Small, affordable zoo (~$8 admission), well suited to toddlers.",
+      "cost": "Free for kids 11 & under and Wheaton residents; $12 non-resident adults ($10 seniors)",
+      "age": "1–10"
+    },
+    {
+      "id": "lucky-strike-naperville",
+      "name": "Lucky Strike Naperville",
+      "category": "Bowling & Arcades",
+      "lat": 41.7662451,
+      "lng": -88.1835292,
+      "address": "1515 Aurora Ave, Naperville, IL 60540",
+      "rating": 4.2,
+      "phone": "+1 630-355-7622",
+      "website": "https://www.luckystrikeent.com/location/lucky-strike-naperville",
+      "hours": "4 PM–12 AM weekdays, later Fri/Sat, 11 AM Sat/Sun",
+      "note": "Bowling plus arcade; bumper lanes available for little bowlers.",
+      "cost": "Paid — pay-per-game bowling + arcade, varies by time",
+      "age": "All ages (bumpers/ramps for little bowlers; some evenings go 21+)"
+    },
+    {
+      "id": "main-event-warrenville",
+      "name": "Main Event Warrenville",
+      "category": "Bowling & Arcades",
+      "lat": 41.804656,
+      "lng": -88.1706235,
+      "address": "28248 Diehl Rd, Warrenville, IL 60555",
+      "rating": 3.9,
+      "phone": "+1 630-393-9400",
+      "website": "http://www.mainevent.com/locations/illinois/warrenville",
+      "hours": "11 AM–12 AM weekdays, later Fri/Sat",
+      "note": "Bowling, ropes course, arcade, laser tag — good for birthday parties.",
+      "cost": "Paid — pay-per-attraction/hour, varies by time",
+      "age": "6+ for laser tag & ropes course (height minimums apply); bowling/arcade fine for all ages"
+    },
+    {
+      "id": "round1-aurora",
+      "name": "Round1 Bowling & Arcade – Aurora",
+      "category": "Bowling & Arcades",
+      "lat": 41.7590987,
+      "lng": -88.2115865,
+      "address": "2480 Fox Valley Center Dr B13, Aurora, IL 60504",
+      "rating": 4.1,
+      "phone": "+1 331-208-9270",
+      "website": "http://round1usa.com/",
+      "hours": "10 AM–2 AM daily",
+      "note": "Bowling, arcade, karaoke — gutter guards available for kids.",
+      "cost": "Paid — pay-per-game bowling + arcade credits, varies by time",
+      "age": "8+ — reviewers say it skews toward older kids/teens; loud, two-floor arcade"
+    },
+    {
+      "id": "mcdowell-grove",
+      "name": "McDowell Grove Forest Preserve",
+      "category": "Forest Preserves & Trails",
+      "lat": 41.7961558,
+      "lng": -88.1815964,
+      "address": "4S500 Raymond Dr, Naperville, IL 60563",
+      "rating": 4.7,
+      "phone": "+1 630-933-7683",
+      "website": "http://www.dupageforest.org/Conservation/Forest_Preserves/McDowell_Grove.aspx",
+      "hours": "7 AM–8 PM daily",
+      "note": "Trails along the DuPage River; some sections are stroller-friendly.",
+      "cost": "Free",
+      "age": "All ages — flat trail, paved/stroller-friendly sections"
+    },
+    {
+      "id": "danada-forest-preserve",
+      "name": "Danada Forest Preserve",
+      "category": "Forest Preserves & Trails",
+      "lat": 41.8168633,
+      "lng": -88.111317,
+      "address": "Naperville Rd, Naperville, IL 60563",
+      "rating": 4.7,
+      "phone": "+1 630-933-7200",
+      "website": "http://www.dupageforest.com/Conservation/Forest_Preserves/Danada.aspx",
+      "hours": "Dawn–dusk daily",
+      "note": "Wide gravel trails and an equestrian center; deer sightings are common.",
+      "cost": "Free",
+      "age": "All ages for trails & barn visits; formal riding lessons require 12+"
+    },
+    {
+      "id": "springbrook-prairie",
+      "name": "Springbrook Prairie",
+      "category": "Forest Preserves & Trails",
+      "lat": 41.7369067,
+      "lng": -88.1751248,
+      "address": "83rd St, Naperville, IL 60564",
+      "rating": 4.7,
+      "phone": "+1 630-933-7200",
+      "website": "http://www.dupageforest.com/Conservation/Forest_Preserves/Springbrook_Prairie.aspx",
+      "hours": "Dawn–dusk daily",
+      "note": "A 6-mile crushed-limestone loop — good for a jogging stroller.",
+      "cost": "Free",
+      "age": "All ages, best for biking or strollers — full loop is 5–6 miles with little shade"
+    },
+    {
+      "id": "riverview-farmstead",
+      "name": "Riverview Farmstead Preserve",
+      "category": "Forest Preserves & Trails",
+      "lat": 41.6729443,
+      "lng": -88.186449,
+      "address": "S Book Rd, Naperville, IL 60564",
+      "rating": 4.7,
+      "phone": "+1 815-727-8700",
+      "website": "https://www.reconnectwithnature.org/preserves-trails/preserves/riverview-farmstead/",
+      "hours": "Dawn–dusk daily",
+      "note": "Small and quiet, with a paved trail and a kayak launch.",
+      "cost": "Free",
+      "age": "All ages — short paved trail, easy with a stroller"
+    }
+  ]
+};
+
+const CATEGORY_COLORS = {
+  "Parks & Playgrounds": "#3F6B4F",
+  "Splash Pads & Pools": "#3E86A0",
+  "Museums & Indoor Play": "#8B5FBF",
+  "Libraries": "#B5622E",
+  "Nature & Zoos": "#5C7A3A",
+  "Bowling & Arcades": "#C24E4E",
+  "Forest Preserves & Trails": "#2E5339"
+};
+
+const AGE_BANDS = [
+  {id:'toddler', label:'Toddlers 1–3', min:1, max:3},
+  {id:'little', label:'Little kids 4–7', min:4, max:7},
+  {id:'big', label:'Big kids 8–12', min:8, max:12},
+  {id:'teen', label:'Teens 13+', min:13, max:99},
+];
+
+let allVenues = [];
+let activeCategories = new Set();
+let activeAgeBands = new Set();
+let map, markersById = {}, selectedId = null;
+
+function ageRange(v){
+  if(!v.age || v.age.startsWith('All ages')) return {min:0, max:99};
+  let m = v.age.match(/^(\d+)\s*[–-]\s*(\d+)/);
+  if(m) return {min:parseInt(m[1],10), max:parseInt(m[2],10)};
+  m = v.age.match(/^(\d+)\+/);
+  if(m) return {min:parseInt(m[1],10), max:99};
+  return {min:0, max:99};
+}
+
+function renderAgeChips(){
+  const wrap = document.getElementById('ageChips');
+  wrap.innerHTML = '';
+  AGE_BANDS.forEach(band => {
+    const chip = document.createElement('button');
+    chip.className = 'chip age';
+    chip.textContent = band.label;
+    chip.dataset.band = band.id;
+    chip.onclick = () => {
+      if(activeAgeBands.has(band.id)) activeAgeBands.delete(band.id);
+      else activeAgeBands.add(band.id);
+      updateAgeChipStates();
+      refresh();
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+function updateAgeChipStates(){
+  document.querySelectorAll('.chip.age').forEach(chip => {
+    chip.classList.toggle('active', activeAgeBands.has(chip.dataset.band));
+  });
+}
+
+async function loadData(){
+  try{
+    const res = await fetch('./venues.json', {cache:'no-store'});
+    if(!res.ok) throw new Error('no venues.json');
+    const data = await res.json();
+    return data.venues || [];
+  }catch(e){
+    return VENUES_FALLBACK.venues || VENUES_FALLBACK;
+  }
+}
+
+function directionsUrl(v){
+  return `https://www.google.com/maps/search/?api=1&query=${v.lat},${v.lng}`;
+}
+
+function renderChips(){
+  const wrap = document.getElementById('chips');
+  const cats = Array.from(new Set(allVenues.map(v => v.category)));
+  wrap.innerHTML = '';
+
+  const allChip = document.createElement('button');
+  allChip.className = 'chip active';
+  allChip.textContent = 'All';
+  allChip.onclick = () => { activeCategories.clear(); refresh(); };
+  wrap.appendChild(allChip);
+
+  cats.forEach(cat => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.style.setProperty('--dot', CATEGORY_COLORS[cat] || '#888');
+    chip.innerHTML = `<span class="dot"></span>${cat}`;
+    chip.onclick = () => {
+      if(activeCategories.has(cat)) activeCategories.delete(cat);
+      else activeCategories.add(cat);
+      refresh();
+    };
+    chip.dataset.cat = cat;
+    wrap.appendChild(chip);
+  });
+
+  const countTag = document.createElement('span');
+  countTag.className = 'count-tag';
+  countTag.id = 'countTag';
+  wrap.appendChild(countTag);
+}
+
+function updateChipStates(){
+  document.querySelectorAll('.chip').forEach(chip => {
+    if(!chip.dataset.cat){
+      chip.classList.toggle('active', activeCategories.size === 0);
+    } else {
+      chip.classList.toggle('active', activeCategories.has(chip.dataset.cat));
+    }
+  });
+}
+
+function isFree(v){
+  return (v.cost || '').trim().toLowerCase() === 'free';
+}
+
+const VOTE_BANDS = [
+  {id:'toddler', label:'Toddler'},
+  {id:'little', label:'Little kid'},
+  {id:'big', label:'Big kid'},
+  {id:'teen', label:'Teen'},
+];
+
+function loadVotes(){
+  try { return JSON.parse(localStorage.getItem('naperkids_votes_v1') || '{}'); }
+  catch(e){ return {}; }
+}
+function saveVotes(){
+  try { localStorage.setItem('naperkids_votes_v1', JSON.stringify(votesData)); }
+  catch(e){ /* storage unavailable — votes just won't persist across reloads */ }
+}
+let votesData = loadVotes();
+
+function getVoteCounts(venueId){
+  return (votesData[venueId] && votesData[venueId].counts) || {toddler:0, little:0, big:0, teen:0};
+}
+function getMyVote(venueId){
+  return votesData[venueId] ? votesData[venueId].myVote : null;
+}
+function castVote(venueId, bandId){
+  if(!votesData[venueId]) votesData[venueId] = {counts:{toddler:0,little:0,big:0,teen:0}, myVote:null};
+  const entry = votesData[venueId];
+  if(entry.myVote === bandId){
+    entry.counts[bandId] = Math.max(0, entry.counts[bandId]-1);
+    entry.myVote = null;
+  } else {
+    if(entry.myVote) entry.counts[entry.myVote] = Math.max(0, entry.counts[entry.myVote]-1);
+    entry.counts[bandId] = (entry.counts[bandId]||0)+1;
+    entry.myVote = bandId;
+  }
+  saveVotes();
+  refresh();
+}
+
+function voteRowHtml(v){
+  const counts = getVoteCounts(v.id);
+  const mine = getMyVote(v.id);
+  const buttons = VOTE_BANDS.map(b => {
+    const n = counts[b.id] || 0;
+    const active = mine === b.id;
+    return `<button class="vote-btn${active ? ' voted' : ''}" data-venue="${v.id}" data-band="${b.id}">${b.label}${n ? ` <span class="n">${n}</span>` : ''}</button>`;
+  }).join('');
+  return `<div class="vote-row"><span class="vote-label">Best age?</span>${buttons}</div>`;
+}
+  if(activeAgeBands.size === 0) return true;
+  const r = ageRange(v);
+  return Array.from(activeAgeBands).some(bandId => {
+    const band = AGE_BANDS.find(b => b.id === bandId);
+    return r.min <= band.max && r.max >= band.min;
+  });
+}
+
+function filteredVenues(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const freeOnly = document.getElementById('freeOnly').checked;
+  return allVenues.filter(v => {
+    const catOk = activeCategories.size === 0 || activeCategories.has(v.category);
+    const freeOk = !freeOnly || isFree(v);
+    const text = (v.name + ' ' + (v.note||'') + ' ' + v.category).toLowerCase();
+    const searchOk = !q || text.includes(q);
+    return catOk && freeOk && ageOverlaps(v) && searchOk;
+  });
+}
+
+function starString(rating){
+  if(!rating) return '';
+  return '★ ' + rating.toFixed(1);
+}
+
+function costBadge(v){
+  if(!v.cost) return '';
+  const free = isFree(v);
+  const label = free ? 'Free' : (v.cost.length > 26 ? 'Paid' : v.cost);
+  return `<span class="cost-badge ${free ? 'free' : 'paid'}" title="${v.cost.replace(/"/g,'&quot;')}">${label}</span>`;
+}
+
+function ageShort(v){
+  if(!v.age) return '';
+  if(v.age.startsWith('All ages')) return 'All ages';
+  const m = v.age.match(/^[0-9]+(\+|–[0-9]+)/);
+  return m ? m[0] : v.age;
+}
+
+function ageLabel(v){
+  if(!v.age) return '';
+  const short = ageShort(v);
+  return short === 'All ages' ? 'All ages' : `Ages ${short}`;
+}
+
+function ageBadge(v){
+  if(!v.age) return '';
+  return `<span class="age-badge" title="${v.age.replace(/"/g,'&quot;')}">${ageLabel(v)}</span>`;
+}
+
+function renderList(venues){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  if(venues.length === 0){
+    list.innerHTML = '<div class="empty">Nothing matches that yet — try a different filter or search term.</div>';
+    return;
+  }
+  venues.forEach(v => {
+    const card = document.createElement('div');
+    card.className = 'card' + (v.id === selectedId ? ' selected' : '');
+    card.dataset.id = v.id;
+    const color = CATEGORY_COLORS[v.category] || '#888';
+    card.innerHTML = `
+      <div class="card-top">
+        <p class="card-name">${v.name}</p>
+        <span class="card-rating">${starString(v.rating)}</span>
+      </div>
+      <div class="card-cat">
+        <span class="dot" style="background:${color}"></span>${v.category}
+        ${costBadge(v)}
+        ${ageBadge(v)}
+      </div>
+      ${v.note ? `<p class="card-note">${v.note}</p>` : ''}
+      <div class="card-meta">
+        <span>${v.address}</span>
+        ${v.hours ? `<span>${v.hours}</span>` : ''}
+        ${v.cost && !isFree(v) ? `<span>${v.cost}</span>` : ''}
+        ${v.age && v.age !== ageShort(v) ? `<span>${v.age}</span>` : ''}
+        <a href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>
+        ${v.website ? `<a href="${v.website}" target="_blank" rel="noopener">Website</a>` : ''}
+      </div>
+      ${voteRowHtml(v)}
+    `;
+    card.onclick = () => selectVenue(v.id, true);
+    card.querySelectorAll('.vote-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        castVote(btn.dataset.venue, btn.dataset.band);
+      };
+    });
+    list.appendChild(card);
+  });
+}
+
+function initMap(){
+  map = L.map('map', {scrollWheelZoom:false}).setView([41.7508,-88.1535], 11);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom:19,
+    attribution:'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, USGS, NGA, EPA, NPS'
+  }).addTo(map);
+}
+
+function renderMarkers(venues){
+  Object.values(markersById).forEach(m => map.removeLayer(m));
+  markersById = {};
+  const bounds = [];
+  venues.forEach(v => {
+    const color = CATEGORY_COLORS[v.category] || '#888';
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.4)"></div>`,
+      iconSize:[16,16],
+      iconAnchor:[8,8]
+    });
+    const marker = L.marker([v.lat, v.lng], {icon}).addTo(map);
+    marker.bindPopup(`<b>${v.name}</b><br>${v.category} · ${v.cost || ''}${v.age ? ' · '+ageLabel(v) : ''}${v.note ? '<br>'+v.note : ''}`);
+    marker.on('click', () => selectVenue(v.id, false));
+    markersById[v.id] = marker;
+    bounds.push([v.lat, v.lng]);
+  });
+  if(bounds.length){
+    map.fitBounds(bounds, {padding:[30,30], maxZoom:13});
+  }
+}
+
+function selectVenue(id, panMap){
+  selectedId = id;
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
+  if(panMap && markersById[id]){
+    map.panTo(markersById[id].getLatLng());
+    markersById[id].openPopup();
+  }
+  if(window.innerWidth <= 860 && panMap){
+    showView('map');
+  }
+}
+
+function refresh(){
+  updateChipStates();
+  const venues = filteredVenues();
+  document.getElementById('countTag').textContent = `${venues.length} place${venues.length===1?'':'s'}`;
+  renderList(venues);
+  renderMarkers(venues);
+}
+
+function showView(which){
+  const list = document.getElementById('list');
+  const mapEl = document.getElementById('map');
+  const btnList = document.getElementById('btnListView');
+  const btnMap = document.getElementById('btnMapView');
+  if(which === 'list'){
+    list.classList.remove('hide-mobile');
+    mapEl.classList.add('hide-mobile');
+    btnList.classList.add('active');
+    btnMap.classList.remove('active');
+  } else {
+    list.classList.add('hide-mobile');
+    mapEl.classList.remove('hide-mobile');
+    btnMap.classList.add('active');
+    btnList.classList.remove('active');
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+}
+
+document.getElementById('search').addEventListener('input', refresh);
+document.getElementById('freeOnly').addEventListener('change', (e) => {
+  document.getElementById('freeToggleLabel').classList.toggle('active', e.target.checked);
+  refresh();
+});
+document.getElementById('btnListView').addEventListener('click', () => showView('list'));
+document.getElementById('btnMapView').addEventListener('click', () => showView('map'));
+
+(async function(){
+  allVenues = await loadData();
+  initMap();
+  renderChips();
+  renderAgeChips();
+  refresh();
+  if(window.innerWidth <= 860) showView('list');
+})();
+</script>
+</body>
+</html>
