@@ -99,12 +99,14 @@ and run `node --check` on it. (The first commit shipped with a missing
 
 ## Not yet done
 
-- No git remote configured — this repo is local-only so far. Local branch
-  is `master`; README's GitHub Pages steps assume `main`.
+- Pushed to a private GitHub repo (`origin` = github.com/yijiang1/naper-kids,
+  branch `main`). The weekly workflow runs there but skips itself until the
+  `GOOGLE_PLACES_API_KEY` secret is added.
 - `GOOGLE_PLACES_API_KEY` has not been created/tested, so the updater has
   only ever run against the fake API in `test_update_venues.py`.
 - Shared (cross-visitor) voting was discussed but intentionally not built.
-- Not yet hosted anywhere (GitHub Pages setup is documented in README.md
-  but hasn't been done).
+- Not yet hosted anywhere. GitHub Pages setup is documented in README.md
+  but hasn't been done; note that Pages on a *private* repo needs a paid
+  GitHub plan, so it may need to be made public first.
 - Cosley Zoo's `note` says "~$8 admission" while its `cost` says $12 — one
   of them is stale; check the zoo's site.

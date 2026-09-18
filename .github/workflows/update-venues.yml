@@ -22,7 +22,13 @@ jobs:
       - name: Run updater
         env:
           GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
-        run: python3 update_venues.py
+        run: |
+          if [ -z "$GOOGLE_PLACES_API_KEY" ]; then
+            echo "GOOGLE_PLACES_API_KEY secret is not set - skipping the refresh."
+            echo "Add it under Settings > Secrets and variables > Actions to enable weekly updates."
+            exit 0
+          fi
+          python3 update_venues.py
 
       - name: Commit changes if any
         run: |
