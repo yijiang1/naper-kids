@@ -29,7 +29,8 @@ jobs:
             exit 0
           fi
           python3 update_venues.py
-          python3 build.py   # bake the fresh data into index.html for the offline copy
+          python3 check_data.py   # fail before a bad hand edit gets baked into index.html
+          python3 build.py        # bake the fresh data into index.html for the offline copy
 
       - name: Commit changes if any
         run: |

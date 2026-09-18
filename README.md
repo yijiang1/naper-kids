@@ -103,6 +103,7 @@ change.
 | `update_venues.py` | Refreshes `venues.json` from Google Places |
 | `test_update_venues.py` | Checks the updater can't lose your hand-written data (no key needed) |
 | `CLAUDE.md` | Dev notes — architecture, constraints, what's not done yet |
+| `ROADMAP.md` | Ideas and planned features, in priority order |
 | `.github/workflows/update-venues.yml` | Runs the script on a schedule if hosted on GitHub |
 
 ## Developing further

@@ -9,9 +9,14 @@ on purpose so it keeps working as one portable, offline-capable file.
 - **`venues.json`** — the actual content. `venues` is the curated list (22
   entries: id, name, category, lat/lng, address, rating, phone, website,
   hours, cost, age, note, plus `place_id` once the updater has matched it
-  to Google). `candidates` is a holding pen for places the updater found
-  that nobody has curated yet; the page ignores it. This is what changes
-  most often.
+  to Google). Also hand-curated, and always optional (missing = the
+  default): `season` (`"year-round"` (default) / `"summer"` / `"winter"` /
+  `{"from": M, "to": M}`, generous month ranges — see 1.1 in ROADMAP.md),
+  `tags` (fixed vocabulary — `restrooms`, `fenced`, `shade`, `stroller`,
+  `food`, `water-play`, `picnic`, `parking`), and `indoor` (`true` /
+  `"partly"` / omitted for outdoor). `candidates` is a holding pen for
+  places the updater found that nobody has curated yet; the page ignores
+  it. This is what changes most often.
 - **`index_template.html`** — the real source of the page: markup, CSS, and
   all JS logic (filtering, sorting, the map, favorites, voting). Has one
   placeholder, `__VENUES_JSON__`, where the data gets inlined at build time.
@@ -25,30 +30,44 @@ on purpose so it keeps working as one portable, offline-capable file.
 - **`update_venues.py`** — refreshes `venues.json` from the Google Places
   API (needs a `GOOGLE_PLACES_API_KEY` env var). It never removes a venue,
   never changes a venue's category or name, and never touches the
-  hand-curated `note`, `hours`, `cost`, and `age` fields; it only refreshes
-  rating/address/phone/website/lat/lng, and only when Google actually
-  returns a value. Google results are matched to existing venues by
-  `place_id`, then by id slug, then by "within 150 m and names mostly
-  overlap" (see `MATCH_RADIUS_M` / `MATCH_NAME_SCORE`). Unmatched results
-  go to `candidates`, except second Google listings of an already-matched
-  venue and anything beyond `MAX_CANDIDATE_DISTANCE_M` (~25 mi) from
-  `CENTER`, which are dropped. Google's raw formatting is tidied on the way
-  in (`clean_*` helpers): no trailing ", USA", phones as `(630) 555-1234`,
-  `utm_*` stripped from websites, coordinates rounded to 7 decimals. Keep
-  hand-entered data in those same shapes so diffs stay quiet.
+  hand-curated `note`, `hours`, `cost`, `age`, `season`, `tags`, or `indoor`
+  fields; it only refreshes rating/address/phone/website/lat/lng, and only
+  when Google actually returns a value. Google results are matched to
+  existing venues by `place_id`, then by id slug, then by "within 150 m and
+  names mostly overlap" (see `MATCH_RADIUS_M` / `MATCH_NAME_SCORE`).
+  Unmatched results go to `candidates`, except second Google listings of an
+  already-matched venue and anything beyond `MAX_CANDIDATE_DISTANCE_M`
+  (~25 mi) from `CENTER`, which are dropped. Google's raw formatting is
+  tidied on the way in (`clean_*` helpers): no trailing ", USA", phones as
+  `(630) 555-1234`, `utm_*` stripped from websites, coordinates rounded to
+  7 decimals. Keep hand-entered data in those same shapes so diffs stay
+  quiet.
 - **`test_update_venues.py`** — runs the updater against a fake Places API
   on a temp copy of the data and asserts nothing curated is lost or
   duplicated. Stdlib only. Run it after any change to the updater.
+- **`check_data.py`** — validates `venues.json`: required fields present,
+  ids unique clean slugs, coordinates within ~60 km of `center`, rating in
+  0–5, and `season`/`tags`/`indoor` restricted to their vocabularies. Only
+  checks `venues`, not `candidates` (those are allowed to be incomplete).
+  Runs in the weekly workflow right before `build.py` so a bad hand edit
+  never gets baked into `index.html`; also worth running by hand after
+  editing `venues.json`.
+- **`ROADMAP.md`** — prioritised ideas with the data fields each one needs.
+  Check it before adding fields to `venues.json` so new work lines up with
+  what's planned; tick items off there as they land.
 - **`.github/workflows/update-venues.yml`** — GitHub Actions job that runs
-  `update_venues.py` then `build.py` every Monday and commits both
-  `venues.json` and the rebuilt `index.html`. Skips itself if the
-  `GOOGLE_PLACES_API_KEY` secret is missing. Because the bot commits
+  `update_venues.py`, then `check_data.py`, then `build.py` every Monday
+  and commits both `venues.json` and the rebuilt `index.html`. Skips itself
+  if the `GOOGLE_PLACES_API_KEY` secret is missing. Because the bot commits
   `index.html`, always `git pull` before local work; if `index.html` ever
   conflicts, don't merge it by hand — run `build.py` and take that.
 
 ## Workflow
 
 ```bash
+# after hand-editing venues.json:
+python3 check_data.py
+
 # after editing venues.json or index_template.html:
 python3 build.py
 
@@ -103,7 +122,20 @@ and run `node --check` on it. (The first commit shipped with a missing
   button hides itself if the API is missing; permission errors show in the
   status line under the toolbar.
 - **`cost` and `age` are hand-researched fields** — the Places API returns
-  neither, so `update_venues.py` is written to never overwrite them.
+  neither, so `update_venues.py` is written to never overwrite them. Same
+  goes for `season`, `tags`, and `indoor`.
+- **A CSS class that sets `display` beats the browser's own `[hidden]`
+  rule.** `.chip{display:inline-flex}` silently overrode `hidden` on any
+  chip (this bit the out-of-season toggle, and had been quietly true of
+  the "Near me" button's no-geolocation case too). Fixed with a blanket
+  `[hidden]{display:none !important;}`, kept near the top of the
+  stylesheet — keep it there if you add more elements that toggle
+  `hidden` from JS.
+- **The rainy-day hint calls Open-Meteo** (`api.open-meteo.com`, keyless,
+  no key/quota to manage) for today's precipitation chance at `center`.
+  It's wrapped in try/catch with a 5s abort timeout, so it fails silent on
+  `file://`, offline, or if that host ever changes terms — same posture as
+  the map tiles, just lower stakes since the page works fine without it.
 
 ## Not yet done
 

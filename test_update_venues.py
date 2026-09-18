@@ -120,6 +120,10 @@ def main():
     assert V["nichols-library"]["place_id"] == "g5" and V["nichols-library"]["rating"] == 4.5
     assert V["dupage-childrens-museum"]["phone"] == museum["phone"], "phone wiped by an empty Google field"
     assert V["dupage-childrens-museum"]["website"] == museum["website"]
+    assert V["dupage-childrens-museum"].get("indoor") == museum.get("indoor"), "indoor flag touched by updater"
+    assert V["dupage-childrens-museum"].get("tags") == museum.get("tags"), "tags touched by updater"
+    assert V["wolfs-crossing-park"].get("season") == by_id["wolfs-crossing-park"].get("season"), \
+        "season touched by updater"
     assert [c["name"] for c in data["candidates"]] == ["Some Random New Park"], [c["name"] for c in data["candidates"]]
     assert "ignored 1 duplicate listing(s) and 1 too far away" in log, log
     assert list(data["venues"][0].keys())[:3] == ["id", "place_id", "name"]

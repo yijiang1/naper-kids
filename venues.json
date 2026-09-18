@@ -35,7 +35,9 @@
       "hours": "7 AM–10 PM daily",
       "note": "Splash pad, ninja course, and a mini playground built for the littlest kids.",
       "cost": "Free",
-      "age": "1–10"
+      "age": "1–10",
+      "season": "summer",
+      "tags": ["water-play"]
     },
     {
       "id": "jaycee-playground",
@@ -51,7 +53,8 @@
       "hours": "Open daily, dawn–dusk",
       "note": "Shaded and small — an easy add-on to a downtown Riverwalk visit.",
       "cost": "Free",
-      "age": "2–8"
+      "age": "2–8",
+      "tags": ["shade"]
     },
     {
       "id": "winding-creek-park",
@@ -98,7 +101,9 @@
       "hours": "9 AM–8 PM daily (seasonal)",
       "note": "Fenced splash pad right next to the 95th St. Library — easy combo trip.",
       "cost": "Free",
-      "age": "1–10"
+      "age": "1–10",
+      "season": "summer",
+      "tags": ["fenced", "water-play"]
     },
     {
       "id": "prairie-point-splash",
@@ -114,7 +119,9 @@
       "hours": "8 AM–8 PM daily (seasonal)",
       "note": "A bit further out, but fenced with restrooms and a playground next door.",
       "cost": "Free",
-      "age": "1–8"
+      "age": "1–8",
+      "season": "summer",
+      "tags": ["fenced", "restrooms", "water-play"]
     },
     {
       "id": "dupage-childrens-museum",
@@ -129,7 +136,9 @@
       "hours": "Check website — hours vary by day",
       "note": "Large, hands-on museum downtown. A go-to for rainy days; has a cafe on site.",
       "cost": "$22/person ages 1+ ($21 seniors); free under 1",
-      "age": "1–10"
+      "age": "1–10",
+      "indoor": true,
+      "tags": ["food"]
     },
     {
       "id": "urban-air-naperville",
@@ -144,7 +153,8 @@
       "hours": "Mon–Thu 4–8 PM, Fri 4–9 PM, Sat 10 AM–9 PM, Sun 12–8 PM",
       "note": "Indoor trampolines, ninja course, arcade. Reviews mention some attractions are inconsistently open — worth calling ahead.",
       "cost": "~$25/person all-day pass (~$12.50 for 40\" & under); $4 socks required",
-      "age": "5–14"
+      "age": "5–14",
+      "indoor": true
     },
     {
       "id": "nichols-library",
@@ -160,7 +170,8 @@
       "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–9 PM",
       "note": "Downtown location; the whole bottom floor is dedicated kids' space.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": true
     },
     {
       "id": "95th-street-library",
@@ -176,7 +187,8 @@
       "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–9 PM",
       "note": "Attached to a playground and splash pad — read, then run it off outside.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": true
     },
     {
       "id": "naper-blvd-library",
@@ -192,7 +204,9 @@
       "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–5 PM",
       "note": "Quieter kids' area and easier parking than the downtown branch.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": true,
+      "tags": ["parking"]
     },
     {
       "id": "blackberry-farm",
@@ -208,7 +222,8 @@
       "hours": "Fri 9:30 AM–3:30 PM, Sat 9:30 AM–5 PM, Sun 11 AM–5 PM (seasonal, closed Mon–Thu)",
       "note": "Historic farm: ponies, train, carousel, petting zoo. Great for toddlers.",
       "cost": "$11/person ages 1+ non-resident rate; free under 1",
-      "age": "1–8"
+      "age": "1–8",
+      "season": "summer"
     },
     {
       "id": "knoch-knolls-nature-center",
@@ -224,7 +239,9 @@
       "hours": "Mon–Fri 9 AM–4:30 PM, Sat 9 AM–3 PM, Sun closed",
       "note": "Paved trails, an aquarium inside, and a disc golf course.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": "partly",
+      "tags": ["stroller"]
     },
     {
       "id": "cosley-zoo",
@@ -256,7 +273,8 @@
       "hours": "4 PM–12 AM weekdays, later Fri/Sat, 11 AM Sat/Sun",
       "note": "Bowling plus arcade; bumper lanes available for little bowlers.",
       "cost": "Paid — pay-per-game bowling + arcade, varies by time",
-      "age": "All ages (bumpers/ramps for little bowlers; some evenings go 21+)"
+      "age": "All ages (bumpers/ramps for little bowlers; some evenings go 21+)",
+      "indoor": true
     },
     {
       "id": "main-event-warrenville",
@@ -272,7 +290,8 @@
       "hours": "11 AM–12 AM weekdays, later Fri/Sat",
       "note": "Bowling, ropes course, arcade, laser tag — good for birthday parties.",
       "cost": "Paid — pay-per-attraction/hour, varies by time",
-      "age": "6+ for laser tag & ropes course (height minimums apply); bowling/arcade fine for all ages"
+      "age": "6+ for laser tag & ropes course (height minimums apply); bowling/arcade fine for all ages",
+      "indoor": true
     },
     {
       "id": "round1-aurora",
@@ -288,7 +307,8 @@
       "hours": "10 AM–2 AM daily",
       "note": "Bowling, arcade, karaoke — gutter guards available for kids.",
       "cost": "Paid — pay-per-game bowling + arcade credits, varies by time",
-      "age": "8+ — reviewers say it skews toward older kids/teens; loud, two-floor arcade"
+      "age": "8+ — reviewers say it skews toward older kids/teens; loud, two-floor arcade",
+      "indoor": true
     },
     {
       "id": "mcdowell-grove",
@@ -304,7 +324,8 @@
       "hours": "7 AM–8 PM daily",
       "note": "Trails along the DuPage River; some sections are stroller-friendly.",
       "cost": "Free",
-      "age": "All ages — flat trail, paved/stroller-friendly sections"
+      "age": "All ages — flat trail, paved/stroller-friendly sections",
+      "tags": ["stroller"]
     },
     {
       "id": "danada-forest-preserve",
@@ -336,7 +357,8 @@
       "hours": "Dawn–dusk daily",
       "note": "A 6-mile crushed-limestone loop — good for a jogging stroller.",
       "cost": "Free",
-      "age": "All ages, best for biking or strollers — full loop is 5–6 miles with little shade"
+      "age": "All ages, best for biking or strollers — full loop is 5–6 miles with little shade",
+      "tags": ["stroller"]
     },
     {
       "id": "riverview-farmstead",
@@ -352,7 +374,8 @@
       "hours": "Dawn–dusk daily",
       "note": "Small and quiet, with a paved trail and a kayak launch.",
       "cost": "Free",
-      "age": "All ages — short paved trail, easy with a stroller"
+      "age": "All ages — short paved trail, easy with a stroller",
+      "tags": ["stroller"]
     }
   ],
   "candidates": [

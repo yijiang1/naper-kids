@@ -31,6 +31,7 @@
   }
 
   *{box-sizing:border-box;}
+  [hidden]{display:none !important;}
   html,body{height:100%;}
   body{
     margin:0;
@@ -192,6 +193,44 @@
   }
   .cost-badge.free{background:#E3EEE0;color:#33613F;}
   .cost-badge.paid{background:#F5E7D0;color:#8A5A16;}
+  .cost-badge.out-season{background:#E7E7E2;color:#5B6960;}
+
+  .card-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:7px;
+  }
+  .tag-pill{
+    font-size:11px;
+    color:var(--ink-soft);
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:1px 9px;
+  }
+
+  .tag-label{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-right:2px;
+  }
+
+  .rain-hint-row{
+    max-width:1160px;
+    margin:8px auto 0;
+    padding:0 20px;
+  }
+  .rain-hint{
+    display:inline-block;
+    background:#E4ECF5;
+    color:#2F5C8A;
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+  }
 
   .age-badge{
     display:inline-block;
@@ -408,7 +447,9 @@
 
 <div class="toolbar">
   <span id="ageChips" style="display:contents"></span>
+  <button class="chip" id="indoorChip" title="Only show venues with indoor space">🏠 Indoor</button>
   <button class="chip fav" id="favChip" title="Show only the places you've starred">★ Favorites</button>
+  <button class="chip" id="seasonChip" title="Include venues that are closed for the season" hidden>Show out-of-season</button>
   <span class="tools-right">
     <button class="chip" id="btnNearMe" title="Sort by how far each place is from you right now">📍 Near me</button>
     <select class="sort-select" id="sort" aria-label="Sort places">
@@ -419,7 +460,14 @@
     </select>
   </span>
 </div>
+<div class="toolbar" id="tagToolbar" hidden>
+  <span class="tag-label">Must have:</span>
+  <span id="tagChips" style="display:contents"></span>
+</div>
 <div class="status-bar" id="status" hidden></div>
+<div class="rain-hint-row" id="rainHintRow" hidden>
+  <span class="rain-hint" id="rainHint"></span>
+</div>
 
 <div class="view-toggle" id="viewToggle">
   <button id="btnListView" class="active">List</button>
@@ -474,7 +522,11 @@ const VENUES_FALLBACK = {
       "hours": "7 AM–10 PM daily",
       "note": "Splash pad, ninja course, and a mini playground built for the littlest kids.",
       "cost": "Free",
-      "age": "1–10"
+      "age": "1–10",
+      "season": "summer",
+      "tags": [
+        "water-play"
+      ]
     },
     {
       "id": "jaycee-playground",
@@ -490,7 +542,10 @@ const VENUES_FALLBACK = {
       "hours": "Open daily, dawn–dusk",
       "note": "Shaded and small — an easy add-on to a downtown Riverwalk visit.",
       "cost": "Free",
-      "age": "2–8"
+      "age": "2–8",
+      "tags": [
+        "shade"
+      ]
     },
     {
       "id": "winding-creek-park",
@@ -537,7 +592,12 @@ const VENUES_FALLBACK = {
       "hours": "9 AM–8 PM daily (seasonal)",
       "note": "Fenced splash pad right next to the 95th St. Library — easy combo trip.",
       "cost": "Free",
-      "age": "1–10"
+      "age": "1–10",
+      "season": "summer",
+      "tags": [
+        "fenced",
+        "water-play"
+      ]
     },
     {
       "id": "prairie-point-splash",
@@ -553,7 +613,13 @@ const VENUES_FALLBACK = {
       "hours": "8 AM–8 PM daily (seasonal)",
       "note": "A bit further out, but fenced with restrooms and a playground next door.",
       "cost": "Free",
-      "age": "1–8"
+      "age": "1–8",
+      "season": "summer",
+      "tags": [
+        "fenced",
+        "restrooms",
+        "water-play"
+      ]
     },
     {
       "id": "dupage-childrens-museum",
@@ -568,7 +634,11 @@ const VENUES_FALLBACK = {
       "hours": "Check website — hours vary by day",
       "note": "Large, hands-on museum downtown. A go-to for rainy days; has a cafe on site.",
       "cost": "$22/person ages 1+ ($21 seniors); free under 1",
-      "age": "1–10"
+      "age": "1–10",
+      "indoor": true,
+      "tags": [
+        "food"
+      ]
     },
     {
       "id": "urban-air-naperville",
@@ -583,7 +653,8 @@ const VENUES_FALLBACK = {
       "hours": "Mon–Thu 4–8 PM, Fri 4–9 PM, Sat 10 AM–9 PM, Sun 12–8 PM",
       "note": "Indoor trampolines, ninja course, arcade. Reviews mention some attractions are inconsistently open — worth calling ahead.",
       "cost": "~$25/person all-day pass (~$12.50 for 40\" & under); $4 socks required",
-      "age": "5–14"
+      "age": "5–14",
+      "indoor": true
     },
     {
       "id": "nichols-library",
@@ -599,7 +670,8 @@ const VENUES_FALLBACK = {
       "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–9 PM",
       "note": "Downtown location; the whole bottom floor is dedicated kids' space.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": true
     },
     {
       "id": "95th-street-library",
@@ -615,7 +687,8 @@ const VENUES_FALLBACK = {
       "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–9 PM",
       "note": "Attached to a playground and splash pad — read, then run it off outside.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": true
     },
     {
       "id": "naper-blvd-library",
@@ -631,7 +704,11 @@ const VENUES_FALLBACK = {
       "hours": "Mon–Fri 9 AM–9 PM, Sat 9 AM–5 PM, Sun 1–5 PM",
       "note": "Quieter kids' area and easier parking than the downtown branch.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": true,
+      "tags": [
+        "parking"
+      ]
     },
     {
       "id": "blackberry-farm",
@@ -647,7 +724,8 @@ const VENUES_FALLBACK = {
       "hours": "Fri 9:30 AM–3:30 PM, Sat 9:30 AM–5 PM, Sun 11 AM–5 PM (seasonal, closed Mon–Thu)",
       "note": "Historic farm: ponies, train, carousel, petting zoo. Great for toddlers.",
       "cost": "$11/person ages 1+ non-resident rate; free under 1",
-      "age": "1–8"
+      "age": "1–8",
+      "season": "summer"
     },
     {
       "id": "knoch-knolls-nature-center",
@@ -663,7 +741,11 @@ const VENUES_FALLBACK = {
       "hours": "Mon–Fri 9 AM–4:30 PM, Sat 9 AM–3 PM, Sun closed",
       "note": "Paved trails, an aquarium inside, and a disc golf course.",
       "cost": "Free",
-      "age": "All ages"
+      "age": "All ages",
+      "indoor": "partly",
+      "tags": [
+        "stroller"
+      ]
     },
     {
       "id": "cosley-zoo",
@@ -695,7 +777,8 @@ const VENUES_FALLBACK = {
       "hours": "4 PM–12 AM weekdays, later Fri/Sat, 11 AM Sat/Sun",
       "note": "Bowling plus arcade; bumper lanes available for little bowlers.",
       "cost": "Paid — pay-per-game bowling + arcade, varies by time",
-      "age": "All ages (bumpers/ramps for little bowlers; some evenings go 21+)"
+      "age": "All ages (bumpers/ramps for little bowlers; some evenings go 21+)",
+      "indoor": true
     },
     {
       "id": "main-event-warrenville",
@@ -711,7 +794,8 @@ const VENUES_FALLBACK = {
       "hours": "11 AM–12 AM weekdays, later Fri/Sat",
       "note": "Bowling, ropes course, arcade, laser tag — good for birthday parties.",
       "cost": "Paid — pay-per-attraction/hour, varies by time",
-      "age": "6+ for laser tag & ropes course (height minimums apply); bowling/arcade fine for all ages"
+      "age": "6+ for laser tag & ropes course (height minimums apply); bowling/arcade fine for all ages",
+      "indoor": true
     },
     {
       "id": "round1-aurora",
@@ -727,7 +811,8 @@ const VENUES_FALLBACK = {
       "hours": "10 AM–2 AM daily",
       "note": "Bowling, arcade, karaoke — gutter guards available for kids.",
       "cost": "Paid — pay-per-game bowling + arcade credits, varies by time",
-      "age": "8+ — reviewers say it skews toward older kids/teens; loud, two-floor arcade"
+      "age": "8+ — reviewers say it skews toward older kids/teens; loud, two-floor arcade",
+      "indoor": true
     },
     {
       "id": "mcdowell-grove",
@@ -743,7 +828,10 @@ const VENUES_FALLBACK = {
       "hours": "7 AM–8 PM daily",
       "note": "Trails along the DuPage River; some sections are stroller-friendly.",
       "cost": "Free",
-      "age": "All ages — flat trail, paved/stroller-friendly sections"
+      "age": "All ages — flat trail, paved/stroller-friendly sections",
+      "tags": [
+        "stroller"
+      ]
     },
     {
       "id": "danada-forest-preserve",
@@ -775,7 +863,10 @@ const VENUES_FALLBACK = {
       "hours": "Dawn–dusk daily",
       "note": "A 6-mile crushed-limestone loop — good for a jogging stroller.",
       "cost": "Free",
-      "age": "All ages, best for biking or strollers — full loop is 5–6 miles with little shade"
+      "age": "All ages, best for biking or strollers — full loop is 5–6 miles with little shade",
+      "tags": [
+        "stroller"
+      ]
     },
     {
       "id": "riverview-farmstead",
@@ -791,7 +882,10 @@ const VENUES_FALLBACK = {
       "hours": "Dawn–dusk daily",
       "note": "Small and quiet, with a paved trail and a kayak launch.",
       "cost": "Free",
-      "age": "All ages — short paved trail, easy with a stroller"
+      "age": "All ages — short paved trail, easy with a stroller",
+      "tags": [
+        "stroller"
+      ]
     }
   ]
 };
@@ -813,11 +907,27 @@ const AGE_BANDS = [
   {id:'teen', label:'Teens 13+', min:13, max:99},
 ];
 
+// Fixed vocabulary — keep in sync with check_data.py's TAG_VOCAB.
+const TAG_LABELS = {
+  restrooms: 'Restrooms',
+  fenced: 'Fenced',
+  shade: 'Shade',
+  stroller: 'Stroller-friendly',
+  food: 'Food',
+  'water-play': 'Water play',
+  picnic: 'Picnic',
+  parking: 'Parking',
+};
+const TAG_ORDER = Object.keys(TAG_LABELS);
+
 let allVenues = [];
 let dataMeta = {};
 let activeCategories = new Set();
 let activeAgeBands = new Set();
+let activeTags = new Set();
 let favOnly = false;
+let indoorOnly = false;
+let showOutOfSeason = false;
 let sortMode = 'default';
 let userPos = null;        // {lat, lng} once "Near me" has been granted
 let userMarker = null;
@@ -904,6 +1014,33 @@ function renderAgeChips(){
 function updateAgeChipStates(){
   document.querySelectorAll('.chip.age').forEach(chip => {
     chip.classList.toggle('active', activeAgeBands.has(chip.dataset.band));
+  });
+}
+
+function renderTagChips(){
+  const wrap = document.getElementById('tagChips');
+  wrap.innerHTML = '';
+  const present = new Set();
+  allVenues.forEach(v => (v.tags || []).forEach(t => present.add(t)));
+  const tags = TAG_ORDER.filter(t => present.has(t));
+  document.getElementById('tagToolbar').hidden = tags.length === 0;
+  tags.forEach(t => {
+    const chip = document.createElement('button');
+    chip.className = 'chip tag';
+    chip.textContent = TAG_LABELS[t];
+    chip.dataset.tag = t;
+    chip.onclick = () => {
+      if(activeTags.has(t)) activeTags.delete(t); else activeTags.add(t);
+      updateTagChipStates();
+      refresh();
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+function updateTagChipStates(){
+  document.querySelectorAll('.chip.tag').forEach(chip => {
+    chip.classList.toggle('active', activeTags.has(chip.dataset.tag));
   });
 }
 
@@ -1026,18 +1163,47 @@ function ageOverlaps(v){
   });
 }
 
+// Month ranges are deliberately generous — a splash pad that's "summer"
+// should still show in early September, not just June-August.
+function inSeason(v){
+  const s = v.season;
+  if(!s || s === 'year-round') return true;
+  const month = new Date().getMonth() + 1; // 1-12
+  if(s === 'summer') return month >= 4 && month <= 10;
+  if(s === 'winter') return month >= 11 || month <= 3;
+  if(typeof s === 'object' && s.from && s.to){
+    return s.from <= s.to
+      ? (month >= s.from && month <= s.to)
+      : (month >= s.from || month <= s.to); // wraps across the year boundary
+  }
+  return true;
+}
+
+function isIndoor(v){
+  return v.indoor === true || v.indoor === 'partly';
+}
+
+function hasAllTags(v){
+  if(activeTags.size === 0) return true;
+  const tags = v.tags || [];
+  return Array.from(activeTags).every(t => tags.includes(t));
+}
+
 function filteredVenues(){
   const q = document.getElementById('search').value.trim().toLowerCase();
   const freeOnly = document.getElementById('freeOnly').checked;
-  const matches = allVenues.filter(v => {
+  const base = allVenues.filter(v => {
     const catOk = activeCategories.size === 0 || activeCategories.has(v.category);
     const freeOk = !freeOnly || isFree(v);
     const favOk = !favOnly || favorites.has(v.id);
+    const indoorOk = !indoorOnly || isIndoor(v);
     const text = [v.name, v.note, v.category, v.address].join(' ').toLowerCase();
     const searchOk = !q || text.includes(q);
-    return catOk && freeOk && favOk && ageOverlaps(v) && searchOk;
+    return catOk && freeOk && favOk && indoorOk && ageOverlaps(v) && hasAllTags(v) && searchOk;
   });
-  return sortVenues(matches);
+  const outOfSeasonCount = base.reduce((n, v) => n + (inSeason(v) ? 0 : 1), 0);
+  const matches = showOutOfSeason ? base : base.filter(inSeason);
+  return {venues: sortVenues(matches), outOfSeasonCount};
 }
 
 function starString(rating){
@@ -1070,6 +1236,12 @@ function ageBadge(v){
   return `<span class="age-badge" title="${esc(v.age)}">${esc(ageLabel(v))}</span>`;
 }
 
+function tagsHtml(v){
+  if(!v.tags || !v.tags.length) return '';
+  const pills = v.tags.map(t => `<span class="tag-pill">${esc(TAG_LABELS[t] || t)}</span>`).join('');
+  return `<div class="card-tags">${pills}</div>`;
+}
+
 function renderList(venues){
   const list = document.getElementById('list');
   const scrollTop = list.scrollTop;
@@ -1090,6 +1262,7 @@ function renderList(venues){
     const fav = favorites.has(v.id);
     const favTitle = fav ? 'Remove from favorites' : 'Save to favorites';
     const dist = distLabel(v);
+    const outSeason = !inSeason(v);
     card.innerHTML = `
       <div class="card-top">
         <p class="card-name">${esc(v.name)}</p>
@@ -1100,9 +1273,10 @@ function renderList(venues){
       </div>
       <div class="card-cat">
         <span class="dot" style="background:${color}"></span>${esc(v.category)}
-        ${costBadge(v)}
+        ${outSeason ? '<span class="cost-badge out-season" title="Closed for the season">Closed for the season</span>' : costBadge(v)}
         ${ageBadge(v)}
       </div>
+      ${tagsHtml(v)}
       ${v.note ? `<p class="card-note">${esc(v.note)}</p>` : ''}
       <div class="card-meta">
         ${dist ? `<span class="card-dist">${dist}</span>` : ''}
@@ -1159,7 +1333,8 @@ function renderMarkers(venues){
     });
     const marker = L.marker([v.lat, v.lng], {icon}).addTo(map);
     const dist = distLabel(v);
-    marker.bindPopup(`<b>${esc(v.name)}</b><br>${esc(v.category)}${v.cost ? ' · ' + esc(v.cost) : ''}${v.age ? ' · ' + esc(ageLabel(v)) : ''}${dist ? ' · ' + dist : ''}${v.note ? '<br>' + esc(v.note) : ''}`);
+    const seasonNote = !inSeason(v) ? ' · <span style="color:#5B6960">Closed for the season</span>' : '';
+    marker.bindPopup(`<b>${esc(v.name)}</b><br>${esc(v.category)}${v.cost ? ' · ' + esc(v.cost) : ''}${v.age ? ' · ' + esc(ageLabel(v)) : ''}${dist ? ' · ' + dist : ''}${seasonNote}${v.note ? '<br>' + esc(v.note) : ''}`);
     marker.on('click', () => selectVenue(v.id, false));
     markersById[v.id] = marker;
     bounds.push([v.lat, v.lng]);
@@ -1231,6 +1406,35 @@ function locateMe(){
   }, {enableHighAccuracy:false, timeout:10000, maximumAge:5*60*1000});
 }
 
+// Best-effort, keyless rain hint for today at the map centre. Any failure
+// (offline, blocked, slow) is silent — the page works fine without it.
+async function checkRain(){
+  try{
+    const center = (dataMeta && dataMeta.center) || {lat:41.7508, lng:-88.1535};
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 5000);
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${center.lat}&longitude=${center.lng}&daily=precipitation_probability_max&timezone=auto`;
+    const res = await fetch(url, {signal: ctrl.signal});
+    clearTimeout(timer);
+    if(!res.ok) return;
+    const data = await res.json();
+    const chance = data && data.daily && data.daily.precipitation_probability_max && data.daily.precipitation_probability_max[0];
+    if(typeof chance === 'number' && chance >= 50) showRainHint(chance);
+  }catch(e){ /* offline or blocked — no hint, no harm */ }
+}
+
+function showRainHint(chance){
+  const row = document.getElementById('rainHintRow');
+  const el = document.getElementById('rainHint');
+  el.textContent = `Rain likely today (${chance}%) — tap Indoor?`;
+  el.onclick = () => {
+    indoorOnly = true;
+    row.hidden = true;
+    refresh();
+  };
+  row.hidden = false;
+}
+
 function showDataDate(){
   if(!dataMeta.generated_at) return;
   const d = new Date(dataMeta.generated_at + 'T12:00:00');
@@ -1258,8 +1462,14 @@ function selectVenue(id, panMap){
 function refresh(){
   updateChipStates();
   updateAgeChipStates();
+  updateTagChipStates();
   document.getElementById('favChip').classList.toggle('active', favOnly);
-  const venues = filteredVenues();
+  document.getElementById('indoorChip').classList.toggle('active', indoorOnly);
+  const {venues, outOfSeasonCount} = filteredVenues();
+  const seasonChip = document.getElementById('seasonChip');
+  seasonChip.hidden = outOfSeasonCount === 0 && !showOutOfSeason;
+  seasonChip.textContent = `Show out-of-season${outOfSeasonCount ? ' (' + outOfSeasonCount + ')' : ''}`;
+  seasonChip.classList.toggle('active', showOutOfSeason);
   document.getElementById('countTag').textContent = `${venues.length} place${venues.length===1?'':'s'}`;
   renderList(venues);
   renderMarkers(venues);
@@ -1297,6 +1507,8 @@ document.getElementById('btnMapView').addEventListener('click', () => showView('
 document.getElementById('sort').addEventListener('change', (e) => { sortMode = e.target.value; refresh(); });
 document.getElementById('btnNearMe').addEventListener('click', locateMe);
 document.getElementById('favChip').addEventListener('click', () => { favOnly = !favOnly; refresh(); });
+document.getElementById('indoorChip').addEventListener('click', () => { indoorOnly = !indoorOnly; refresh(); });
+document.getElementById('seasonChip').addEventListener('click', () => { showOutOfSeason = !showOutOfSeason; refresh(); });
 
 (async function(){
   dataMeta = await loadData();
@@ -1306,8 +1518,10 @@ document.getElementById('favChip').addEventListener('click', () => { favOnly = !
   initMap();
   renderChips();
   renderAgeChips();
+  renderTagChips();
   refresh();
   if(window.innerWidth <= 860) showView('list');
+  checkRain();
 })();
 </script>
 </body>

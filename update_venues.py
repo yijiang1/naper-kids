@@ -16,7 +16,8 @@ WHAT IT DOES:
   to refresh the *factual* fields of the venues already in venues.json:
   rating, address, phone, website, and coordinates. It never removes a
   venue, never changes a venue's category, and never touches the
-  hand-written "note", "hours", "cost", and "age" fields.
+  hand-written "note", "hours", "cost", "age", "season", "tags", or
+  "indoor" fields.
 
   Results are matched to existing venues by Google place id (saved into
   each venue as "place_id" the first time it's seen), then by the venue's
@@ -78,7 +79,8 @@ REFRESHABLE = ("lat", "lng", "address", "rating", "phone", "website")
 
 # Preferred key order when writing a venue back out (purely cosmetic).
 KEY_ORDER = ("id", "place_id", "name", "category", "lat", "lng", "address",
-             "rating", "phone", "website", "hours", "note", "cost", "age")
+             "rating", "phone", "website", "hours", "note", "cost", "age",
+             "season", "tags", "indoor")
 
 FIELD_MASK = ",".join([
     "places.id",
