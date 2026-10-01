@@ -23,7 +23,7 @@ adjust, `venues.json` is hand-curated.
 | 2.3 | Show rating counts | 4.9 (12) ≠ 4.5 (2,000) | Small | ☐ |
 | 2.4 | Seasonal farms / pumpkin patches | Fall-specific content, `season` field already exists | Content | ☐ |
 | 2.5 | Restaurants with kids menus | "Where can we eat?" is half of every outing | Medium | ☑ |
-| 2.6 | More restaurants (and re-check the 4 existing menus) | Seeded with 4 verified places; sit-down chains still missing | Content | ☐ |
+| 2.6 | More restaurants (and re-check menus) | 17 verified so far; many popular places still missing | Content | ☐ |
 | 3.1 | Filters + selected place in the URL | Text a link to your spouse | Small | ☐ |
 | 3.2 | Saved home location | Distance sort without a GPS prompt | Small | ☐ |
 | 3.3 | "Been there" log + surprise me | Remember, and break ties | Small | ☐ |
@@ -97,17 +97,19 @@ picked.
 
 ### 2.6 More restaurants, and keeping the menus fresh
 
-2.5 shipped with four places whose kids menus were verified on the
-restaurant's own site on 2026-09-30: Ramsay's Kitchen, Egg Harbor Cafe,
-Culver's and Portillo's (Ogden Ave; the Jefferson St one is mentioned in its
-note rather than listed twice). Texas Roadhouse, Giordano's, Red Robin and
-Cooper's Hawk were tried and dropped — their sites block scripted fetches or
-don't expose a Naperville page, so nothing could be verified; a browser
-session with a location search would get through. Add more the same way (see
-CLAUDE.md), and fill in the kids' prices for Culver's and Portillo's if they
-ever post them. Each menu shows its `checked` date; a menu older than ~6
-months is due a re-check. A soft warning in `check_data.py` for stale
-`checked` dates would make that automatic.
+2.5 shipped with 17 restaurants whose kids menus were verified on each
+restaurant's own site on 2026-09-30: four Naperville places (Ramsay's
+Kitchen, Egg Harbor Cafe, Culver's, Portillo's on Ogden Ave) and 13 chains,
+one location each (see CLAUDE.md for the list and how they were picked).
+What's still missing, why each was blocked, and what to try next is in
+`RESTAURANTS.md` (also: the confirmed "no kids menu" places and the
+not-yet-researched backlog). Chains with several Naperville stores
+(McDonald's has 12) are listed once; add a second location only if it earns
+its card.
+Fill in kids' prices for the chains that don't post them if they ever do.
+Each menu shows its `checked` date; a menu older than ~6 months is due a
+re-check. A soft warning in `check_data.py` for stale `checked` dates would
+make that automatic.
 
 ---
 
@@ -189,7 +191,7 @@ way to notice a venue that quietly closed.
   fold-out on each card, search that matches menu items, `check_data.py`
   validation (required for restaurants), a Restaurants search in the
   updater, and an updater test proving `kids_menu` is never overwritten.
-  Four verified restaurants to start (see 2.6)
+  17 verified restaurants to start: 4 local plus 13 chains (see 2.6)
 - Content pass: reviewed all 44 candidates (26 promoted, 18 deleted), added
   13 new Chicago-proper landmarks, and widened the whole project's scope
   from Naperville-only to the greater Chicago six-county metro area —

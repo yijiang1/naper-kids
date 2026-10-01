@@ -13,7 +13,7 @@ file.
 
 ## How the pieces fit together
 
-- **`venues.json`** — the actual content. `venues` is the curated list (65
+- **`venues.json`** — the actual content. `venues` is the curated list (78
   entries as of Sep 2026: id, name, category, lat/lng, address, rating, phone, website,
   hours, cost, age, note, plus `place_id` once the updater has matched it
   to Google). Also hand-curated, and always optional (missing = the
@@ -64,6 +64,10 @@ file.
   Runs in the weekly workflow right before `build.py` so a bad hand edit
   never gets baked into `index.html`; also worth running by hand after
   editing `venues.json`.
+- **`RESTAURANTS.md`** — the restaurant research log: confirmed "no kids menu"
+  verdicts, closed/not-in-Naperville dead ends, leads that need another
+  attempt, and a backlog. Not read by any script; it exists so research isn't
+  repeated. Update it whenever a restaurant is added, ruled out, or retried.
 - **`ROADMAP.md`** — prioritised ideas with the data fields each one needs.
   Check it before adding fields to `venues.json` so new work lines up with
   what's planned; tick items off there as they land.
@@ -186,6 +190,28 @@ and run `node --check` on it. (The first commit shipped with a missing
   The `Restaurants` category has its own search in `update_venues.py`, but
   Google can't say what's on a kids menu, so results only ever land in
   `candidates` until someone adds a `kids_menu`.
+
+  The 13 chains (Texas Roadhouse, Cheesecake Factory, Chili's, Chick-fil-A,
+  McDonald's, Red Robin, Buffalo Wild Wings, Noodles & Co, Cooper's Hawk,
+  Lazy Dog, Panera, Wendy's, Cracker Barrel) were added as **one location per
+  chain, the one nearest downtown Naperville** — a dozen identical McDonald's
+  cards would just be noise. Their kids menus are the chains' national lists,
+  mostly without prices (each entry says so); Lazy Dog, Cooper's Hawk and
+  Egg Harbor/Ramsay's post prices. Phone and hours are included only when the
+  chain's own location page published them.
+
+  **`RESTAURANTS.md` is the research log: read it before researching a
+  restaurant, and keep it current.** It records what's *not* on the page —
+  the one confirmed "no kids menu" (Lou Malnati's), places that aren't (or
+  are no longer) in Naperville (2Toots, Everdine's), the leads that do have a
+  kids menu but couldn't be read yet (Olive Garden, Maggiano's, Giordano's,
+  Panda Express, Jason's Deli, Denny's, Chipotle, Dairy Queen) with what to
+  try next, a not-yet-researched backlog, and how the research was done
+  (OpenStreetMap pool, per-chain verification, PDF text via macOS PDFKit).
+  Two lessons from it worth repeating here: OpenStreetMap has stale entries,
+  so confirm every store on the chain's own page, and the Census geocoder can
+  return the wrong ZIP (McDonald's 516 N River Rd: geocoder 60563, the
+  chain's own page 60540), so take address details from the chain.
 - **`cost` and `age` are hand-researched fields** — the Places API returns
   neither, so `update_venues.py` is written to never overwrite them. Same
   goes for `season`, `tags`, and `indoor`.
