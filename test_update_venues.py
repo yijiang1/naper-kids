@@ -69,6 +69,7 @@ def main():
     knoch, jaycee = by_id["knoch-park"], by_id["jaycee-playground"]
     lib95, splash95 = by_id["95th-street-library"], by_id["95th-street-plaza-splash"]
     museum = by_id["dupage-childrens-museum"]
+    ramsays = by_id["ramsays-kitchen-naperville"]
 
     # --- Run 1: the usual mix of exact, fuzzy, and brand-new results ---------
     fake = {
@@ -104,6 +105,12 @@ def main():
             # ~230 km away -> not worth a candidate slot
             place("g9", "Far Away Wildlife Park", 39.70, -88.30, rating=4.6),
         ],
+        "Restaurants": [
+            # the apostrophe breaks the slug match ("ramsay-s-..."), so this must go
+            # through "same spot + similar name"; the hand-copied kids menu must survive
+            place("g10", "Ramsay's Kitchen Naperville", ramsays["lat"], ramsays["lng"], rating=4.3,
+                  phone="+1 331-244-2550"),
+        ],
     }
     data, log = run_updater(fake, path)
     V = {v["id"]: v for v in data["venues"]}
@@ -124,6 +131,9 @@ def main():
     assert V["dupage-childrens-museum"].get("tags") == museum.get("tags"), "tags touched by updater"
     assert V["wolfs-crossing-park"].get("season") == by_id["wolfs-crossing-park"].get("season"), \
         "season touched by updater"
+    assert V["ramsays-kitchen-naperville"]["place_id"] == "g10" and V["ramsays-kitchen-naperville"]["rating"] == 4.3
+    assert V["ramsays-kitchen-naperville"]["category"] == "Restaurants"
+    assert V["ramsays-kitchen-naperville"]["kids_menu"] == ramsays["kids_menu"], "kids_menu touched by updater"
     assert [c["name"] for c in data["candidates"]] == ["Some Random New Park"], [c["name"] for c in data["candidates"]]
     assert "ignored 1 duplicate listing(s) and 1 too far away" in log, log
     assert list(data["venues"][0].keys())[:3] == ["id", "place_id", "name"]

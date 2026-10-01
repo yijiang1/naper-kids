@@ -13,15 +13,16 @@ file.
 
 ## How the pieces fit together
 
-- **`venues.json`** — the actual content. `venues` is the curated list (61
+- **`venues.json`** — the actual content. `venues` is the curated list (65
   entries as of Sep 2026: id, name, category, lat/lng, address, rating, phone, website,
   hours, cost, age, note, plus `place_id` once the updater has matched it
   to Google). Also hand-curated, and always optional (missing = the
   default): `season` (`"year-round"` (default) / `"summer"` / `"winter"` /
   `{"from": M, "to": M}`, generous month ranges — see 1.1 in ROADMAP.md),
   `tags` (fixed vocabulary — `restrooms`, `fenced`, `shade`, `stroller`,
-  `food`, `water-play`, `picnic`, `parking`), and `indoor` (`true` /
-  `"partly"` / omitted for outdoor). `candidates` is a holding pen for
+  `food`, `water-play`, `picnic`, `parking`), `indoor` (`true` /
+  `"partly"` / omitted for outdoor), and `kids_menu` (see below; *required*
+  for the `Restaurants` category, optional for anything else). `candidates` is a holding pen for
   places the updater found that nobody has curated yet; the page ignores
   it. This is what changes most often.
 - **`index_template.html`** — the real source of the page: markup, CSS, and
@@ -37,8 +38,8 @@ file.
 - **`update_venues.py`** — refreshes `venues.json` from the Google Places
   API (needs a `GOOGLE_PLACES_API_KEY` env var). It never removes a venue,
   never changes a venue's category or name, and never touches the
-  hand-curated `note`, `hours`, `cost`, `age`, `season`, `tags`, or `indoor`
-  fields; it only refreshes rating/address/phone/website/lat/lng, and only
+  hand-curated `note`, `hours`, `cost`, `age`, `season`, `tags`, `indoor`,
+  or `kids_menu` fields; it only refreshes rating/address/phone/website/lat/lng, and only
   when Google actually returns a value. Google results are matched to
   existing venues by `place_id`, then by id slug, then by "within 150 m and
   names mostly overlap" (see `MATCH_RADIUS_M` / `MATCH_NAME_SCORE`).
@@ -55,7 +56,10 @@ file.
   duplicated. Stdlib only. Run it after any change to the updater.
 - **`check_data.py`** — validates `venues.json`: required fields present,
   ids unique clean slugs, coordinates within ~90 km of `center`, rating in
-  0–5, and `season`/`tags`/`indoor` restricted to their vocabularies. Only
+  0–5, `season`/`tags`/`indoor` restricted to their vocabularies, and
+  `kids_menu` well-formed (http(s) `url`, `checked` date, non-empty sections
+  and items, no unknown keys — so a typo like `prise` fails loudly instead of
+  silently not rendering; every `Restaurants` venue must have one). Only
   checks `venues`, not `candidates` (those are allowed to be incomplete).
   Runs in the weekly workflow right before `build.py` so a bad hand edit
   never gets baked into `index.html`; also worth running by hand after
@@ -160,6 +164,28 @@ and run `node --check` on it. (The first commit shipped with a missing
   GitHub Pages (https), `localhost`, and `file://` in current browsers. The
   button hides itself if the API is missing; permission errors show in the
   status line under the toolbar.
+- **Kids menus are copied by hand from the restaurant's own site, never
+  guessed.** Shape: `kids_menu: {url, checked, summary?, sections: [{title?,
+  note?, items: [{name, price?, desc?}]}]}` — `url` is the restaurant's own
+  menu page (shown as "Full menu →"), `checked` is the YYYY-MM-DD you copied
+  it (shown on the card — menus rot, so keep it honest), and `price`/`desc`
+  are optional because some chains (Culver's, Portillo's) don't post kids'
+  prices. Don't trust listicles or search-result summaries for *which*
+  restaurants have kids menus: while seeding the first four, aggregator
+  results put 2Toots in Naperville (it's Bartlett/Glen Ellyn), listed
+  Everdine's (closed 2020), and Lou Malnati's has no dedicated kids menu.
+  What worked: Next.js sites embed the menu as JSON in `__NEXT_DATA__`
+  (Ramsay's, Culver's locations); Egg Harbor's site 403s curl but renders in a
+  real browser. Coordinates come from the restaurant's own page when it
+  publishes them, otherwise the US Census geocoder (keyless). In the page,
+  `menuHtml()` renders it as a "Kids menu" `<details>` on the card (open
+  state kept in `openMenus` like `openVotes`; the click must not bubble to the
+  card), search also matches menu item names/descriptions
+  (`menuSearchText()`), and a place that matched *only* through its menu opens
+  that menu automatically (`matchedOnlyByMenu()`) so it's clear why it showed.
+  The `Restaurants` category has its own search in `update_venues.py`, but
+  Google can't say what's on a kids menu, so results only ever land in
+  `candidates` until someone adds a `kids_menu`.
 - **`cost` and `age` are hand-researched fields** — the Places API returns
   neither, so `update_venues.py` is written to never overwrite them. Same
   goes for `season`, `tags`, and `indoor`.

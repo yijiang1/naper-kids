@@ -1246,6 +1246,318 @@
         "parking"
       ],
       "indoor": true
+    },
+    {
+      "id": "ramsays-kitchen-naperville",
+      "name": "Ramsay's Kitchen",
+      "category": "Restaurants",
+      "lat": 41.7729979,
+      "lng": -88.1485216,
+      "address": "39 W Jefferson Ave, Naperville, IL 60540",
+      "phone": "(331) 244-2550",
+      "website": "https://www.gordonramsayrestaurants.com/ramsays-kitchen-naperville/",
+      "hours": "Mon–Thu & Sun 11:30 AM–9 PM, Fri–Sat 11:30 AM–10 PM",
+      "note": "Gordon Ramsay's downtown Naperville restaurant. Kids 10 and under eat free from the kids menu Monday–Thursday with each adult entrée.",
+      "cost": "Kids meals $12 (free Mon–Thu with an adult entrée)",
+      "age": "All ages (kids menu for 10 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.gordonramsayrestaurants.com/en/us/ramsays-kitchen/menus/naperville",
+        "summary": "Kids eat free Monday–Thursday: one kids' meal per adult entrée, for children 10 or younger.",
+        "sections": [
+          {
+            "title": "Mains",
+            "note": "Choice of fries or a side salad; includes juice or a soft drink.",
+            "items": [
+              {
+                "name": "Kids' Burger",
+                "price": "$12"
+              },
+              {
+                "name": "Grilled Chicken Sandwich",
+                "price": "$12"
+              },
+              {
+                "name": "Fried Chicken Sandwich",
+                "price": "$12"
+              },
+              {
+                "name": "Fish & Chips",
+                "price": "$12"
+              }
+            ]
+          },
+          {
+            "title": "Sides",
+            "items": [
+              {
+                "name": "Mac & Cheese",
+                "price": "$5"
+              }
+            ]
+          },
+          {
+            "title": "Dessert",
+            "items": [
+              {
+                "name": "Ice cream, 1 scoop",
+                "desc": "Vanilla",
+                "price": "$1"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "egg-harbor-cafe-naperville",
+      "name": "Egg Harbor Cafe",
+      "category": "Restaurants",
+      "lat": 41.7719761,
+      "lng": -88.150839,
+      "address": "175 W Jackson Ave, Naperville, IL 60540",
+      "phone": "(630) 548-1196",
+      "website": "https://eggharborcafe.com/",
+      "note": "Family-owned breakfast and lunch spot downtown. The 12-and-under menu is pancakes, waffles and crêpes plus burgers, tenders and quesadillas, with gluten-free options and kids' games and a coloring contest.",
+      "cost": "Kids meals $6–$10",
+      "age": "All ages (kids menu for 12 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://eggharborcafe.com/menu/egg-harbor-cafe-naperville",
+        "summary": "Menu for kids 12 and under. Prices are the Naperville location's.",
+        "sections": [
+          {
+            "title": "Breakfast",
+            "items": [
+              {
+                "name": "Pancake",
+                "desc": "Large whole wheat pancake, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Gluten-free pancake",
+                "desc": "Large gluten-free pancake, with syrup and whipped butter",
+                "price": "$7"
+              },
+              {
+                "name": "French toast",
+                "desc": "Challah bread, dusted with powdered sugar, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Waffle",
+                "desc": "Belgian waffle dusted with powdered sugar, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Crêpe",
+                "desc": "House-made, dusted with powdered sugar, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Classic breakfast",
+                "desc": "1 scrambled egg, 2 slices of bacon and fruit",
+                "price": "$6.25"
+              },
+              {
+                "name": "Gluten-free classic breakfast",
+                "desc": "1 scrambled egg, 2 slices of bacon and fruit",
+                "price": "$6.25"
+              },
+              {
+                "name": "Parfait",
+                "desc": "Strawberries, bananas and blueberries layered with vanilla and strawberry yogurt, topped with apples and granola (contains tree nuts)",
+                "price": "$7.25"
+              },
+              {
+                "name": "Oatmeal meal",
+                "desc": "Plain oatmeal with brown sugar, milk, and a slice of wheat toast with jam",
+                "price": "$6.75"
+              }
+            ]
+          },
+          {
+            "title": "Lunch",
+            "note": "Served with kids' Harbor potatoes (fried to order in beef tallow); swap in kids' fruit at no charge.",
+            "items": [
+              {
+                "name": "Cheeseburger",
+                "desc": "Seasoned burger and cheddar on a buttered brioche bun",
+                "price": "$10"
+              },
+              {
+                "name": "Chicken tenders",
+                "desc": "3 fried tenders with ranch",
+                "price": "$7.75"
+              },
+              {
+                "name": "Cheese quesadilla",
+                "desc": "Jack and cheddar in a flour tortilla",
+                "price": "$7.75"
+              },
+              {
+                "name": "Gluten-free cheese quesadilla",
+                "desc": "Jack and cheddar in a gluten-free tortilla",
+                "price": "$8.75"
+              },
+              {
+                "name": "Mac and cheese",
+                "desc": "Kraft macaroni and cheese",
+                "price": "$6.75"
+              },
+              {
+                "name": "Turkey sandwich",
+                "desc": "Sliced turkey and cheddar on a brioche bun",
+                "price": "$10"
+              }
+            ]
+          },
+          {
+            "title": "Sides",
+            "items": [
+              {
+                "name": "Egg",
+                "price": "$2"
+              },
+              {
+                "name": "Meat",
+                "price": "$2.50"
+              },
+              {
+                "name": "Harbor potatoes",
+                "desc": "Fried to order in beef tallow",
+                "price": "$2"
+              },
+              {
+                "name": "Loaded Harbor potatoes",
+                "desc": "Topped with bacon, jack and cheddar, and sour cream",
+                "price": "$4.50"
+              },
+              {
+                "name": "Shredded potatoes",
+                "desc": "Vegan",
+                "price": "$2"
+              },
+              {
+                "name": "Berries",
+                "price": "$2.50"
+              },
+              {
+                "name": "Fruit",
+                "price": "$2"
+              },
+              {
+                "name": "Mashed avocado",
+                "price": "$2"
+              },
+              {
+                "name": "Yogurt",
+                "price": "$2.50"
+              },
+              {
+                "name": "Cinnamon roll",
+                "price": "$5"
+              },
+              {
+                "name": "Bagel with cream cheese",
+                "price": "$5"
+              },
+              {
+                "name": "Single toast",
+                "price": "$2"
+              },
+              {
+                "name": "Pure maple syrup",
+                "price": "$2"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "culvers-naperville",
+      "name": "Culver's",
+      "category": "Restaurants",
+      "lat": 41.7973938,
+      "lng": -88.1203232,
+      "address": "1515 N Naper Blvd, Naperville, IL 60563",
+      "phone": "(630) 445-8297",
+      "website": "https://www.culvers.com/restaurants/naperville-il-naper-blvd",
+      "hours": "10 AM–10 PM daily (drive-thru until 11 PM Fri–Sat)",
+      "note": "ButterBurgers and Fresh Frozen Custard; every kids' meal comes with a free scoop of custard.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.culvers.com/menu/kids-meals",
+        "summary": "Every kids' meal comes with a free scoop of Fresh Frozen Custard.",
+        "sections": [
+          {
+            "title": "Kids' meals",
+            "note": "Prices aren't posted on the menu page.",
+            "items": [
+              {
+                "name": "Single ButterBurger Cheese"
+              },
+              {
+                "name": "Single ButterBurger"
+              },
+              {
+                "name": "2 pc Original Chicken Tenders"
+              },
+              {
+                "name": "2 pc Buffalo Chicken Tenders"
+              },
+              {
+                "name": "Grilled Cheese"
+              },
+              {
+                "name": "Corn Dog"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "portillos-naperville-ogden",
+      "name": "Portillo's",
+      "category": "Restaurants",
+      "lat": 41.789103,
+      "lng": -88.1321062,
+      "address": "950 E Ogden Ave, Naperville, IL 60563",
+      "phone": "(630) 961-1151",
+      "website": "https://locations.portillos.com/naperville-ogden",
+      "hours": "10 AM–11:30 PM daily (Fri–Sat until midnight)",
+      "note": "Chicago hot dogs, burgers and Italian beef in a 1920s–40s themed dining room. Every Kids' Favorites order comes with a Portillo's paper hat. A second Naperville location is at 1992 W Jefferson St.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.portillos.com/portillos-kids-favorites/",
+        "summary": "Kids' Favorites are on the menu boards. Each suggests a small fry and milk (1% or chocolate), and comes with a paper hat.",
+        "sections": [
+          {
+            "title": "Kids' Favorites",
+            "note": "Prices aren't posted on this page.",
+            "items": [
+              {
+                "name": "“Nudie” hot dog",
+                "desc": "A hot dog with nothing on it"
+              },
+              {
+                "name": "Chicken tenders",
+                "desc": "4 or 6 pieces"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
     }
   ],
   "candidates": [

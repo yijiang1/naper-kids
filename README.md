@@ -1,9 +1,9 @@
 # Naper Kids
 
 A personal dashboard of kid-friendly places in Naperville, IL — parks, splash
-pads, museums, libraries, nature centers, bowling/arcades, and forest preserve
-trails. List view + map view, filterable by category, age, and cost,
-searchable by name, note, or address.
+pads, museums, libraries, nature centers, bowling/arcades, forest preserve
+trails, and restaurants with kids' menus. List view + map view, filterable by
+category, age, and cost, searchable by name, note, or address.
 
 ## Use it right now
 
@@ -16,6 +16,10 @@ Things you can do on the page:
 
 - **Filter** by category, by the age of your kids, or free-only; **search**
   by name, note, or address (e.g. "aurora" or a zip code).
+- **Kids menus** — pick the **Restaurants** chip, then tap **Kids menu** on a
+  card to see what's on it (items, prices, and a link to the restaurant's own
+  menu). Search also looks inside the menus, so "mac and cheese" or
+  "pancake" finds the places that serve it.
 - **★ Favorites** — tap the star on a card to save it, then use the
   Favorites chip to see just those.
 - **📍 Near me** — sorts everything by distance from where you are and shows
@@ -78,12 +82,21 @@ change.
 - **Your notes are safe:** the updater only ever changes a venue's rating,
   address, phone, website, and coordinates. It never removes a venue, never
   changes its category or name, and never touches `note`, `hours`, `cost`,
-  or `age`. Places Google finds that aren't in your list yet are parked in a
+  `age`, or `kids_menu`. Places Google finds that aren't in your list yet are parked in a
   separate `candidates` list at the bottom of `venues.json` — the page
   ignores them. To add one, move it up into `venues` and fill in the
   hand-written fields; to drop one, delete it. Places more than ~25 miles
   from Naperville and duplicate Google listings of a venue you already
   have are filtered out automatically.
+- **Add a restaurant with its kids menu:** add an entry with
+  `"category": "Restaurants"` and a `kids_menu` — copy the menu from the
+  restaurant's own site, never from memory or a review site (menus and prices
+  are location-specific). Shape: `{"url": "<the restaurant's menu page>",
+  "checked": "YYYY-MM-DD", "summary": "optional one-liner, e.g. a kids-eat-free
+  deal", "sections": [{"title": "Mains", "note": "optional", "items":
+  [{"name": "Mac & Cheese", "price": "$5", "desc": "optional"}]}]}`. `price`
+  and `desc` are optional, so list a menu without prices if the site doesn't
+  post them. `python3 check_data.py` will tell you if the shape is off.
 - **Change what gets searched:** edit the `CATEGORIES` dict near the top of
   `update_venues.py` (each entry is a category name → a search phrase).
 - **Change the search area:** edit `CENTER` and `RADIUS_METERS` in the same

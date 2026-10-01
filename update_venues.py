@@ -16,8 +16,8 @@ WHAT IT DOES:
   to refresh the *factual* fields of the venues already in venues.json:
   rating, address, phone, website, and coordinates. It never removes a
   venue, never changes a venue's category, and never touches the
-  hand-written "note", "hours", "cost", "age", "season", "tags", or
-  "indoor" fields.
+  hand-written "note", "hours", "cost", "age", "season", "tags", "indoor",
+  or "kids_menu" fields.
 
   Results are matched to existing venues by Google place id (saved into
   each venue as "place_id" the first time it's seen), then by the venue's
@@ -33,7 +33,7 @@ WHAT IT DOES:
 COST:
   Text Search on the new Places API is a paid call, but Google's free
   monthly credit comfortably covers running this occasionally (e.g. weekly
-  or monthly) — still just one call per category (7/week) even now that
+  or monthly) — still just one call per category (8/week) even now that
   CATEGORIES searches the whole Chicago area rather than one city; only
   the search radius and result count per call grew, not the call count.
   Check current pricing before heavy use:
@@ -82,6 +82,9 @@ CATEGORIES = {
     "Nature & Zoos": "nature centers and zoos in the Chicago area",
     "Bowling & Arcades": "kids bowling and family entertainment in the Chicago area",
     "Forest Preserves & Trails": "forest preserves in the Chicago area",
+    # Google can't tell us what's on a kids menu, so anything this finds is just a
+    # candidate until someone copies the real menu into "kids_menu" by hand.
+    "Restaurants": "family restaurants with a kids menu in the Chicago area",
 }
 
 # The only fields this script is allowed to change on an existing venue.
@@ -90,7 +93,7 @@ REFRESHABLE = ("lat", "lng", "address", "rating", "phone", "website")
 # Preferred key order when writing a venue back out (purely cosmetic).
 KEY_ORDER = ("id", "place_id", "name", "category", "lat", "lng", "address",
              "rating", "phone", "website", "hours", "note", "cost", "age",
-             "season", "tags", "indoor")
+             "season", "tags", "indoor", "kids_menu")
 
 FIELD_MASK = ",".join([
     "places.id",

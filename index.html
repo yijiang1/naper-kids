@@ -29,6 +29,7 @@
     --cat-nature: #5C7A3A;
     --cat-bowling: #C24E4E;
     --cat-trails: #2E5339;
+    --cat-restaurant: #C2417C;
 
     --appbar-h: 64px;
   }
@@ -247,10 +248,10 @@
     color:#2F5C8A;
   }
 
-  /* "Best age?" voting is tucked behind a disclosure so it doesn't add a
-     wrapped row of buttons to every card. */
-  .vote-wrap{margin-top:8px;}
-  .vote-wrap summary{
+  /* "Best age?" voting and the kids menu are tucked behind disclosures so they
+     don't add a wall of buttons/text to every card. */
+  .vote-wrap, .menu-wrap{margin-top:8px;}
+  .vote-wrap summary, .menu-wrap summary{
     list-style:none;
     cursor:pointer;
     display:flex;
@@ -260,8 +261,8 @@
     font-size:12.5px;
     color:var(--ink-soft);
   }
-  .vote-wrap summary::-webkit-details-marker{display:none;}
-  .vote-wrap summary::after{
+  .vote-wrap summary::-webkit-details-marker, .menu-wrap summary::-webkit-details-marker{display:none;}
+  .vote-wrap summary::after, .menu-wrap summary::after{
     content:'';
     width:6px;height:6px;
     border-right:1.5px solid currentColor;
@@ -269,8 +270,40 @@
     transform:rotate(45deg) translateY(-2px);
     transition:transform .15s ease;
   }
-  .vote-wrap[open] summary::after{transform:rotate(-135deg) translate(-1px,-1px);}
+  .vote-wrap[open] summary::after, .menu-wrap[open] summary::after{transform:rotate(-135deg) translate(-1px,-1px);}
   .vote-wrap summary .you{color:#2F5C8A;font-weight:600;}
+
+  /* Kids menu: the restaurant's own menu, as sections of "name … price" rows. */
+  .menu-wrap{border-top:1px dashed var(--line);padding-top:2px;}
+  .menu-wrap summary{color:var(--accent);font-weight:600;font-size:13.5px;}
+  .menu-wrap summary .n{color:var(--ink-soft);font-weight:400;}
+  .menu-body{padding:2px 0 4px;font-size:13px;}
+  .menu-sum{margin:2px 0 6px;color:var(--ink);}
+  .menu-sec h4{
+    margin:12px 0 2px;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .menu-sec .sec-note{margin:0 0 2px;font-size:12px;color:var(--ink-soft);}
+  .menu-items{list-style:none;margin:0;padding:0;}
+  .menu-items li{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    padding:6px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .menu-items li:last-child{border-bottom:none;}
+  .menu-items .nm{font-weight:500;}
+  .menu-items .ds{display:block;font-size:12px;color:var(--ink-soft);}
+  .menu-items .pr{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600;}
+  .menu-foot{margin:8px 0 0;font-size:12px;color:var(--ink-soft);}
+  .menu-foot a{color:var(--accent);font-weight:600;text-decoration:none;}
+  .menu-foot a:hover{text-decoration:underline;}
   .vote-row{
     display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -671,6 +704,9 @@
     .card-meta{font-size:13.5px;}
     .tag-pill{font-size:12px;}
     .vote-wrap summary{font-size:13px;}
+    .menu-wrap summary{font-size:14px;}
+    .menu-body{font-size:13.5px;}
+    .menu-items .ds, .menu-sec .sec-note, .menu-foot{font-size:12.5px;}
     .vote-row{grid-template-columns:repeat(2,minmax(0,1fr));}
     .vote-btn{font-size:13px;}
   }
@@ -688,7 +724,8 @@
     .card-actions .act{min-height:44px;font-size:14px;}
     /* The 44px summary supplies its own breathing room, so pull it into the card's bottom padding. */
     .vote-wrap{margin:0 0 -8px;}
-    .vote-wrap summary{min-height:44px;}
+    .vote-wrap summary, .menu-wrap summary{min-height:44px;}
+    .menu-foot a{display:inline-block;padding:13px 0;}  /* 12.5px text + 26px = a 44px target */
     .vote-btn{min-height:44px;}
     .leaflet-container .leaflet-bar a,
     .leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px;}
@@ -702,7 +739,7 @@
   <div class="header-row">
     <div class="title-block">
       <h1 class="display">Naper Kids</h1>
-      <p>Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, and more.</p>
+      <p>Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, restaurants with kids' menus, and more.</p>
     </div>
     <!-- On phones this moves into the sticky .appbar below (see placeSearch()). -->
     <div class="search-wrap">
@@ -775,7 +812,7 @@
 <button class="view-switch" id="btnViewSwitch" type="button" aria-label="Show map"></button>
 
 <footer>
-  <p>Data pulled from Google Places; admission prices and suggested ages researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating.</p>
+  <p>Data pulled from Google Places; admission prices, suggested ages, and kids' menus researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. Each kids' menu is copied from the restaurant's own site on the date shown, so menus and prices may have changed since.</p>
   <p>Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere.</p>
   <p>Hours, openings, and prices change — worth a quick check before you go.<span id="dataDate"></span></p>
 </footer>
@@ -2031,6 +2068,318 @@ const VENUES_FALLBACK = {
         "parking"
       ],
       "indoor": true
+    },
+    {
+      "id": "ramsays-kitchen-naperville",
+      "name": "Ramsay's Kitchen",
+      "category": "Restaurants",
+      "lat": 41.7729979,
+      "lng": -88.1485216,
+      "address": "39 W Jefferson Ave, Naperville, IL 60540",
+      "phone": "(331) 244-2550",
+      "website": "https://www.gordonramsayrestaurants.com/ramsays-kitchen-naperville/",
+      "hours": "Mon–Thu & Sun 11:30 AM–9 PM, Fri–Sat 11:30 AM–10 PM",
+      "note": "Gordon Ramsay's downtown Naperville restaurant. Kids 10 and under eat free from the kids menu Monday–Thursday with each adult entrée.",
+      "cost": "Kids meals $12 (free Mon–Thu with an adult entrée)",
+      "age": "All ages (kids menu for 10 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.gordonramsayrestaurants.com/en/us/ramsays-kitchen/menus/naperville",
+        "summary": "Kids eat free Monday–Thursday: one kids' meal per adult entrée, for children 10 or younger.",
+        "sections": [
+          {
+            "title": "Mains",
+            "note": "Choice of fries or a side salad; includes juice or a soft drink.",
+            "items": [
+              {
+                "name": "Kids' Burger",
+                "price": "$12"
+              },
+              {
+                "name": "Grilled Chicken Sandwich",
+                "price": "$12"
+              },
+              {
+                "name": "Fried Chicken Sandwich",
+                "price": "$12"
+              },
+              {
+                "name": "Fish & Chips",
+                "price": "$12"
+              }
+            ]
+          },
+          {
+            "title": "Sides",
+            "items": [
+              {
+                "name": "Mac & Cheese",
+                "price": "$5"
+              }
+            ]
+          },
+          {
+            "title": "Dessert",
+            "items": [
+              {
+                "name": "Ice cream, 1 scoop",
+                "desc": "Vanilla",
+                "price": "$1"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "egg-harbor-cafe-naperville",
+      "name": "Egg Harbor Cafe",
+      "category": "Restaurants",
+      "lat": 41.7719761,
+      "lng": -88.150839,
+      "address": "175 W Jackson Ave, Naperville, IL 60540",
+      "phone": "(630) 548-1196",
+      "website": "https://eggharborcafe.com/",
+      "note": "Family-owned breakfast and lunch spot downtown. The 12-and-under menu is pancakes, waffles and crêpes plus burgers, tenders and quesadillas, with gluten-free options and kids' games and a coloring contest.",
+      "cost": "Kids meals $6–$10",
+      "age": "All ages (kids menu for 12 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://eggharborcafe.com/menu/egg-harbor-cafe-naperville",
+        "summary": "Menu for kids 12 and under. Prices are the Naperville location's.",
+        "sections": [
+          {
+            "title": "Breakfast",
+            "items": [
+              {
+                "name": "Pancake",
+                "desc": "Large whole wheat pancake, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Gluten-free pancake",
+                "desc": "Large gluten-free pancake, with syrup and whipped butter",
+                "price": "$7"
+              },
+              {
+                "name": "French toast",
+                "desc": "Challah bread, dusted with powdered sugar, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Waffle",
+                "desc": "Belgian waffle dusted with powdered sugar, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Crêpe",
+                "desc": "House-made, dusted with powdered sugar, with syrup and whipped butter",
+                "price": "$6"
+              },
+              {
+                "name": "Classic breakfast",
+                "desc": "1 scrambled egg, 2 slices of bacon and fruit",
+                "price": "$6.25"
+              },
+              {
+                "name": "Gluten-free classic breakfast",
+                "desc": "1 scrambled egg, 2 slices of bacon and fruit",
+                "price": "$6.25"
+              },
+              {
+                "name": "Parfait",
+                "desc": "Strawberries, bananas and blueberries layered with vanilla and strawberry yogurt, topped with apples and granola (contains tree nuts)",
+                "price": "$7.25"
+              },
+              {
+                "name": "Oatmeal meal",
+                "desc": "Plain oatmeal with brown sugar, milk, and a slice of wheat toast with jam",
+                "price": "$6.75"
+              }
+            ]
+          },
+          {
+            "title": "Lunch",
+            "note": "Served with kids' Harbor potatoes (fried to order in beef tallow); swap in kids' fruit at no charge.",
+            "items": [
+              {
+                "name": "Cheeseburger",
+                "desc": "Seasoned burger and cheddar on a buttered brioche bun",
+                "price": "$10"
+              },
+              {
+                "name": "Chicken tenders",
+                "desc": "3 fried tenders with ranch",
+                "price": "$7.75"
+              },
+              {
+                "name": "Cheese quesadilla",
+                "desc": "Jack and cheddar in a flour tortilla",
+                "price": "$7.75"
+              },
+              {
+                "name": "Gluten-free cheese quesadilla",
+                "desc": "Jack and cheddar in a gluten-free tortilla",
+                "price": "$8.75"
+              },
+              {
+                "name": "Mac and cheese",
+                "desc": "Kraft macaroni and cheese",
+                "price": "$6.75"
+              },
+              {
+                "name": "Turkey sandwich",
+                "desc": "Sliced turkey and cheddar on a brioche bun",
+                "price": "$10"
+              }
+            ]
+          },
+          {
+            "title": "Sides",
+            "items": [
+              {
+                "name": "Egg",
+                "price": "$2"
+              },
+              {
+                "name": "Meat",
+                "price": "$2.50"
+              },
+              {
+                "name": "Harbor potatoes",
+                "desc": "Fried to order in beef tallow",
+                "price": "$2"
+              },
+              {
+                "name": "Loaded Harbor potatoes",
+                "desc": "Topped with bacon, jack and cheddar, and sour cream",
+                "price": "$4.50"
+              },
+              {
+                "name": "Shredded potatoes",
+                "desc": "Vegan",
+                "price": "$2"
+              },
+              {
+                "name": "Berries",
+                "price": "$2.50"
+              },
+              {
+                "name": "Fruit",
+                "price": "$2"
+              },
+              {
+                "name": "Mashed avocado",
+                "price": "$2"
+              },
+              {
+                "name": "Yogurt",
+                "price": "$2.50"
+              },
+              {
+                "name": "Cinnamon roll",
+                "price": "$5"
+              },
+              {
+                "name": "Bagel with cream cheese",
+                "price": "$5"
+              },
+              {
+                "name": "Single toast",
+                "price": "$2"
+              },
+              {
+                "name": "Pure maple syrup",
+                "price": "$2"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "culvers-naperville",
+      "name": "Culver's",
+      "category": "Restaurants",
+      "lat": 41.7973938,
+      "lng": -88.1203232,
+      "address": "1515 N Naper Blvd, Naperville, IL 60563",
+      "phone": "(630) 445-8297",
+      "website": "https://www.culvers.com/restaurants/naperville-il-naper-blvd",
+      "hours": "10 AM–10 PM daily (drive-thru until 11 PM Fri–Sat)",
+      "note": "ButterBurgers and Fresh Frozen Custard; every kids' meal comes with a free scoop of custard.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.culvers.com/menu/kids-meals",
+        "summary": "Every kids' meal comes with a free scoop of Fresh Frozen Custard.",
+        "sections": [
+          {
+            "title": "Kids' meals",
+            "note": "Prices aren't posted on the menu page.",
+            "items": [
+              {
+                "name": "Single ButterBurger Cheese"
+              },
+              {
+                "name": "Single ButterBurger"
+              },
+              {
+                "name": "2 pc Original Chicken Tenders"
+              },
+              {
+                "name": "2 pc Buffalo Chicken Tenders"
+              },
+              {
+                "name": "Grilled Cheese"
+              },
+              {
+                "name": "Corn Dog"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "portillos-naperville-ogden",
+      "name": "Portillo's",
+      "category": "Restaurants",
+      "lat": 41.789103,
+      "lng": -88.1321062,
+      "address": "950 E Ogden Ave, Naperville, IL 60563",
+      "phone": "(630) 961-1151",
+      "website": "https://locations.portillos.com/naperville-ogden",
+      "hours": "10 AM–11:30 PM daily (Fri–Sat until midnight)",
+      "note": "Chicago hot dogs, burgers and Italian beef in a 1920s–40s themed dining room. Every Kids' Favorites order comes with a Portillo's paper hat. A second Naperville location is at 1992 W Jefferson St.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.portillos.com/portillos-kids-favorites/",
+        "summary": "Kids' Favorites are on the menu boards. Each suggests a small fry and milk (1% or chocolate), and comes with a paper hat.",
+        "sections": [
+          {
+            "title": "Kids' Favorites",
+            "note": "Prices aren't posted on this page.",
+            "items": [
+              {
+                "name": "“Nudie” hot dog",
+                "desc": "A hot dog with nothing on it"
+              },
+              {
+                "name": "Chicken tenders",
+                "desc": "4 or 6 pieces"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
     }
   ]
 };
@@ -2042,7 +2391,8 @@ const CATEGORY_COLORS = {
   "Libraries": "#B5622E",
   "Nature & Zoos": "#5C7A3A",
   "Bowling & Arcades": "#C24E4E",
-  "Forest Preserves & Trails": "#2E5339"
+  "Forest Preserves & Trails": "#2E5339",
+  "Restaurants": "#C2417C"
 };
 
 const AGE_BANDS = [
@@ -2082,6 +2432,7 @@ let map, markerLayer, markersById = {}, selectedId = null;
 let currentView = 'list';  // phones only: 'list' or 'map'
 let listScrollY = 0;       // where the list was scrolled to when we left it for the map
 const openVotes = new Set(); // venue ids whose "Best age?" row is expanded (survives re-renders)
+const openMenus = new Set(); // venue ids whose kids menu is expanded (same idea)
 const FOCUS_ZOOM = 14;     // how far the map zooms in on a venue picked from the list
 
 // Same breakpoint as the CSS: at or below it we're in the one-column phone layout.
@@ -2418,8 +2769,7 @@ function filteredVenues(){
     const freeOk = !freeOnly || isFree(v);
     const favOk = !favOnly || favorites.has(v.id);
     const indoorOk = !indoorOnly || isIndoor(v);
-    const text = [v.name, v.note, v.category, v.address].join(' ').toLowerCase();
-    const searchOk = !q || text.includes(q);
+    const searchOk = !q || baseSearchText(v).includes(q) || menuSearchText(v).includes(q);
     return catOk && freeOk && favOk && indoorOk && ageOverlaps(v) && hasAllTags(v) && searchOk;
   });
   const outOfSeasonCount = base.reduce((n, v) => n + (inSeason(v) ? 0 : 1), 0);
@@ -2479,9 +2829,75 @@ function tagsHtml(v){
   return `<div class="card-tags">${pills}</div>`;
 }
 
+// ---- Kids menus (venues.json "kids_menu": sections of items, copied from the
+// restaurant's own menu by hand). ----
+
+function menuSections(v){
+  const m = v.kids_menu;
+  return (m && Array.isArray(m.sections)) ? m.sections : [];
+}
+function menuItems(v){
+  return menuSections(v).reduce((all, s) => all.concat(Array.isArray(s.items) ? s.items : []), []);
+}
+
+function baseSearchText(v){
+  return [v.name, v.note, v.category, v.address].join(' ').toLowerCase();
+}
+
+// Everything on the menu that search should be able to find ("mac and cheese").
+function menuSearchText(v){
+  return menuItems(v).map(it => [it.name, it.desc].join(' ')).join(' ').toLowerCase();
+}
+
+// True when a place is in the results *only* because of its menu — we open the
+// menu then, so it's obvious why the place matched.
+function matchedOnlyByMenu(v, q){
+  return !!q && !baseSearchText(v).includes(q) && menuSearchText(v).includes(q);
+}
+
+function menuHtml(v, forceOpen){
+  const items = menuItems(v);
+  if(!items.length) return '';
+  const m = v.kids_menu;
+  const sections = menuSections(v).map(s => {
+    const rows = (Array.isArray(s.items) ? s.items : []).map(it => `
+        <li>
+          <span><span class="nm">${esc(it.name)}</span>${it.desc ? `<span class="ds">${esc(it.desc)}</span>` : ''}</span>
+          ${it.price ? `<span class="pr">${esc(it.price)}</span>` : ''}
+        </li>`).join('');
+    return `
+      <section class="menu-sec">
+        ${s.title ? `<h4>${esc(s.title)}</h4>` : ''}
+        ${s.note ? `<p class="sec-note">${esc(s.note)}</p>` : ''}
+        <ul class="menu-items">${rows}</ul>
+      </section>`;
+  }).join('');
+  // Only http(s) links, since this lands in an href.
+  const link = /^https?:\/\//i.test(m.url || '')
+    ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">Full menu &rarr;</a>` : '';
+  const when = formatCheckedDate(m.checked);
+  const foot = [when ? `Checked ${esc(when)}` : '', link].filter(Boolean).join(' · ');
+  const open = forceOpen || openMenus.has(v.id);
+  return `<details class="menu-wrap"${open ? ' open' : ''}>
+      <summary>Kids menu <span class="n">· ${items.length} item${items.length === 1 ? '' : 's'}</span></summary>
+      <div class="menu-body">
+        ${m.summary ? `<p class="menu-sum">${esc(m.summary)}</p>` : ''}
+        ${sections}
+        ${foot ? `<p class="menu-foot">${foot}</p>` : ''}
+      </div>
+    </details>`;
+}
+
+function formatCheckedDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso + 'T12:00:00');
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+}
+
 function renderList(venues){
   const list = document.getElementById('list');
   const scrollTop = list.scrollTop;
+  const q = document.getElementById('search').value.trim().toLowerCase();
   list.innerHTML = '';
   if(venues.length === 0){
     const msg = (favOnly && favorites.size === 0)
@@ -2502,6 +2918,7 @@ function renderList(venues){
     const favTitle = fav ? 'Remove from favorites' : 'Save to favorites';
     const dist = distLabel(v);
     const outSeason = !inSeason(v);
+    const forceMenu = matchedOnlyByMenu(v, q);
     card.innerHTML = `
       <div class="card-top">
         <p class="card-name">${esc(v.name)}</p>
@@ -2529,6 +2946,7 @@ function renderList(venues){
         ${v.website ? `<a class="act" href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
         <button class="act act-map" type="button">On map</button>
       </div>
+      ${menuHtml(v, forceMenu)}
       ${voteRowHtml(v)}
     `;
     // On a phone the map replaces the list, so tapping the card body only
@@ -2546,11 +2964,18 @@ function renderList(venues){
       e.stopPropagation();
       toggleFav(v.id);
     };
-    // Links and the vote disclosure are their own targets: they must not also
-    // trigger the card's click (which used to flip the phone to the map view).
-    card.querySelectorAll('.card-actions a, .vote-wrap').forEach(el => {
+    // Links and the vote/menu disclosures are their own targets: they must not
+    // also trigger the card's click (which used to flip the phone to the map view).
+    card.querySelectorAll('.card-actions a, .vote-wrap, .menu-wrap').forEach(el => {
       el.addEventListener('click', e => e.stopPropagation());
     });
+    const menuWrap = card.querySelector('.menu-wrap');
+    if(menuWrap){
+      menuWrap.addEventListener('toggle', () => {
+        if(forceMenu) return;   // opened by the search, not by the user — don't remember it
+        if(menuWrap.open) openMenus.add(v.id); else openMenus.delete(v.id);
+      });
+    }
     card.querySelector('.act-map').onclick = (e) => {
       e.stopPropagation();
       selectVenue(v.id, true);

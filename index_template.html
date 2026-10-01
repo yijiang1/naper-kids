@@ -29,6 +29,7 @@
     --cat-nature: #5C7A3A;
     --cat-bowling: #C24E4E;
     --cat-trails: #2E5339;
+    --cat-restaurant: #C2417C;
 
     --appbar-h: 64px;
   }
@@ -247,10 +248,10 @@
     color:#2F5C8A;
   }
 
-  /* "Best age?" voting is tucked behind a disclosure so it doesn't add a
-     wrapped row of buttons to every card. */
-  .vote-wrap{margin-top:8px;}
-  .vote-wrap summary{
+  /* "Best age?" voting and the kids menu are tucked behind disclosures so they
+     don't add a wall of buttons/text to every card. */
+  .vote-wrap, .menu-wrap{margin-top:8px;}
+  .vote-wrap summary, .menu-wrap summary{
     list-style:none;
     cursor:pointer;
     display:flex;
@@ -260,8 +261,8 @@
     font-size:12.5px;
     color:var(--ink-soft);
   }
-  .vote-wrap summary::-webkit-details-marker{display:none;}
-  .vote-wrap summary::after{
+  .vote-wrap summary::-webkit-details-marker, .menu-wrap summary::-webkit-details-marker{display:none;}
+  .vote-wrap summary::after, .menu-wrap summary::after{
     content:'';
     width:6px;height:6px;
     border-right:1.5px solid currentColor;
@@ -269,8 +270,40 @@
     transform:rotate(45deg) translateY(-2px);
     transition:transform .15s ease;
   }
-  .vote-wrap[open] summary::after{transform:rotate(-135deg) translate(-1px,-1px);}
+  .vote-wrap[open] summary::after, .menu-wrap[open] summary::after{transform:rotate(-135deg) translate(-1px,-1px);}
   .vote-wrap summary .you{color:#2F5C8A;font-weight:600;}
+
+  /* Kids menu: the restaurant's own menu, as sections of "name … price" rows. */
+  .menu-wrap{border-top:1px dashed var(--line);padding-top:2px;}
+  .menu-wrap summary{color:var(--accent);font-weight:600;font-size:13.5px;}
+  .menu-wrap summary .n{color:var(--ink-soft);font-weight:400;}
+  .menu-body{padding:2px 0 4px;font-size:13px;}
+  .menu-sum{margin:2px 0 6px;color:var(--ink);}
+  .menu-sec h4{
+    margin:12px 0 2px;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .menu-sec .sec-note{margin:0 0 2px;font-size:12px;color:var(--ink-soft);}
+  .menu-items{list-style:none;margin:0;padding:0;}
+  .menu-items li{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    padding:6px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .menu-items li:last-child{border-bottom:none;}
+  .menu-items .nm{font-weight:500;}
+  .menu-items .ds{display:block;font-size:12px;color:var(--ink-soft);}
+  .menu-items .pr{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600;}
+  .menu-foot{margin:8px 0 0;font-size:12px;color:var(--ink-soft);}
+  .menu-foot a{color:var(--accent);font-weight:600;text-decoration:none;}
+  .menu-foot a:hover{text-decoration:underline;}
   .vote-row{
     display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -671,6 +704,9 @@
     .card-meta{font-size:13.5px;}
     .tag-pill{font-size:12px;}
     .vote-wrap summary{font-size:13px;}
+    .menu-wrap summary{font-size:14px;}
+    .menu-body{font-size:13.5px;}
+    .menu-items .ds, .menu-sec .sec-note, .menu-foot{font-size:12.5px;}
     .vote-row{grid-template-columns:repeat(2,minmax(0,1fr));}
     .vote-btn{font-size:13px;}
   }
@@ -688,7 +724,8 @@
     .card-actions .act{min-height:44px;font-size:14px;}
     /* The 44px summary supplies its own breathing room, so pull it into the card's bottom padding. */
     .vote-wrap{margin:0 0 -8px;}
-    .vote-wrap summary{min-height:44px;}
+    .vote-wrap summary, .menu-wrap summary{min-height:44px;}
+    .menu-foot a{display:inline-block;padding:13px 0;}  /* 12.5px text + 26px = a 44px target */
     .vote-btn{min-height:44px;}
     .leaflet-container .leaflet-bar a,
     .leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px;}
@@ -702,7 +739,7 @@
   <div class="header-row">
     <div class="title-block">
       <h1 class="display">Naper Kids</h1>
-      <p>Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, and more.</p>
+      <p>Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, restaurants with kids' menus, and more.</p>
     </div>
     <!-- On phones this moves into the sticky .appbar below (see placeSearch()). -->
     <div class="search-wrap">
@@ -775,7 +812,7 @@
 <button class="view-switch" id="btnViewSwitch" type="button" aria-label="Show map"></button>
 
 <footer>
-  <p>Data pulled from Google Places; admission prices and suggested ages researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating.</p>
+  <p>Data pulled from Google Places; admission prices, suggested ages, and kids' menus researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. Each kids' menu is copied from the restaurant's own site on the date shown, so menus and prices may have changed since.</p>
   <p>Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere.</p>
   <p>Hours, openings, and prices change — worth a quick check before you go.<span id="dataDate"></span></p>
 </footer>
@@ -792,7 +829,8 @@ const CATEGORY_COLORS = {
   "Libraries": "#B5622E",
   "Nature & Zoos": "#5C7A3A",
   "Bowling & Arcades": "#C24E4E",
-  "Forest Preserves & Trails": "#2E5339"
+  "Forest Preserves & Trails": "#2E5339",
+  "Restaurants": "#C2417C"
 };
 
 const AGE_BANDS = [
@@ -832,6 +870,7 @@ let map, markerLayer, markersById = {}, selectedId = null;
 let currentView = 'list';  // phones only: 'list' or 'map'
 let listScrollY = 0;       // where the list was scrolled to when we left it for the map
 const openVotes = new Set(); // venue ids whose "Best age?" row is expanded (survives re-renders)
+const openMenus = new Set(); // venue ids whose kids menu is expanded (same idea)
 const FOCUS_ZOOM = 14;     // how far the map zooms in on a venue picked from the list
 
 // Same breakpoint as the CSS: at or below it we're in the one-column phone layout.
@@ -1168,8 +1207,7 @@ function filteredVenues(){
     const freeOk = !freeOnly || isFree(v);
     const favOk = !favOnly || favorites.has(v.id);
     const indoorOk = !indoorOnly || isIndoor(v);
-    const text = [v.name, v.note, v.category, v.address].join(' ').toLowerCase();
-    const searchOk = !q || text.includes(q);
+    const searchOk = !q || baseSearchText(v).includes(q) || menuSearchText(v).includes(q);
     return catOk && freeOk && favOk && indoorOk && ageOverlaps(v) && hasAllTags(v) && searchOk;
   });
   const outOfSeasonCount = base.reduce((n, v) => n + (inSeason(v) ? 0 : 1), 0);
@@ -1229,9 +1267,75 @@ function tagsHtml(v){
   return `<div class="card-tags">${pills}</div>`;
 }
 
+// ---- Kids menus (venues.json "kids_menu": sections of items, copied from the
+// restaurant's own menu by hand). ----
+
+function menuSections(v){
+  const m = v.kids_menu;
+  return (m && Array.isArray(m.sections)) ? m.sections : [];
+}
+function menuItems(v){
+  return menuSections(v).reduce((all, s) => all.concat(Array.isArray(s.items) ? s.items : []), []);
+}
+
+function baseSearchText(v){
+  return [v.name, v.note, v.category, v.address].join(' ').toLowerCase();
+}
+
+// Everything on the menu that search should be able to find ("mac and cheese").
+function menuSearchText(v){
+  return menuItems(v).map(it => [it.name, it.desc].join(' ')).join(' ').toLowerCase();
+}
+
+// True when a place is in the results *only* because of its menu — we open the
+// menu then, so it's obvious why the place matched.
+function matchedOnlyByMenu(v, q){
+  return !!q && !baseSearchText(v).includes(q) && menuSearchText(v).includes(q);
+}
+
+function menuHtml(v, forceOpen){
+  const items = menuItems(v);
+  if(!items.length) return '';
+  const m = v.kids_menu;
+  const sections = menuSections(v).map(s => {
+    const rows = (Array.isArray(s.items) ? s.items : []).map(it => `
+        <li>
+          <span><span class="nm">${esc(it.name)}</span>${it.desc ? `<span class="ds">${esc(it.desc)}</span>` : ''}</span>
+          ${it.price ? `<span class="pr">${esc(it.price)}</span>` : ''}
+        </li>`).join('');
+    return `
+      <section class="menu-sec">
+        ${s.title ? `<h4>${esc(s.title)}</h4>` : ''}
+        ${s.note ? `<p class="sec-note">${esc(s.note)}</p>` : ''}
+        <ul class="menu-items">${rows}</ul>
+      </section>`;
+  }).join('');
+  // Only http(s) links, since this lands in an href.
+  const link = /^https?:\/\//i.test(m.url || '')
+    ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">Full menu &rarr;</a>` : '';
+  const when = formatCheckedDate(m.checked);
+  const foot = [when ? `Checked ${esc(when)}` : '', link].filter(Boolean).join(' · ');
+  const open = forceOpen || openMenus.has(v.id);
+  return `<details class="menu-wrap"${open ? ' open' : ''}>
+      <summary>Kids menu <span class="n">· ${items.length} item${items.length === 1 ? '' : 's'}</span></summary>
+      <div class="menu-body">
+        ${m.summary ? `<p class="menu-sum">${esc(m.summary)}</p>` : ''}
+        ${sections}
+        ${foot ? `<p class="menu-foot">${foot}</p>` : ''}
+      </div>
+    </details>`;
+}
+
+function formatCheckedDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso + 'T12:00:00');
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+}
+
 function renderList(venues){
   const list = document.getElementById('list');
   const scrollTop = list.scrollTop;
+  const q = document.getElementById('search').value.trim().toLowerCase();
   list.innerHTML = '';
   if(venues.length === 0){
     const msg = (favOnly && favorites.size === 0)
@@ -1252,6 +1356,7 @@ function renderList(venues){
     const favTitle = fav ? 'Remove from favorites' : 'Save to favorites';
     const dist = distLabel(v);
     const outSeason = !inSeason(v);
+    const forceMenu = matchedOnlyByMenu(v, q);
     card.innerHTML = `
       <div class="card-top">
         <p class="card-name">${esc(v.name)}</p>
@@ -1279,6 +1384,7 @@ function renderList(venues){
         ${v.website ? `<a class="act" href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
         <button class="act act-map" type="button">On map</button>
       </div>
+      ${menuHtml(v, forceMenu)}
       ${voteRowHtml(v)}
     `;
     // On a phone the map replaces the list, so tapping the card body only
@@ -1296,11 +1402,18 @@ function renderList(venues){
       e.stopPropagation();
       toggleFav(v.id);
     };
-    // Links and the vote disclosure are their own targets: they must not also
-    // trigger the card's click (which used to flip the phone to the map view).
-    card.querySelectorAll('.card-actions a, .vote-wrap').forEach(el => {
+    // Links and the vote/menu disclosures are their own targets: they must not
+    // also trigger the card's click (which used to flip the phone to the map view).
+    card.querySelectorAll('.card-actions a, .vote-wrap, .menu-wrap').forEach(el => {
       el.addEventListener('click', e => e.stopPropagation());
     });
+    const menuWrap = card.querySelector('.menu-wrap');
+    if(menuWrap){
+      menuWrap.addEventListener('toggle', () => {
+        if(forceMenu) return;   // opened by the search, not by the user — don't remember it
+        if(menuWrap.open) openMenus.add(v.id); else openMenus.delete(v.id);
+      });
+    }
     card.querySelector('.act-map').onclick = (e) => {
       e.stopPropagation();
       selectVenue(v.id, true);

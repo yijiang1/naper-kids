@@ -10,6 +10,9 @@ holding pen and are allowed to be incomplete until promoted):
   - coordinates are within ~90 km of "center" (the Chicago six-county metro)
   - rating (if set) is between 0 and 5
   - season / tags / indoor (if set) only use their fixed vocabularies
+  - kids_menu (required for category "Restaurants", optional elsewhere) is
+    well-formed: a link to the restaurant's own menu, a "checked" date, and
+    at least one section with at least one named item
 
 Runs by hand, or in the weekly workflow right before build.py:
     python3 check_data.py
@@ -31,6 +34,12 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_DISTANCE_KM = 90.0  # matches update_venues.py's MAX_CANDIDATE_DISTANCE_M
 TAG_VOCAB = {"restrooms", "fenced", "shade", "stroller", "food", "water-play", "picnic", "parking"}
 SEASON_VOCAB = {"year-round", "summer", "winter"}
+RESTAURANT_CATEGORY = "Restaurants"  # these must carry a kids_menu
+MENU_KEYS = {"url", "summary", "sections", "checked"}
+MENU_SECTION_KEYS = {"title", "note", "items"}
+MENU_ITEM_KEYS = {"name", "desc", "price"}
+URL_RE = re.compile(r"^https?://\S+$")
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def describe(v):
@@ -84,6 +93,64 @@ def check_indoor(v, errors):
             describe(v), indoor))
 
 
+def check_unknown_keys(where, obj, allowed, errors):
+    extra = sorted(set(obj.keys()) - allowed)
+    if extra:
+        errors.append("{}: unknown key(s) {} (allowed: {})".format(where, extra, sorted(allowed)))
+
+
+def check_kids_menu(v, errors):
+    menu = v.get("kids_menu")
+    who = describe(v)
+    if menu is None:
+        if v.get("category") == RESTAURANT_CATEGORY:
+            errors.append("{}: restaurants need a 'kids_menu'".format(who))
+        return
+    if not isinstance(menu, dict):
+        errors.append("{}: kids_menu must be an object, got {!r}".format(who, menu))
+        return
+    check_unknown_keys(who + ": kids_menu", menu, MENU_KEYS, errors)
+
+    url = menu.get("url")
+    if not (isinstance(url, str) and URL_RE.match(url)):
+        errors.append("{}: kids_menu.url must be an http(s) link to the restaurant's own menu, got {!r}".format(who, url))
+    checked = menu.get("checked")
+    if not (isinstance(checked, str) and DATE_RE.match(checked)):
+        errors.append("{}: kids_menu.checked must be a YYYY-MM-DD date, got {!r}".format(who, checked))
+    summary = menu.get("summary")
+    if summary is not None and not (isinstance(summary, str) and summary.strip()):
+        errors.append("{}: kids_menu.summary, if present, must be non-empty text".format(who))
+
+    sections = menu.get("sections")
+    if not isinstance(sections, list) or not sections:
+        errors.append("{}: kids_menu.sections must be a non-empty list".format(who))
+        return
+    for si, sec in enumerate(sections):
+        where = "{}: kids_menu.sections[{}]".format(who, si)
+        if not isinstance(sec, dict):
+            errors.append("{} must be an object".format(where))
+            continue
+        check_unknown_keys(where, sec, MENU_SECTION_KEYS, errors)
+        for key in ("title", "note"):
+            if key in sec and not (isinstance(sec[key], str) and sec[key].strip()):
+                errors.append("{}.{} must be non-empty text if present".format(where, key))
+        items = sec.get("items")
+        if not isinstance(items, list) or not items:
+            errors.append("{}.items must be a non-empty list".format(where))
+            continue
+        for ii, item in enumerate(items):
+            iwhere = "{}.items[{}]".format(where, ii)
+            if not isinstance(item, dict):
+                errors.append("{} must be an object".format(iwhere))
+                continue
+            check_unknown_keys(iwhere, item, MENU_ITEM_KEYS, errors)
+            if not (isinstance(item.get("name"), str) and item["name"].strip()):
+                errors.append("{} needs a 'name'".format(iwhere))
+            for key in ("desc", "price"):
+                if key in item and not (isinstance(item[key], str) and item[key].strip()):
+                    errors.append("{}.{} must be non-empty text if present".format(iwhere, key))
+
+
 def main():
     with open(DATA_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -123,6 +190,7 @@ def main():
         check_season(v, errors)
         check_tags(v, errors)
         check_indoor(v, errors)
+        check_kids_menu(v, errors)
 
     if errors:
         print("venues.json failed validation ({} issue{}):".format(

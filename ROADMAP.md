@@ -22,6 +22,8 @@ adjust, `venues.json` is hand-curated.
 | 2.2 | Add well-known places Google missed | Arboretum, Naper Settlement, etc. | Content | ☑ |
 | 2.3 | Show rating counts | 4.9 (12) ≠ 4.5 (2,000) | Small | ☐ |
 | 2.4 | Seasonal farms / pumpkin patches | Fall-specific content, `season` field already exists | Content | ☐ |
+| 2.5 | Restaurants with kids menus | "Where can we eat?" is half of every outing | Medium | ☑ |
+| 2.6 | More restaurants (and re-check the 4 existing menus) | Seeded with 4 verified places; sit-down chains still missing | Content | ☐ |
 | 3.1 | Filters + selected place in the URL | Text a link to your spouse | Small | ☐ |
 | 3.2 | Saved home location | Distance sort without a GPS prompt | Small | ☐ |
 | 3.3 | "Been there" log + surprise me | Remember, and break ties | Small | ☐ |
@@ -29,7 +31,7 @@ adjust, `venues.json` is hand-curated.
 | 4.2 | Dark mode | Bedtime planning | Small | ☐ |
 | 4.3 | Weekly link check | Dead websites get noticed | Small | ☐ |
 
-**Landed:** 1.1 + 1.3 + 1.4 + 4.1, then 2.1 + 2.2 (see Done — this pass also
+**Landed:** 2.5 (restaurants + kids menus, Sep 30 2026), after 1.1 + 1.3 + 1.4 + 4.1, then 2.1 + 2.2 (see Done — that pass also
 widened the whole project's scope from Naperville-only to the greater
 Chicago metro area, ahead of schedule relative to this list's original
 ordering). **Next up:** 1.2, then 2.3, then the sharing conveniences (3.x).
@@ -92,6 +94,20 @@ Split off from the old 2.2 when that item landed — not researched yet.
 Verify hours/prices before adding, same as any other content item; set
 `season` (harvest season is roughly Sep–Oct for most) once real ones are
 picked.
+
+### 2.6 More restaurants, and keeping the menus fresh
+
+2.5 shipped with four places whose kids menus were verified on the
+restaurant's own site on 2026-09-30: Ramsay's Kitchen, Egg Harbor Cafe,
+Culver's and Portillo's (Ogden Ave; the Jefferson St one is mentioned in its
+note rather than listed twice). Texas Roadhouse, Giordano's, Red Robin and
+Cooper's Hawk were tried and dropped — their sites block scripted fetches or
+don't expose a Naperville page, so nothing could be verified; a browser
+session with a location search would get through. Add more the same way (see
+CLAUDE.md), and fill in the kids' prices for Culver's and Portillo's if they
+ever post them. Each menu shows its `checked` date; a menu older than ~6
+months is due a re-check. A soft warning in `check_data.py` for stale
+`checked` dates would make that automatic.
 
 ---
 
@@ -167,6 +183,13 @@ way to notice a venue that quietly closed.
 - Season awareness (out-of-season toggle + badge), amenity tags + "Must
   have" filters, indoor flag + rainy-day hint, and `check_data.py`
   validation wired into the weekly workflow (Sep 2026)
+- Restaurants with kids menus (Sep 30 2026): new `Restaurants` category and
+  an optional `kids_menu` field (sections of items with optional prices and
+  a link + checked date for the restaurant's own menu); a "Kids menu"
+  fold-out on each card, search that matches menu items, `check_data.py`
+  validation (required for restaurants), a Restaurants search in the
+  updater, and an updater test proving `kids_menu` is never overwritten.
+  Four verified restaurants to start (see 2.6)
 - Content pass: reviewed all 44 candidates (26 promoted, 18 deleted), added
   13 new Chicago-proper landmarks, and widened the whole project's scope
   from Naperville-only to the greater Chicago six-county metro area —
