@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
 <style>
   :root{
     --bg: #F1F3EA;
@@ -28,11 +29,12 @@
     --cat-nature: #5C7A3A;
     --cat-bowling: #C24E4E;
     --cat-trails: #2E5339;
+
+    --appbar-h: 64px;
   }
 
   *{box-sizing:border-box;}
   [hidden]{display:none !important;}
-  html,body{height:100%;}
   body{
     margin:0;
     background:var(--bg);
@@ -81,6 +83,8 @@
     font-family:inherit;
     font-size:14px;
     color:var(--ink);
+    -webkit-appearance:none;
+    appearance:none;
   }
   .search-wrap input:focus{
     outline:2px solid var(--accent);
@@ -243,17 +247,39 @@
     color:#2F5C8A;
   }
 
-  .vote-row{
+  /* "Best age?" voting is tucked behind a disclosure so it doesn't add a
+     wrapped row of buttons to every card. */
+  .vote-wrap{margin-top:8px;}
+  .vote-wrap summary{
+    list-style:none;
+    cursor:pointer;
     display:flex;
     align-items:center;
     gap:6px;
-    flex-wrap:wrap;
-    margin-top:10px;
+    min-height:32px;
+    font-size:12.5px;
+    color:var(--ink-soft);
   }
-  .vote-label{font-size:11.5px;color:var(--ink-soft);margin-right:2px;}
+  .vote-wrap summary::-webkit-details-marker{display:none;}
+  .vote-wrap summary::after{
+    content:'';
+    width:6px;height:6px;
+    border-right:1.5px solid currentColor;
+    border-bottom:1.5px solid currentColor;
+    transform:rotate(45deg) translateY(-2px);
+    transition:transform .15s ease;
+  }
+  .vote-wrap[open] summary::after{transform:rotate(-135deg) translate(-1px,-1px);}
+  .vote-wrap summary .you{color:#2F5C8A;font-weight:600;}
+  .vote-row{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+    margin-top:4px;
+  }
   .vote-btn{
-    font-size:11.5px;
-    padding:4px 9px;
+    font-size:12px;
+    padding:6px 4px;
     border-radius:8px;
     border:1px solid var(--line);
     background:var(--bg);
@@ -261,6 +287,7 @@
     cursor:pointer;
     display:inline-flex;
     align-items:center;
+    justify-content:center;
     gap:5px;
     font-family:inherit;
   }
@@ -272,29 +299,8 @@
   }
   .vote-btn.voted .n{color:#2F5C8A;}
 
-  .view-toggle{
-    display:none;
-    max-width:1160px;
-    margin:12px auto 0;
-    padding:0 20px;
-    gap:8px;
-  }
-  .view-toggle button{
-    flex:1;
-    padding:9px;
-    border-radius:10px;
-    border:1px solid var(--line);
-    background:var(--panel);
-    font-family:inherit;
-    font-size:14px;
-    color:var(--ink-soft);
-    cursor:pointer;
-  }
-  .view-toggle button.active{
-    background:var(--accent);
-    border-color:var(--accent);
-    color:#fff;
-  }
+  /* Phone-only chrome (hidden on desktop; the media queries below turn it on). */
+  .appbar, .view-switch, .count-line, .sheet-head, .sheet-foot, .sheet-only{display:none;}
 
   main{
     max-width:1160px;
@@ -350,13 +356,20 @@
     color:var(--gold);
     white-space:nowrap;
   }
+  /* 44x44 touch target; the negative margins keep the card header compact. */
   .fav-btn{
     border:none;
     background:none;
     cursor:pointer;
-    font-size:19px;
+    font-size:22px;
     line-height:1;
-    padding:0 2px;
+    width:44px;
+    height:44px;
+    margin:-12px -12px -12px -4px;
+    padding:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     color:#C5CCBF;
     font-family:inherit;
   }
@@ -385,24 +398,81 @@
     flex-wrap:wrap;
     gap:4px 14px;
   }
-  .card-meta a{color:var(--accent);text-decoration:none;font-weight:500;}
-  .card-meta a:hover{text-decoration:underline;}
+  .card-actions{
+    display:flex;
+    gap:8px;
+    margin-top:12px;
+  }
+  .card-actions .act{
+    flex:1 1 0;
+    min-height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--bg);
+    color:var(--accent);
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    text-decoration:none;
+    cursor:pointer;
+  }
+  .card-actions .act:hover{border-color:var(--accent);}
+  .card-actions .act-map{display:none;}  /* desktop already shows the map beside the list */
 
+  /* z-index:0 makes the map its own stacking context, so Leaflet's internal
+     z-indexes (up to 1000) can't poke through the sticky bar or filter sheet. */
   #map{
+    position:relative;
+    z-index:0;
     height:calc(100vh - 210px);
     min-height:420px;
     border-radius:14px;
     border:1px solid var(--line);
   }
 
-  .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13.5px;}
-  .leaflet-popup-content b{font-family:'Fredoka',sans-serif;}
+  .pin-wrap{display:flex;align-items:center;justify-content:center;}
+  .pin{
+    width:16px;height:16px;
+    border-radius:50%;
+    border:2px solid #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,0.4);
+    transition:transform .15s ease;
+  }
+  .pin-wrap.selected .pin{
+    transform:scale(1.5);
+    box-shadow:0 0 0 3px rgba(34,48,40,0.35), 0 1px 4px rgba(0,0,0,0.5);
+  }
+  .cluster{
+    width:100%;height:100%;
+    border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    border:3px solid rgba(255,255,255,0.92);
+    box-shadow:0 1px 5px rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:600;font-size:14px;
+  }
+
+  .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13.5px;margin:12px 14px;}
+  .leaflet-popup-content b{font-family:'Fredoka',sans-serif;font-size:15px;}
+  .leaflet-container a.popup-dir{
+    display:inline-block;
+    margin-top:6px;
+    padding:6px 0;
+    color:var(--accent);
+    font-weight:600;
+    text-decoration:none;
+  }
 
   .empty{
     padding:40px 10px;
     text-align:center;
     color:var(--ink-soft);
   }
+  .empty .chip{margin-top:12px;}
 
   footer{
     max-width:1160px;
@@ -411,15 +481,218 @@
     color:var(--ink-soft);
     font-size:12.5px;
   }
+  footer p{margin:0 0 8px;}
 
+  /* ---- Phones and small tablets: one column, sticky search + Filters bar,
+     filters in a full-screen sheet, floating List/Map switch. ---- */
   @media (max-width: 860px){
-    main{grid-template-columns:1fr;}
-    #list, #map{max-height:none;height:auto;}
-    .view-toggle{display:flex;}
+    header{padding:16px 16px 12px;}
+    .header-row{display:block;}
+    .title-block h1{font-size:24px;}
+    .title-block p{font-size:13.5px;}
+
+    .appbar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      position:sticky;
+      top:0;
+      z-index:500;
+      height:var(--appbar-h);
+      padding:0 12px;
+      background:var(--panel);
+      border-bottom:1px solid var(--line);
+    }
+    .appbar .search-wrap{flex:1 1 auto;min-width:0;}
+    .filters-btn{
+      flex:0 0 auto;
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      min-height:44px;
+      padding:0 12px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--ink);
+      font-family:inherit;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .filters-btn .badge{
+      min-width:20px;height:20px;
+      padding:0 6px;
+      border-radius:999px;
+      background:var(--accent);
+      color:#fff;
+      font-size:12px;
+      line-height:20px;
+      text-align:center;
+    }
+
+    .count-line{
+      display:block;
+      max-width:1160px;
+      margin:12px auto 0;
+      padding:0 16px;
+      font-size:13px;
+      color:var(--ink-soft);
+    }
+    .status-bar, .rain-hint-row{padding:0 16px;}
+
+    main{grid-template-columns:1fr;padding:0 16px;margin:10px auto 28px;}
+    #list{max-height:none;padding-right:0;}
     #list.hide-mobile, #map.hide-mobile{display:none;}
-    #map{height:60vh;min-height:340px;}
-    #list{max-height:none;}
-    .search-wrap{flex:1 1 100%;}
+    /* The map only shows in map view, where it fills everything under the bar. */
+    #map{
+      height:calc(100vh - var(--appbar-h));
+      height:calc(100dvh - var(--appbar-h));
+      min-height:0;
+      border-radius:0;
+      border-width:1px 0 0;
+    }
+    body.view-map header,
+    body.view-map footer,
+    body.view-map .count-line,
+    body.view-map .rain-hint-row{display:none;}
+    body.view-map main{padding:0;margin:0;}
+    /* Lift the switch above Leaflet's attribution line, which Esri's terms require us to show. */
+    body.view-map .view-switch{bottom:calc(56px + env(safe-area-inset-bottom, 0px));}
+
+    footer{padding:0 16px;margin-bottom:96px;}  /* clear the floating switch */
+
+    .card-actions .act-map{display:inline-flex;}
+
+    .view-switch{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+      z-index:600;
+      min-height:48px;
+      padding:0 22px;
+      border:none;
+      border-radius:999px;
+      background:var(--ink);
+      color:#fff;
+      font-family:inherit;
+      font-size:15px;
+      font-weight:600;
+      box-shadow:0 4px 14px rgba(0,0,0,0.28);
+      cursor:pointer;
+    }
+    .view-switch svg{width:18px;height:18px;flex:0 0 auto;}
+
+    /* Filters become a full-screen sheet, opened from the sticky bar. */
+    .filter-panel{
+      display:none;
+      position:fixed;
+      top:0;right:0;bottom:0;left:0;
+      z-index:2000;
+      flex-direction:column;
+      background:var(--bg);
+    }
+    .filter-panel.open{display:flex;}
+    body.sheet-open{overflow:hidden;}
+    .sheet-head{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 8px 6px 16px;
+      background:var(--panel);
+      border-bottom:1px solid var(--line);
+    }
+    .sheet-head h2{margin:0;font-size:20px;flex:1;}
+    .link-btn{
+      min-height:44px;
+      padding:0 10px;
+      border:none;
+      background:none;
+      color:var(--accent);
+      font-family:inherit;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .sheet-x{
+      width:44px;height:44px;
+      border:none;
+      background:none;
+      color:var(--ink);
+      font-size:28px;
+      line-height:1;
+      cursor:pointer;
+    }
+    .sheet-body{
+      flex:1;
+      overflow-y:auto;
+      overscroll-behavior:contain;
+      padding-bottom:16px;
+    }
+    .sheet-foot{
+      display:block;
+      padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+      background:var(--panel);
+      border-top:1px solid var(--line);
+    }
+    .show-btn{
+      width:100%;
+      min-height:50px;
+      border:none;
+      border-radius:12px;
+      background:var(--accent);
+      color:var(--accent-ink);
+      font-family:inherit;
+      font-size:16px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .sheet-body .toolbar{max-width:none;margin:18px 0 0;padding:0 16px;gap:8px;}
+    .sheet-body .toolbar::before{
+      content:attr(data-label);
+      flex:0 0 100%;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:0.06em;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    .tag-label, .count-tag{display:none;}
+    .tools-right{margin-left:0;width:100%;display:flex;flex-wrap:nowrap;}
+    .tools-right .sort-select{flex:1 1 auto;min-width:0;}
+    .sheet-only{display:block;padding:0 16px;margin-top:14px;font-size:13px;color:var(--ink-soft);}
+
+    /* Cards: slightly larger type, and the vote buttons get a roomy 2x2 grid. */
+    .card-cat{font-size:13px;}
+    .card-meta{font-size:13.5px;}
+    .tag-pill{font-size:12px;}
+    .vote-wrap summary{font-size:13px;}
+    .vote-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .vote-btn{font-size:13px;}
+  }
+
+  /* Anything touch-driven (phones, tablets, even an iPad in landscape):
+     44px targets, and 16px inputs so iOS doesn't zoom the page on focus. */
+  @media (max-width: 860px), (pointer: coarse){
+    .chip{min-height:44px;padding:0 16px;font-size:14px;}
+    .free-toggle{min-height:44px;padding:0 16px;font-size:14px;}
+    .free-toggle input{width:18px;height:18px;}
+    .sort-select{min-height:44px;font-size:16px;padding-top:0;padding-bottom:0;}
+    .search-wrap input{min-height:44px;font-size:16px;}
+    .rain-hint{padding:12px 14px;}
+    .card-actions{margin-top:10px;}
+    .card-actions .act{min-height:44px;font-size:14px;}
+    /* The 44px summary supplies its own breathing room, so pull it into the card's bottom padding. */
+    .vote-wrap{margin:0 0 -8px;}
+    .vote-wrap summary{min-height:44px;}
+    .vote-btn{min-height:44px;}
+    .leaflet-container .leaflet-bar a,
+    .leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px;}
+    .leaflet-container .leaflet-popup-close-button{width:36px;height:36px;font-size:24px;line-height:34px;}
   }
 </style>
 </head>
@@ -431,13 +704,30 @@
       <h1 class="display">Naper Kids</h1>
       <p>Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, and more.</p>
     </div>
+    <!-- On phones this moves into the sticky .appbar below (see placeSearch()). -->
     <div class="search-wrap">
-      <input type="text" id="search" placeholder="Search by name or vibe…">
+      <input type="search" id="search" placeholder="Search by name or vibe…" aria-label="Search places" enterkeyhint="search" autocomplete="off">
     </div>
   </div>
 </header>
 
-<div class="toolbar">
+<div class="appbar" id="appbar">
+  <button class="filters-btn" id="btnFilters" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="filterPanel">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+    <span>Filters</span>
+    <span class="badge" id="filterBadge" hidden>0</span>
+  </button>
+</div>
+
+<!-- Desktop: just the toolbars, inline. Phone: a full-screen sheet opened by #btnFilters. -->
+<div class="filter-panel" id="filterPanel">
+<div class="sheet-head">
+  <h2 class="display">Filters</h2>
+  <button class="link-btn" id="btnClearFilters" type="button" hidden>Clear all</button>
+  <button class="sheet-x" id="btnCloseFilters" type="button" aria-label="Close filters">&times;</button>
+</div>
+<div class="sheet-body">
+<div class="toolbar" data-label="Price &amp; category">
   <label class="free-toggle" id="freeToggleLabel">
     <input type="checkbox" id="freeOnly">
     Free only
@@ -445,7 +735,7 @@
   <span id="chips" style="display:contents"></span>
 </div>
 
-<div class="toolbar">
+<div class="toolbar" data-label="Age, sort &amp; more">
   <span id="ageChips" style="display:contents"></span>
   <button class="chip" id="indoorChip" title="Only show venues with indoor space">🏠 Indoor</button>
   <button class="chip fav" id="favChip" title="Show only the places you've starred">★ Favorites</button>
@@ -460,30 +750,38 @@
     </select>
   </span>
 </div>
-<div class="toolbar" id="tagToolbar" hidden>
+<div class="toolbar" id="tagToolbar" data-label="Must have" hidden>
   <span class="tag-label">Must have:</span>
   <span id="tagChips" style="display:contents"></span>
 </div>
+<div class="sheet-only" id="sheetStatus" hidden></div>
+</div>
+<div class="sheet-foot">
+  <button class="show-btn" id="btnShowResults" type="button">Show places</button>
+</div>
+</div>
+
 <div class="status-bar" id="status" hidden></div>
 <div class="rain-hint-row" id="rainHintRow" hidden>
   <span class="rain-hint" id="rainHint"></span>
 </div>
-
-<div class="view-toggle" id="viewToggle">
-  <button id="btnListView" class="active">List</button>
-  <button id="btnMapView">Map</button>
-</div>
+<div class="count-line" id="countLine"></div>
 
 <main>
   <div id="list"></div>
   <div id="map"></div>
 </main>
 
+<button class="view-switch" id="btnViewSwitch" type="button" aria-label="Show map"></button>
+
 <footer>
-  Data pulled from Google Places; admission prices and suggested ages researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere. Hours, openings, and prices change — worth a quick check before you go.<span id="dataDate"></span>
+  <p>Data pulled from Google Places; admission prices and suggested ages researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating.</p>
+  <p>Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere.</p>
+  <p>Hours, openings, and prices change — worth a quick check before you go.<span id="dataDate"></span></p>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <script>
 const VENUES_FALLBACK = {
   "generated_at": "2026-09-28",
@@ -1780,7 +2078,18 @@ let userPos = null;        // {lat, lng} once "Near me" has been granted
 let userMarker = null;
 let lastFitKey = null;     // which set of venues the map was last fitted to
 let pendingFitBounds = null; // a fit we couldn't do because the map was hidden (mobile list view)
-let map, markersById = {}, selectedId = null;
+let map, markerLayer, markersById = {}, selectedId = null;
+let currentView = 'list';  // phones only: 'list' or 'map'
+let listScrollY = 0;       // where the list was scrolled to when we left it for the map
+const openVotes = new Set(); // venue ids whose "Best age?" row is expanded (survives re-renders)
+const FOCUS_ZOOM = 14;     // how far the map zooms in on a venue picked from the list
+
+// Same breakpoint as the CSS: at or below it we're in the one-column phone layout.
+const mqMobile = window.matchMedia('(max-width: 860px)');
+function isMobile(){ return mqMobile.matches; }
+
+const ICON_MAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+const ICON_LIST = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>';
 
 // Venue text is rendered with innerHTML, so escape it — especially once
 // update_venues.py starts pulling names/addresses straight from Google.
@@ -1788,6 +2097,69 @@ function esc(s){
   return String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Call this (instead of refresh()) when the *set* of places changes because the
+// user changed a filter, the sort, or the search. On phones it also puts the page
+// back at the top, so you aren't left staring at the middle of a different list.
+function applyFilters(){
+  refresh();
+  listScrollY = 0;
+  if(isMobile() && currentView === 'list') window.scrollTo(0, 0);
+}
+
+function activeFilterCount(){
+  return activeCategories.size + activeAgeBands.size + activeTags.size
+    + (document.getElementById('freeOnly').checked ? 1 : 0)
+    + (indoorOnly ? 1 : 0) + (favOnly ? 1 : 0) + (showOutOfSeason ? 1 : 0);
+}
+
+function clearFilters(){
+  activeCategories.clear();
+  activeAgeBands.clear();
+  activeTags.clear();
+  favOnly = indoorOnly = showOutOfSeason = false;
+  document.getElementById('freeOnly').checked = false;
+  document.getElementById('freeToggleLabel').classList.remove('active');
+  applyFilters();
+}
+
+// The phone filter sheet. On desktop the same panel is just the inline toolbars.
+function openFilters(){
+  const panel = document.getElementById('filterPanel');
+  panel.classList.add('open');
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-modal', 'true');
+  panel.setAttribute('aria-label', 'Filters');
+  document.body.classList.add('sheet-open');
+  document.getElementById('btnFilters').setAttribute('aria-expanded', 'true');
+  document.getElementById('btnCloseFilters').focus();
+}
+function closeFilters(){
+  const panel = document.getElementById('filterPanel');
+  if(!panel.classList.contains('open')) return;
+  panel.classList.remove('open');
+  panel.removeAttribute('role');
+  panel.removeAttribute('aria-modal');
+  panel.removeAttribute('aria-label');
+  document.body.classList.remove('sheet-open');
+  const opener = document.getElementById('btnFilters');
+  opener.setAttribute('aria-expanded', 'false');
+  opener.focus();
+}
+
+// One search box, two homes: the header on desktop, the sticky bar on phones.
+function placeSearch(){
+  const wrap = document.querySelector('.search-wrap');
+  // The bar is narrow on phones, so the longer hint would be clipped there.
+  document.getElementById('search').placeholder = isMobile() ? 'Search places…' : 'Search by name or vibe…';
+  if(isMobile()){
+    const bar = document.getElementById('appbar');
+    if(wrap.parentNode !== bar) bar.insertBefore(wrap, document.getElementById('btnFilters'));
+  } else {
+    const row = document.querySelector('.header-row');
+    if(wrap.parentNode !== row) row.appendChild(wrap);
+  }
 }
 
 const FAV_KEY = 'naperkids_favs_v1';
@@ -1852,7 +2224,7 @@ function renderAgeChips(){
       if(activeAgeBands.has(band.id)) activeAgeBands.delete(band.id);
       else activeAgeBands.add(band.id);
       updateAgeChipStates();
-      refresh();
+      applyFilters();
     };
     wrap.appendChild(chip);
   });
@@ -1879,7 +2251,7 @@ function renderTagChips(){
     chip.onclick = () => {
       if(activeTags.has(t)) activeTags.delete(t); else activeTags.add(t);
       updateTagChipStates();
-      refresh();
+      applyFilters();
     };
     wrap.appendChild(chip);
   });
@@ -1915,7 +2287,7 @@ function renderChips(){
   const allChip = document.createElement('button');
   allChip.className = 'chip active';
   allChip.textContent = 'All';
-  allChip.onclick = () => { activeCategories.clear(); refresh(); };
+  allChip.onclick = () => { activeCategories.clear(); applyFilters(); };
   wrap.appendChild(allChip);
 
   cats.forEach(cat => {
@@ -1926,7 +2298,7 @@ function renderChips(){
     chip.onclick = () => {
       if(activeCategories.has(cat)) activeCategories.delete(cat);
       else activeCategories.add(cat);
-      refresh();
+      applyFilters();
     };
     chip.dataset.cat = cat;
     wrap.appendChild(chip);
@@ -1998,7 +2370,9 @@ function voteRowHtml(v){
     const active = mine === b.id;
     return `<button class="vote-btn${active ? ' voted' : ''}" data-venue="${esc(v.id)}" data-band="${b.id}">${b.label}${n ? ` <span class="n">${n}</span>` : ''}</button>`;
   }).join('');
-  return `<div class="vote-row"><span class="vote-label">Best age?</span>${buttons}</div>`;
+  const mineBand = VOTE_BANDS.find(b => b.id === mine);
+  const you = mineBand ? ` <span class="you">· you: ${esc(mineBand.label)}</span>` : '';
+  return `<details class="vote-wrap"${openVotes.has(v.id) ? ' open' : ''}><summary>Best age?${you}</summary><div class="vote-row">${buttons}</div></details>`;
 }
 
 function ageOverlaps(v){
@@ -2078,6 +2452,22 @@ function ageLabel(v){
   return short === 'All ages' ? 'All ages' : `Ages ${short}`;
 }
 
+// What the age badge doesn't already say. "All ages (bumpers for little
+// bowlers)" has a badge of "All ages", so show only "bumpers for little
+// bowlers"; text that doesn't start with a separator reads better whole.
+function ageDetail(v){
+  if(!v.age) return '';
+  const rest = v.age.slice(ageShort(v).length);
+  if(!rest.trim()) return '';
+  if(!/^\s*(\(|—|–|-|,)/.test(rest)) return v.age;
+  return rest.replace(/^[\s,—–-]+/, '').replace(/^\((.*)\)$/, '$1').trim();
+}
+
+// The badge already says "Paid", so drop a leading "Paid — " from the detail line.
+function costDetail(v){
+  return (v.cost || '').replace(/^Paid\s*[—–-]\s*/i, '');
+}
+
 function ageBadge(v){
   if(!v.age) return '';
   return `<span class="age-badge" title="${esc(v.age)}">${esc(ageLabel(v))}</span>`;
@@ -2097,7 +2487,9 @@ function renderList(venues){
     const msg = (favOnly && favorites.size === 0)
       ? 'No favorites yet — tap the ☆ on a place to save it here.'
       : 'Nothing matches that yet — try a different filter or search term.';
-    list.innerHTML = `<div class="empty">${msg}</div>`;
+    const canClear = activeFilterCount() > 0;
+    list.innerHTML = `<div class="empty">${msg}${canClear ? '<br><button class="chip" id="emptyClear" type="button">Clear filters</button>' : ''}</div>`;
+    if(canClear) document.getElementById('emptyClear').onclick = clearFilters;
     return;
   }
   venues.forEach(v => {
@@ -2129,24 +2521,44 @@ function renderList(venues){
         ${dist ? `<span class="card-dist">${dist}</span>` : ''}
         <span>${esc(v.address)}</span>
         ${v.hours ? `<span>${esc(v.hours)}</span>` : ''}
-        ${v.cost && !isFree(v) ? `<span>${esc(v.cost)}</span>` : ''}
-        ${v.age && v.age !== ageShort(v) ? `<span>${esc(v.age)}</span>` : ''}
-        <a href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>
-        ${v.website ? `<a href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
+        ${v.cost && !isFree(v) ? `<span>${esc(costDetail(v))}</span>` : ''}
+        ${ageDetail(v) ? `<span>${esc(ageDetail(v))}</span>` : ''}
+      </div>
+      <div class="card-actions">
+        <a class="act" href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>
+        ${v.website ? `<a class="act" href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
+        <button class="act act-map" type="button">On map</button>
       </div>
       ${voteRowHtml(v)}
     `;
-    card.onclick = () => selectVenue(v.id, true);
+    // On a phone the map replaces the list, so tapping the card body only
+    // highlights it; the "On map" button is the deliberate way to jump there.
+    // (On desktop the map is right alongside, so a card click pans it.)
+    const onCardActivate = () => selectVenue(v.id, !isMobile());
+    card.onclick = onCardActivate;
     card.onkeydown = (e) => {
       if((e.key === 'Enter' || e.key === ' ') && e.target === card){
         e.preventDefault();
-        selectVenue(v.id, true);
+        onCardActivate();
       }
     };
     card.querySelector('.fav-btn').onclick = (e) => {
       e.stopPropagation();
       toggleFav(v.id);
     };
+    // Links and the vote disclosure are their own targets: they must not also
+    // trigger the card's click (which used to flip the phone to the map view).
+    card.querySelectorAll('.card-actions a, .vote-wrap').forEach(el => {
+      el.addEventListener('click', e => e.stopPropagation());
+    });
+    card.querySelector('.act-map').onclick = (e) => {
+      e.stopPropagation();
+      selectVenue(v.id, true);
+    };
+    const voteWrap = card.querySelector('.vote-wrap');
+    voteWrap.addEventListener('toggle', () => {
+      if(voteWrap.open) openVotes.add(v.id); else openVotes.delete(v.id);
+    });
     card.querySelectorAll('.vote-btn').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation();
@@ -2164,25 +2576,60 @@ function initMap(){
     maxZoom:19,
     attribution:'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, USGS, NGA, EPA, NPS'
   }).addTo(map);
+  // With ~60 pins piled up around Naperville, cluster them so each tap target is
+  // distinct. If the plugin didn't load (offline CDN), fall back to plain pins.
+  markerLayer = (typeof L.markerClusterGroup === 'function')
+    ? L.markerClusterGroup({
+        showCoverageOnHover:false,
+        maxClusterRadius:44,
+        disableClusteringAtZoom:16,
+        iconCreateFunction:clusterIcon
+      })
+    : L.layerGroup();
+  markerLayer.addTo(map);
+}
+
+function clusterIcon(cluster){
+  const n = cluster.getChildCount();
+  const size = n < 10 ? 38 : n < 30 ? 44 : 50;
+  return L.divIcon({html:`<div class="cluster">${n}</div>`, className:'', iconSize:[size, size]});
+}
+
+// The dot is 16px but the marker's hit area is 36px, so it's tappable by a thumb.
+function pinIcon(v, selected){
+  const color = CATEGORY_COLORS[v.category] || '#888';
+  return L.divIcon({
+    className:'pin-wrap' + (selected ? ' selected' : ''),
+    html:`<div class="pin" style="background:${color}"></div>`,
+    iconSize:[36,36],
+    iconAnchor:[18,18],
+    popupAnchor:[0,-12]
+  });
+}
+
+function popupHtml(v){
+  const dist = distLabel(v);
+  const bits = [];
+  if(v.cost) bits.push(isFree(v) ? 'Free' : (v.cost.length > 26 ? 'Paid' : v.cost));
+  if(v.age) bits.push(ageLabel(v));
+  if(dist) bits.push(dist);
+  const seasonNote = !inSeason(v) ? '<br><span style="color:#5B6960">Closed for the season</span>' : '';
+  // Kept short on purpose — the full note, hours and prices live on the card.
+  return `<b>${esc(v.name)}</b><br>${esc(v.category)}${bits.length ? '<br>' + esc(bits.join(' · ')) : ''}${seasonNote}<br><a class="popup-dir" href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>`;
 }
 
 function renderMarkers(venues){
-  Object.values(markersById).forEach(m => map.removeLayer(m));
+  markerLayer.clearLayers();
   markersById = {};
   const bounds = [];
   venues.forEach(v => {
-    const color = CATEGORY_COLORS[v.category] || '#888';
-    const icon = L.divIcon({
-      className:'',
-      html:`<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.4)"></div>`,
-      iconSize:[16,16],
-      iconAnchor:[8,8]
+    const marker = L.marker([v.lat, v.lng], {
+      icon: pinIcon(v, v.id === selectedId),
+      zIndexOffset: v.id === selectedId ? 1000 : 0
     });
-    const marker = L.marker([v.lat, v.lng], {icon}).addTo(map);
-    const dist = distLabel(v);
-    const seasonNote = !inSeason(v) ? ' · <span style="color:#5B6960">Closed for the season</span>' : '';
-    marker.bindPopup(`<b>${esc(v.name)}</b><br>${esc(v.category)}${v.cost ? ' · ' + esc(v.cost) : ''}${v.age ? ' · ' + esc(ageLabel(v)) : ''}${dist ? ' · ' + dist : ''}${seasonNote}${v.note ? '<br>' + esc(v.note) : ''}`);
+    marker.bindPopup(popupHtml(v), {maxWidth:240, autoPanPadding:[24,24]});
     marker.on('click', () => selectVenue(v.id, false));
+    markerLayer.addLayer(marker);
     markersById[v.id] = marker;
     bounds.push([v.lat, v.lng]);
   });
@@ -2220,10 +2667,14 @@ function placeUserMarker(){
   userMarker.bindTooltip('You are here', {direction:'top', offset:[0,-8]});
 }
 
+// Shown under the sticky bar, and mirrored inside the filter sheet (where
+// "Near me" lives on phones) so the message isn't hidden behind the sheet.
 function setStatus(msg){
-  const el = document.getElementById('status');
-  el.textContent = msg;
-  el.hidden = !msg;
+  ['status', 'sheetStatus'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.hidden = !msg;
+  });
 }
 
 function locateMe(){
@@ -2244,7 +2695,7 @@ function locateMe(){
     sortMode = 'distance';
     setStatus('');
     placeUserMarker();
-    refresh();
+    applyFilters();
   }, err => {
     btn.disabled = false;
     setStatus(err.code === 1
@@ -2273,11 +2724,11 @@ async function checkRain(){
 function showRainHint(chance){
   const row = document.getElementById('rainHintRow');
   const el = document.getElementById('rainHint');
-  el.textContent = `Rain likely today (${chance}%) — tap Indoor?`;
+  el.textContent = `Rain likely today (${chance}%) — tap to show indoor places`;
   el.onclick = () => {
     indoorOnly = true;
     row.hidden = true;
-    refresh();
+    applyFilters();
   };
   row.hidden = false;
 }
@@ -2290,20 +2741,33 @@ function showDataDate(){
     ' Data last refreshed ' + d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}) + '.';
 }
 
-function selectVenue(id, panMap){
+function selectVenue(id, showOnMap){
+  const prevId = selectedId;
   selectedId = id;
   document.querySelectorAll('.card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
-  if(!panMap || !markersById[id]) return;
-  const focusMarker = () => {
-    map.panTo(markersById[id].getLatLng());
-    markersById[id].openPopup();
-  };
-  if(window.innerWidth <= 860){
-    showView('map');          // needs a moment to size the map and apply any deferred fit
-    setTimeout(focusMarker, 80);
-  } else {
-    focusMarker();
-  }
+  // Re-skin the old and new pins (the selected one is larger and on top).
+  [prevId, id].forEach(vid => {
+    const m = markersById[vid];
+    const v = allVenues.find(x => x.id === vid);
+    if(m && v){
+      m.setIcon(pinIcon(v, vid === id));
+      m.setZIndexOffset(vid === id ? 1000 : 0);
+    }
+  });
+  if(!showOnMap || !markersById[id]) return;
+  if(isMobile()) showView('map');
+  focusVenue(id);
+}
+
+// Zoom in on a venue and open its popup. The pin may be folded into a cluster,
+// so let the cluster layer zoom/spiderfy until it's actually on screen.
+function focusVenue(id){
+  const marker = markersById[id];
+  if(!marker) return;
+  map.setView(marker.getLatLng(), Math.max(map.getZoom(), FOCUS_ZOOM), {animate:false});
+  const open = () => marker.openPopup();
+  if(typeof markerLayer.zoomToShowLayer === 'function') markerLayer.zoomToShowLayer(marker, open);
+  else open();
 }
 
 function refresh(){
@@ -2317,45 +2781,76 @@ function refresh(){
   seasonChip.hidden = outOfSeasonCount === 0 && !showOutOfSeason;
   seasonChip.textContent = `Show out-of-season${outOfSeasonCount ? ' (' + outOfSeasonCount + ')' : ''}`;
   seasonChip.classList.toggle('active', showOutOfSeason);
-  document.getElementById('countTag').textContent = `${venues.length} place${venues.length===1?'':'s'}`;
+  const countText = `${venues.length} place${venues.length===1?'':'s'}`;
+  document.getElementById('countTag').textContent = countText;
+  document.getElementById('countLine').textContent = countText;
+  document.getElementById('btnShowResults').textContent = venues.length ? `Show ${countText}` : 'No places match — adjust filters';
+  const nFilters = activeFilterCount();
+  const badge = document.getElementById('filterBadge');
+  badge.hidden = nFilters === 0;
+  badge.textContent = nFilters;
+  document.getElementById('btnClearFilters').hidden = nFilters === 0;
   renderList(venues);
   renderMarkers(venues);
 }
 
+// Phones show either the list or the map. Leaving the list remembers how far
+// down it was scrolled so coming back drops you in the same spot.
 function showView(which){
-  const list = document.getElementById('list');
-  const mapEl = document.getElementById('map');
-  const btnList = document.getElementById('btnListView');
-  const btnMap = document.getElementById('btnMapView');
-  if(which === 'list'){
-    list.classList.remove('hide-mobile');
-    mapEl.classList.add('hide-mobile');
-    btnList.classList.add('active');
-    btnMap.classList.remove('active');
-  } else {
-    list.classList.add('hide-mobile');
-    mapEl.classList.remove('hide-mobile');
-    btnMap.classList.add('active');
-    btnList.classList.remove('active');
-    setTimeout(() => {
-      map.invalidateSize();
-      if(pendingFitBounds) fitMapTo(pendingFitBounds);
-    }, 50);
+  const changed = which !== currentView;
+  if(changed && currentView === 'list') listScrollY = window.scrollY;
+  currentView = which;
+  document.getElementById('list').classList.toggle('hide-mobile', which === 'map');
+  document.getElementById('map').classList.toggle('hide-mobile', which !== 'map');
+  document.body.classList.toggle('view-map', which === 'map');
+  updateViewSwitch();
+  if(which === 'map'){
+    window.scrollTo(0, 0);
+    map.invalidateSize({animate:false});   // the map was display:none until just now
+    if(pendingFitBounds) fitMapTo(pendingFitBounds);
+  } else if(changed){
+    window.scrollTo(0, listScrollY);
   }
 }
 
-document.getElementById('search').addEventListener('input', refresh);
+function updateViewSwitch(){
+  const toMap = currentView === 'list';
+  const btn = document.getElementById('btnViewSwitch');
+  btn.innerHTML = (toMap ? ICON_MAP : ICON_LIST) + `<span>${toMap ? 'Map' : 'List'}</span>`;
+  btn.setAttribute('aria-label', toMap ? 'Show map' : 'Show list');
+}
+
+document.getElementById('search').addEventListener('input', applyFilters);
+document.getElementById('search').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') e.target.blur();   // dismiss the phone keyboard
+});
 document.getElementById('freeOnly').addEventListener('change', (e) => {
   document.getElementById('freeToggleLabel').classList.toggle('active', e.target.checked);
-  refresh();
+  applyFilters();
 });
-document.getElementById('btnListView').addEventListener('click', () => showView('list'));
-document.getElementById('btnMapView').addEventListener('click', () => showView('map'));
-document.getElementById('sort').addEventListener('change', (e) => { sortMode = e.target.value; refresh(); });
+document.getElementById('btnViewSwitch').addEventListener('click', () => {
+  showView(currentView === 'list' ? 'map' : 'list');
+});
+document.getElementById('btnFilters').addEventListener('click', openFilters);
+document.getElementById('btnCloseFilters').addEventListener('click', closeFilters);
+document.getElementById('btnShowResults').addEventListener('click', closeFilters);
+document.getElementById('btnClearFilters').addEventListener('click', clearFilters);
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeFilters(); });
+function onBreakpointChange(){
+  closeFilters();
+  placeSearch();
+  if(!isMobile()){
+    map.invalidateSize({animate:false});
+    if(pendingFitBounds) fitMapTo(pendingFitBounds);
+  }
+}
+if(mqMobile.addEventListener) mqMobile.addEventListener('change', onBreakpointChange);
+else mqMobile.addListener(onBreakpointChange);   // older Safari
+document.getElementById('sort').addEventListener('change', (e) => { sortMode = e.target.value; applyFilters(); });
 document.getElementById('btnNearMe').addEventListener('click', locateMe);
-document.getElementById('favChip').addEventListener('click', () => { favOnly = !favOnly; refresh(); });
-document.getElementById('indoorChip').addEventListener('click', () => { indoorOnly = !indoorOnly; refresh(); });
-document.getElementById('seasonChip').addEventListener('click', () => { showOutOfSeason = !showOutOfSeason; refresh(); });
+document.getElementById('favChip').addEventListener('click', () => { favOnly = !favOnly; applyFilters(); });
+document.getElementById('indoorChip').addEventListener('click', () => { indoorOnly = !indoorOnly; applyFilters(); });
+document.getElementById('seasonChip').addEventListener('click', () => { showOutOfSeason = !showOutOfSeason; applyFilters(); });
 
 (async function(){
   dataMeta = await loadData();
@@ -2367,7 +2862,8 @@ document.getElementById('seasonChip').addEventListener('click', () => { showOutO
   renderAgeChips();
   renderTagChips();
   refresh();
-  if(window.innerWidth <= 860) showView('list');
+  placeSearch();
+  showView('list');   // sets the switch label; on phones also hides the map until asked for
   checkRain();
 })();
 </script>

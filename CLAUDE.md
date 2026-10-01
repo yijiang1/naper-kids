@@ -120,6 +120,37 @@ and run `node --check` on it. (The first commit shipped with a missing
   `pendingFitBounds` and `showView('map')` applies it. The map is also only
   re-fitted when the *set* of visible venues changes, so starring/voting
   doesn't move it.
+- **The phone layout (≤ 860px) is a different UI, not just a squeezed
+  desktop.** A sticky `.appbar` holds the search box and a **Filters**
+  button (with an active-count badge); the three `.toolbar`s live in
+  `#filterPanel`, which is inline on desktop and a full-screen sheet on
+  phones; a floating pill (`#btnViewSwitch`) flips List/Map; in map view the
+  header/footer hide and the map fills the screen under the bar. Gotchas:
+  - There is one `.search-wrap`; `placeSearch()` moves it between the header
+    (desktop) and `#appbar` (phone), also on breakpoint change. `isMobile()`
+    mirrors the CSS 860px breakpoint — change them together.
+  - Call `applyFilters()` (not `refresh()`) from anything that changes the
+    set of places (filters, sort, search): it also scrolls the page back to
+    the top on phones. Star/vote handlers keep using `refresh()` so the page
+    doesn't jump. `showView()` remembers `listScrollY` so leaving the list for
+    the map and coming back lands in the same spot.
+  - Links inside a card must stop click propagation (the card's own click
+    handler used to flip the phone to the map). On phones a tap on the card
+    body only highlights it; the "On map" button is the way to the map.
+  - Tap targets are 44px and inputs 16px (stops iOS zooming on focus) in the
+    `(max-width: 860px), (pointer: coarse)` block, so they also apply to an
+    iPad in landscape.
+  - The sheet and sticky bar use z-indexes (500/600/2000) that Leaflet's own
+    (up to 1000) would otherwise beat — `#map{position:relative;z-index:0}`
+    keeps the map in its own stacking context. Keep that line.
+  - The List/Map pill is lifted in map view so it doesn't cover Esri's
+    attribution line, which their terms require us to show.
+- **Map pins are clustered via `leaflet.markercluster`** (cdnjs, next to
+  Leaflet). If it fails to load the page falls back to plain pins
+  (`L.layerGroup`), so it degrades the same way the tiles do. Selecting a
+  venue goes through `focusVenue()`, which zooms to `FOCUS_ZOOM` and lets
+  the cluster layer unfold the pin before opening its popup — don't call
+  `marker.openPopup()` directly, a clustered pin has no map to open on.
 - **Favorites and "Best age?" votes are per-browser only** (`localStorage`
   keys `naperkids_favs_v1` and `naperkids_votes_v1`, no backend). This was
   an explicit choice to avoid standing up a server. A Google Sheets + Apps
