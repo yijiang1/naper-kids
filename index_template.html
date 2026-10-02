@@ -468,11 +468,19 @@
 
   .pin-wrap{display:flex;align-items:center;justify-content:center;}
   .pin{
-    width:16px;height:16px;
+    width:26px;height:26px;
     border-radius:50%;
     border:2px solid #fff;
     box-shadow:0 1px 3px rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;
     transition:transform .15s ease;
+  }
+  .pin svg{
+    width:14px;height:14px;
+    fill:none;stroke:currentColor;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round;
+    pointer-events:none;
   }
   .pin-wrap.selected .pin{
     transform:scale(1.5);
@@ -831,6 +839,28 @@ const CATEGORY_COLORS = {
   "Bowling & Arcades": "#C24E4E",
   "Forest Preserves & Trails": "#2E5339",
   "Restaurants": "#C2417C"
+};
+
+// One glyph per category for the map pins, drawn in a 24x24 box (stroke only,
+// styled by `.pin svg`). Inline so the page stays offline and dependency-free.
+// A category missing here gets a plain dot — keep in step with CATEGORY_COLORS.
+const CATEGORY_ICONS = {
+  // swing set
+  "Parks & Playgrounds": '<path d="M2 4h20M5 4 3 21M19 4l2 17M9 4v11M15 4v11M6.5 15h11"/>',
+  // water drop
+  "Splash Pads & Pools": '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+  // museum building
+  "Museums & Indoor Play": '<path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l8 5H4z"/>',
+  // open book
+  "Libraries": '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  // paw print
+  "Nature & Zoos": '<circle cx="5.5" cy="11" r="1.6"/><circle cx="9.5" cy="6" r="1.6"/><circle cx="14.5" cy="6" r="1.6"/><circle cx="18.5" cy="11" r="1.6"/><path d="M12 12c-3 0-5 3.2-5 5.2 0 1.6 1.3 2.3 2.7 2.3 1 0 1.5-.5 2.3-.5s1.3.5 2.3.5c1.4 0 2.7-.7 2.7-2.3 0-2-2-5.2-5-5.2z"/>',
+  // game controller
+  "Bowling & Arcades": '<path d="M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-4 3.6C2.6 9.4 2 14.5 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.4-1.4a2 2 0 0 1 1.4-.6h4.4a2 2 0 0 1 1.4.6L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.5-.6-6.6-.7-7.3A4 4 0 0 0 17.3 5z"/>',
+  // pine tree (filled — the outline version read as a plain triangle at 14px)
+  "Forest Preserves & Trails": '<path d="M12 2.5 6.5 10H9l-4 6h14l-4-6h2.5z" fill="currentColor"/><path d="M12 16v5.5"/>',
+  // fork and knife
+  "Restaurants": '<path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>'
 };
 
 const AGE_BANDS = [
@@ -1458,12 +1488,13 @@ function clusterIcon(cluster){
   return L.divIcon({html:`<div class="cluster">${n}</div>`, className:'', iconSize:[size, size]});
 }
 
-// The dot is 16px but the marker's hit area is 36px, so it's tappable by a thumb.
+// The pin is 26px but the marker's hit area is 36px, so it's tappable by a thumb.
 function pinIcon(v, selected){
   const color = CATEGORY_COLORS[v.category] || '#888';
+  const glyph = CATEGORY_ICONS[v.category] || '<circle cx="12" cy="12" r="3" fill="currentColor"/>';
   return L.divIcon({
     className:'pin-wrap' + (selected ? ' selected' : ''),
-    html:`<div class="pin" style="background:${color}"></div>`,
+    html:`<div class="pin" style="background:${color}"><svg viewBox="0 0 24 24" aria-hidden="true">${glyph}</svg></div>`,
     iconSize:[36,36],
     iconAnchor:[18,18],
     popupAnchor:[0,-12]

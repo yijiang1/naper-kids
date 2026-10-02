@@ -2313,6 +2313,821 @@
         ],
         "checked": "2026-09-30"
       }
+    },
+    {
+      "id": "outback-steakhouse-naperville",
+      "name": "Outback Steakhouse",
+      "category": "Restaurants",
+      "lat": 41.7547971,
+      "lng": -88.2033451,
+      "address": "2855 West Ogden Avenue, Naperville, IL 60540",
+      "phone": "(630) 778-6290",
+      "website": "https://locations.outback.com/illinois/naperville/2855-west-ogden-avenue",
+      "hours": "Mon–Thu 11 AM–10 PM, Fri–Sat 11 AM–11 PM, Sun 11 AM–9 PM",
+      "note": "Outback's Naperville steakhouse on Ogden Ave. The restaurant's page also advertises Kids Eat Free Mondays; check the terms before counting on it.",
+      "cost": "Kids entrées $7.99–$10.99",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.outback.com/menu/naperville/category/42910",
+        "summary": "Prices are from Outback's online-ordering menu for this restaurant and may differ in the dining room.",
+        "sections": [
+          {
+            "title": "Kids' menu",
+            "items": [
+              {
+                "name": "Chicken Fingers",
+                "price": "$8.99"
+              },
+              {
+                "name": "Grilled Cheese-A-Roo",
+                "price": "$7.99"
+              },
+              {
+                "name": "Boomerang Cheeseburger",
+                "price": "$8.99"
+              },
+              {
+                "name": "Grilled Chicken on the Barbie (5 oz)",
+                "price": "$8.99"
+              },
+              {
+                "name": "Mac 'A' Roo 'N Cheese",
+                "price": "$7.99"
+              },
+              {
+                "name": "Joey Sirloin* (5 oz)",
+                "price": "$10.99"
+              },
+              {
+                "name": "Kids Aussie Fries",
+                "price": "$3.99"
+              },
+              {
+                "name": "Spotted Dog Sundae",
+                "price": "$3.49"
+              },
+              {
+                "name": "Kids Fruit",
+                "price": "$1.99"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "ihop-aurora-route-59",
+      "name": "IHOP",
+      "category": "Restaurants",
+      "lat": 41.74795,
+      "lng": -88.20668,
+      "address": "583 S Route 59, Aurora, IL 60504",
+      "phone": "(630) 375-0890",
+      "website": "https://restaurants.ihop.com/en-us/il/aurora/breakfast-583-s-route-59-1300",
+      "hours": "Mon–Thu & Sun 6 AM–10 PM, Fri–Sat 6 AM–midnight",
+      "note": "IHOP on Route 59 (its mailing address says Aurora). Pancakes, French toast and more on its \"Kids Menu (12 & Under)\".",
+      "cost": "Kids meals $4.79–$6.99",
+      "age": "All ages (kids menu for 12 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.ihop.com/en/menu/kids-menu-12-and-under/happy-face-pancake",
+        "summary": "Prices are from IHOP's online menu and may vary by restaurant.",
+        "sections": [
+          {
+            "title": "Kids menu (12 & under)",
+            "items": [
+              {
+                "name": "Happy Face Pancake",
+                "price": "$6.99"
+              },
+              {
+                "name": "French Toast Sticks",
+                "price": "$6.99"
+              },
+              {
+                "name": "Jr. Waffle",
+                "price": "$6.99"
+              },
+              {
+                "name": "Jr. Cheeseburger",
+                "price": "$6.99"
+              },
+              {
+                "name": "Jr. Chicken Strips",
+                "price": "$6.99"
+              },
+              {
+                "name": "Jr. Protein Pancake",
+                "price": "$6.99"
+              },
+              {
+                "name": "Jr. Cinn-A-Dippers™",
+                "price": "$4.79"
+              },
+              {
+                "name": "Jr. Cupcake Pancake",
+                "price": "$6.99"
+              },
+              {
+                "name": "Kraft® Mac & Cheese",
+                "price": "$6.99"
+              },
+              {
+                "name": "Silver 5",
+                "price": "$6.99"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "mission-bbq-naperville",
+      "name": "MISSION BBQ",
+      "category": "Restaurants",
+      "lat": 41.76579,
+      "lng": -88.20511,
+      "address": "376 South Route 59, Suite 144, Naperville, IL 60540",
+      "phone": "(630) 974-5498",
+      "website": "https://mission-bbq.com/locations-and-menu/naperville-il/",
+      "hours": "Mon–Sat 11 AM–9 PM, Sun 11:30 AM–8 PM",
+      "note": "Smokehouse BBQ on Route 59. Every kids' meal comes with a kid's cup and one side.",
+      "cost": "Kids meals $8.99–$11.74",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://mission-bbq.com/menu-b/",
+        "summary": "Prices are from MISSION BBQ's menu page, which isn't specific to this restaurant.",
+        "sections": [
+          {
+            "title": "Kids menu",
+            "note": "Comes with a kid's cup and one side.",
+            "items": [
+              {
+                "name": "Kid-Mac",
+                "desc": "Extra cheesy",
+                "price": "$9.49"
+              },
+              {
+                "name": "Pulled Pork Slider",
+                "desc": "Kid sized",
+                "price": "$8.99"
+              },
+              {
+                "name": "Pulled Chicken Slider",
+                "desc": "Kid sized",
+                "price": "$8.99"
+              },
+              {
+                "name": "Turkey Slider",
+                "desc": "Kid sized",
+                "price": "$8.99"
+              },
+              {
+                "name": "Brisket Slider",
+                "desc": "Kid sized",
+                "price": "$10.74"
+              },
+              {
+                "name": "Jr. Ribs",
+                "desc": "Just like Mom and Dad's!",
+                "price": "$11.74"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "steak-n-shake-aurora-fox-valley",
+      "name": "Steak ’n Shake",
+      "category": "Restaurants",
+      "lat": 41.75567,
+      "lng": -88.21054,
+      "address": "4333 Fox Valley Center Dr, Aurora, IL 60504",
+      "phone": "(630) 585-0730",
+      "website": "https://www.steaknshake.com/locations/il-aurora-fox-valley-center-drive/",
+      "hours": "Mon–Thu & Sun 10 AM–10 PM, Fri–Sat 10 AM–midnight",
+      "note": "Steak ’n Shake on Fox Valley Center Dr (its mailing address says Aurora), a few miles from downtown Naperville. Kids' meals are for 12 and under and come with a drink and a side.",
+      "cost": "Check website",
+      "age": "All ages (kids menu for 12 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.steaknshake.com/wp-content/uploads/2026/06/SNS_National_June2026_No_Price.pdf",
+        "summary": "Steak ’n Shake's national printable menu (June 2026); it lists no prices.",
+        "sections": [
+          {
+            "title": "Kids' menu (12 and under)",
+            "note": "Includes a soft drink or apple juice, and beef tallow fries or applesauce.",
+            "items": [
+              {
+                "name": "Steakburger"
+              },
+              {
+                "name": "Steakburger with cheese"
+              },
+              {
+                "name": "2 pc Chicken Fingers"
+              },
+              {
+                "name": "Grilled Cheese"
+              },
+              {
+                "name": "Hot Dog"
+              },
+              {
+                "name": "Kids' Classic Milkshake"
+              },
+              {
+                "name": "Kids' Specialty Milkshake"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "mcalisters-deli-north-naperville",
+      "name": "McAlister's Deli",
+      "category": "Restaurants",
+      "lat": 41.7763,
+      "lng": -88.12008,
+      "address": "1296 East Chicago Avenue, Naperville, IL 60540",
+      "phone": "(331) 249-6158",
+      "website": "https://locations.mcalistersdeli.com/il/naperville/1296-east-chicago-avenue",
+      "note": "Sandwiches, salads and giant baked potatoes (\"spuds\") on East Chicago Ave. The kids' list is for 12 and under; each kids' meal comes with a side and a mini cookie.",
+      "cost": "Check website",
+      "age": "All ages (kids menu for 12 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://assets.ctfassets.net/zqt8tllj2cy0/75sjAVKubqBlXKSLdDk1pv/e1a81882456a0f5354174a0b28d65cb9/MCA-To-Go-Printed-Menu-MOTF-2025.pdf",
+        "summary": "From McAlister's printed menu (2025); it lists no prices.",
+        "sections": [
+          {
+            "title": "Kids (12 and under only)",
+            "note": "Includes a side and a mini chocolate chip cookie; upgrade the side to fresh fruit or mac & cheese.",
+            "items": [
+              {
+                "name": "Kids Toastie",
+                "desc": "Choice of cheese, ham or turkey"
+              },
+              {
+                "name": "Kids Pizza",
+                "desc": "Add pepperoni if you like"
+              },
+              {
+                "name": "Kids Garden Salad",
+                "desc": "Choice of dressing and protein: turkey, ham or chicken"
+              },
+              {
+                "name": "Kids Spud"
+              },
+              {
+                "name": "Uncrustables® PB&J"
+              },
+              {
+                "name": "Kids Mac & Cheese"
+              },
+              {
+                "name": "Kids Pretzel Dogs"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "home-run-inn-bolingbrook",
+      "name": "Home Run Inn Pizzeria",
+      "category": "Restaurants",
+      "lat": 41.70337,
+      "lng": -88.12515,
+      "address": "1280 W. Boughton Rd., Bolingbrook, IL 60440",
+      "phone": "(630) 679-9966",
+      "website": "https://www.homeruninnpizza.com/restaurants/bolingbrook/",
+      "hours": "Sun–Thu 11 AM–9 PM, Fri–Sat 11 AM–10 PM",
+      "note": "Chicago tavern-style thin-crust pizza in Bolingbrook, just southeast of Naperville. The \"Kids Dugout\" items come with fries or carrots and ranch.",
+      "cost": "Kids meals $8",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.homeruninnpizza.com/restaurants/bolingbrook/#menu",
+        "sections": [
+          {
+            "title": "Kids Dugout",
+            "note": "Kid's food items include fries or carrots with ranch.",
+            "items": [
+              {
+                "name": "Grilled or Crispy Chicken Bites",
+                "desc": "Five chicken bites + sweet BBQ",
+                "price": "$8.00"
+              },
+              {
+                "name": "Sluggers Cheeseburger",
+                "desc": "American cheese + ketchup + pickles",
+                "price": "$8.00"
+              },
+              {
+                "name": "Pasta & Sauce",
+                "desc": "Mezzi rigatoni noodles + marinara, alfredo, or butter sauce",
+                "price": "$8.00"
+              },
+              {
+                "name": "Build Your Own Pizza",
+                "desc": "6” tavern-style pizza + choice of two toppings + chef hat",
+                "price": "$8.00"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "colonial-cafe-naperville",
+      "name": "Colonial Cafe",
+      "category": "Restaurants",
+      "lat": 41.75549,
+      "lng": -88.14141,
+      "address": "1101 S. Washington St., Naperville, IL 60540",
+      "phone": "(630) 420-7722",
+      "website": "https://colonialcafe.com/locations/naperville/",
+      "hours": "Every day 7 AM–8 PM",
+      "note": "Local breakfast-lunch-dinner family cafe on Washington St. with a full kids' menu for 11 and under, including funny-faced pancakes and sundaes, and a free birthday sundae on your birthday.",
+      "cost": "Kids meals $7.25–$8.55",
+      "age": "All ages (kids menu for 11 & under)",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://colonialcafe.com/menu/kids-menu/",
+        "summary": "Copied from the cafe's printed kids' menu (dated 08/14/25) on its kids-menu page; for \"our friends 11 and under\".",
+        "sections": [
+          {
+            "title": "Lunch & dinner entrees",
+            "note": "Comes with a choice of entree, side and beverage.",
+            "items": [
+              {
+                "name": "Hand Battered Chicken Tenders (3)",
+                "price": "$8.25"
+              },
+              {
+                "name": "Chicken Nuggets",
+                "price": "$7.25"
+              },
+              {
+                "name": "Grilled Chicken Dippers",
+                "price": "$8.25"
+              },
+              {
+                "name": "Grilled Cheese Sandwich",
+                "price": "$7.25"
+              },
+              {
+                "name": "Cheesy Quesadilla",
+                "price": "$7.25"
+              },
+              {
+                "name": "Cheese Pizza",
+                "price": "$7.85"
+              },
+              {
+                "name": "Mini Hamburgers (2)",
+                "price": "$8.25"
+              },
+              {
+                "name": "Mini Cheeseburgers (2)",
+                "price": "$8.55"
+              },
+              {
+                "name": "Four Cheesy Mac & Cheese",
+                "price": "$7.25"
+              },
+              {
+                "name": "Kraft Macaroni & Cheese",
+                "price": "$8.25"
+              },
+              {
+                "name": "Mini Corn Dogs",
+                "price": "$8.25"
+              },
+              {
+                "name": "Pasta Marinara",
+                "price": "$7.25"
+              },
+              {
+                "name": "Oodles of Just Noodles",
+                "price": "$7.25"
+              }
+            ]
+          },
+          {
+            "title": "Sides",
+            "note": "Add a 2nd side for $2.25.",
+            "items": [
+              {
+                "name": "Applesauce"
+              },
+              {
+                "name": "Strawberry Yogurt"
+              },
+              {
+                "name": "Steamed Broccoli"
+              },
+              {
+                "name": "Mashed Potatoes"
+              },
+              {
+                "name": "Mandarin Oranges"
+              },
+              {
+                "name": "Fresh-Cut Fruit"
+              },
+              {
+                "name": "Cottage Cheese"
+              },
+              {
+                "name": "Corn"
+              },
+              {
+                "name": "French Fries"
+              }
+            ]
+          },
+          {
+            "title": "Breakfast, any time",
+            "note": "Comes with a choice of entree and beverage.",
+            "items": [
+              {
+                "name": "K-1 One Egg",
+                "desc": "With either one sausage link or two bacon strips and one slice of toast",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-2 Kids Pancakes",
+                "desc": "Two small pancakes with either one sausage link or two bacon strips; gluten-free pancakes $8.25",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-3 French Toast",
+                "desc": "French toast fingers dusted with powdered sugar, with either one sausage link or two bacon strips",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-4 One Egg Gluten-Free",
+                "desc": "1 egg, with either one sausage link or two bacon strips, and hash browns or applesauce",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-5 Kids Crepes",
+                "desc": "Two sweet crepes with either one sausage link or two bacon strips",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-6 Kids Waffle",
+                "desc": "Two waffle wedges with one sausage link or two bacon strips",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-7 Mousing Around Chocolate Chip Pancake",
+                "desc": "Mouse-shaped pancake loaded with chocolate chips, whipped cream, chocolate sauce and powdered sugar",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-8 M & Ms Smile Cake",
+                "desc": "M & Ms melted in a buttermilk pancake with a whipped cream smile",
+                "price": "$7.25"
+              },
+              {
+                "name": "K-9 Birthday Cake Pancake",
+                "desc": "Rainbow sprinkles in a buttermilk pancake with whipped cream",
+                "price": "$7.25"
+              }
+            ]
+          },
+          {
+            "title": "Sundae funnies",
+            "note": "Free birthday sundae on your birthday.",
+            "items": [
+              {
+                "name": "OREO Cookie Mouse",
+                "desc": "Oreo cookie ears, a cherry nose, M&M eyes, vanilla ice cream, chocolate syrup and a whipped cream smile",
+                "price": "$4.25"
+              },
+              {
+                "name": "Brownie Bear",
+                "desc": "Brownie ears, cherry nose, M&M eyes, vanilla ice cream, chocolate syrup and a whipped cream smile",
+                "price": "$4.25"
+              },
+              {
+                "name": "Yummy Gummy",
+                "desc": "Vanilla ice cream, chocolate syrup, whipped cream and a little Oreo dirt; look out for the gummy worm",
+                "price": "$4.25"
+              },
+              {
+                "name": "Birthday Cake Sundae",
+                "desc": "Birthday cake ice cream covered with hard shell chocolate, whipped cream, cherry and sprinkles",
+                "price": "$4.25"
+              }
+            ]
+          },
+          {
+            "title": "Drinks",
+            "note": "One beverage is included with a meal (apple juice, 2% milk, lemonade or soft drinks, with one free refill on the last two); fresh orange juice +$3, chocolate milk +$2. The specialty drinks here cost extra.",
+            "items": [
+              {
+                "name": "Strawberry Lemonade",
+                "price": "$1.55"
+              },
+              {
+                "name": "O...O...Oreo Shake",
+                "price": "$3.49"
+              },
+              {
+                "name": "Shake",
+                "desc": "Chocolate, vanilla or strawberry",
+                "price": "$3.49"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "honey-berry-cafe-aurora",
+      "name": "Honey Berry Cafe",
+      "category": "Restaurants",
+      "lat": 41.76197,
+      "lng": -88.21931,
+      "address": "451 N Commons Dr, Aurora, IL 60504",
+      "phone": "(630) 896-0333",
+      "website": "https://www.honeyberrycafe.com/aurora-location/",
+      "note": "Breakfast and brunch cafe on N Commons Dr in Aurora, a few miles from downtown Naperville, known for pancakes, omelets and crepes. Has a short \"Fun Kids Meals\" list.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.honeyberrycafe.com/honey-berry-menu/",
+        "summary": "Honey Berry's menu page isn't specific to one restaurant, and it lists no prices.",
+        "sections": [
+          {
+            "title": "Fun kids meals",
+            "items": [
+              {
+                "name": "One Egg Meal"
+              },
+              {
+                "name": "Silver Dollar Pancakes"
+              },
+              {
+                "name": "Fresh Berry Pancakes"
+              },
+              {
+                "name": "PB & J"
+              },
+              {
+                "name": "Grilled Cheese",
+                "desc": "With fries"
+              },
+              {
+                "name": "Chicken Tenders",
+                "desc": "With fries and honey mustard"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "rock-bottom-warrenville",
+      "name": "Rock Bottom Restaurant & Brewery",
+      "category": "Restaurants",
+      "lat": 41.803043,
+      "lng": -88.171691,
+      "address": "28256 Diehl Rd., Warrenville, IL 60555",
+      "phone": "(331) 888-9199",
+      "website": "https://www.rockbottom.com/warrenville",
+      "hours": "Mon–Thu & Sun 11 AM–11 PM, Fri–Sat 11 AM–midnight",
+      "note": "Brewpub on Diehl Rd. in Warrenville, near Naperville's northern edge. The kids' menu is its own tab; entrees come with a side unless noted.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://www.rockbottom.com/warrenville-menu#menu=kids-menu",
+        "summary": "The kids' tab of this restaurant's menu page; it lists no prices.",
+        "sections": [
+          {
+            "title": "Entree",
+            "note": "Includes one side unless noted.",
+            "items": [
+              {
+                "name": "Mac 'N Cheese",
+                "desc": "Hot and delicious macaroni & cheese"
+              },
+              {
+                "name": "Burger",
+                "desc": "Juicy burger on a butter-toasted bun, with or without cheese"
+              },
+              {
+                "name": "Small Pizza Cheese",
+                "desc": "Does not include a side"
+              },
+              {
+                "name": "Chicken Fingers",
+                "desc": "Grilled or fried and served with ranch dip"
+              },
+              {
+                "name": "Small Pizza Pepperoni",
+                "desc": "Does not include a side"
+              }
+            ]
+          },
+          {
+            "title": "Sides",
+            "items": [
+              {
+                "name": "Green Beans"
+              },
+              {
+                "name": "Fries"
+              },
+              {
+                "name": "Veggies & Ranch"
+              },
+              {
+                "name": "Roasted Garlic Mashed Potatoes"
+              },
+              {
+                "name": "Mixed Fruit"
+              }
+            ]
+          },
+          {
+            "title": "Dessert",
+            "items": [
+              {
+                "name": "Make-your-own-sundae",
+                "desc": "Two scoops of vanilla ice cream, sprinkles, chocolate sauce, whipped cream and a cherry"
+              },
+              {
+                "name": "Root Beer Float",
+                "desc": "Root beer poured over vanilla ice cream"
+              }
+            ]
+          },
+          {
+            "title": "Kids beverage",
+            "items": [
+              {
+                "name": "Coca-Cola Products"
+              },
+              {
+                "name": "Chocolate Milk"
+              },
+              {
+                "name": "Milk"
+              },
+              {
+                "name": "Juice"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "uncle-julios-naperville",
+      "name": "Uncle Julio's Hacienda",
+      "category": "Restaurants",
+      "lat": 41.80506,
+      "lng": -88.12964,
+      "address": "1831 Abriter Court, Naperville, IL 60563",
+      "website": "https://unclejulios.com/locations/naperville/",
+      "note": "Tex-Mex with mesquite-grilled fajitas, off Freedom Drive in north Naperville. The kids' meal is build-your-own: one entree, one dip and two sides.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://unclejulios.com/menu/no-pricing-menu/",
+        "summary": "From Uncle Julio's dine-in menu page, which says options may vary between locations; it lists no prices.",
+        "sections": [
+          {
+            "title": "Kids",
+            "note": "Pick one entree, one dip and two sides.",
+            "items": [
+              {
+                "name": "Cheese Quesadilla"
+              },
+              {
+                "name": "Bean and Cheese Burrito"
+              },
+              {
+                "name": "Chicken Fajita"
+              },
+              {
+                "name": "Soft Taco"
+              },
+              {
+                "name": "Crispy Taco"
+              }
+            ]
+          },
+          {
+            "title": "Dip (pick one)",
+            "items": [
+              {
+                "name": "Chips & Queso"
+              },
+              {
+                "name": "Chips & Guacamole"
+              }
+            ]
+          },
+          {
+            "title": "Sides (pick two)",
+            "items": [
+              {
+                "name": "White Rice"
+              },
+              {
+                "name": "Mexican Rice"
+              },
+              {
+                "name": "Black Beans"
+              },
+              {
+                "name": "Pinto Beans"
+              },
+              {
+                "name": "Refried Beans"
+              },
+              {
+                "name": "Fresh Fruit"
+              },
+              {
+                "name": "Cheese Sticks"
+              },
+              {
+                "name": "Carrots with Ranch"
+              },
+              {
+                "name": "Corn Wheels"
+              },
+              {
+                "name": "Small Salad"
+              },
+              {
+                "name": "Orange Wedges"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
+    },
+    {
+      "id": "smashburger-naperville-showplace",
+      "name": "Smashburger",
+      "category": "Restaurants",
+      "lat": 41.71435,
+      "lng": -88.20707,
+      "address": "2736 Showplace Dr. #100, Naperville, IL 60564",
+      "phone": "(630) 864-5119",
+      "website": "https://smashburger.com/locations/us/il/naperville/2736-showplace-dr",
+      "hours": "Mon–Thu & Sun 10:30 AM–9 PM, Fri–Sat 10:30 AM–10 PM",
+      "note": "Smashburger in the Showplace Drive shopping area, south Naperville. Each kids' meal comes with a side and a drink, and kids eat free on Wednesdays (dine-in only) with an adult meal.",
+      "cost": "Check website",
+      "age": "All ages",
+      "indoor": true,
+      "kids_menu": {
+        "url": "https://smashburger.com/menu/kids-meals",
+        "summary": "Smashburger's kids' meals page; it lists no prices.",
+        "sections": [
+          {
+            "title": "Kids meals",
+            "note": "Each meal comes with a side and a drink. Kids eat free on Wednesdays (dine-in only) with the purchase of an adult meal (entree, side and drink).",
+            "items": [
+              {
+                "name": "Kids Hamburger"
+              },
+              {
+                "name": "Kids Cheeseburger"
+              },
+              {
+                "name": "Kids Chicken Tenders"
+              }
+            ]
+          }
+        ],
+        "checked": "2026-09-30"
+      }
     }
   ],
   "candidates": [

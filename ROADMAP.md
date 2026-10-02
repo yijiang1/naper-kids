@@ -23,7 +23,7 @@ adjust, `venues.json` is hand-curated.
 | 2.3 | Show rating counts | 4.9 (12) ≠ 4.5 (2,000) | Small | ☐ |
 | 2.4 | Seasonal farms / pumpkin patches | Fall-specific content, `season` field already exists | Content | ☐ |
 | 2.5 | Restaurants with kids menus | "Where can we eat?" is half of every outing | Medium | ☑ |
-| 2.6 | More restaurants (and re-check menus) | 17 verified so far; many popular places still missing | Content | ☐ |
+| 2.6 | More restaurants (and re-check menus) | 28 verified so far; some big names still blocked | Content | ☐ |
 | 3.1 | Filters + selected place in the URL | Text a link to your spouse | Small | ☐ |
 | 3.2 | Saved home location | Distance sort without a GPS prompt | Small | ☐ |
 | 3.3 | "Been there" log + surprise me | Remember, and break ties | Small | ☐ |
@@ -100,7 +100,10 @@ picked.
 2.5 shipped with 17 restaurants whose kids menus were verified on each
 restaurant's own site on 2026-09-30: four Naperville places (Ramsay's
 Kitchen, Egg Harbor Cafe, Culver's, Portillo's on Ogden Ave) and 13 chains,
-one location each (see CLAUDE.md for the list and how they were picked).
+one location each (see CLAUDE.md for the list and how they were picked). A
+second pass the same day added 11 more (Outback, IHOP, MISSION BBQ, Steak 'n
+Shake, McAlister's, Smashburger, Rock Bottom, Uncle Julio's, Honey Berry, Home
+Run Inn, Colonial Cafe), for 28.
 What's still missing, why each was blocked, and what to try next is in
 `RESTAURANTS.md` (also: the confirmed "no kids menu" places and the
 not-yet-researched backlog). Chains with several Naperville stores
@@ -191,7 +194,8 @@ way to notice a venue that quietly closed.
   fold-out on each card, search that matches menu items, `check_data.py`
   validation (required for restaurants), a Restaurants search in the
   updater, and an updater test proving `kids_menu` is never overwritten.
-  17 verified restaurants to start: 4 local plus 13 chains (see 2.6)
+  17 verified restaurants to start: 4 local plus 13 chains, then 11 more in a
+  second pass, for 28 (see 2.6)
 - Content pass: reviewed all 44 candidates (26 promoted, 18 deleted), added
   13 new Chicago-proper landmarks, and widened the whole project's scope
   from Naperville-only to the greater Chicago six-county metro area —

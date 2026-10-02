@@ -5,6 +5,19 @@ pads, museums, libraries, nature centers, bowling/arcades, forest preserve
 trails, and restaurants with kids' menus. List view + map view, filterable by
 category, age, and cost, searchable by name, note, or address.
 
+> **Project status:** development has stopped. A similar site, naperkids.com,
+> already exists, so this repo is shared as-is for anyone who finds it useful.
+
+## License and data sources
+
+Code and hand-written content (notes, hours, cost, age, season, tags, kids
+menus) are released under the MIT license; see `LICENSE`.
+
+Ratings, addresses, phone numbers, and coordinates were originally fetched from
+the Google Places API, whose terms limit storing and reusing that data. If you
+reuse this project, re-fetch those fields with your own API key
+(`update_venues.py`) instead of relying on the copies in `venues.json`.
+
 ## Use it right now
 
 Just open `index.html` in a browser (double-click it). It works completely

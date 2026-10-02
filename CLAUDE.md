@@ -13,7 +13,7 @@ file.
 
 ## How the pieces fit together
 
-- **`venues.json`** — the actual content. `venues` is the curated list (78
+- **`venues.json`** — the actual content. `venues` is the curated list (89
   entries as of Sep 2026: id, name, category, lat/lng, address, rating, phone, website,
   hours, cost, age, note, plus `place_id` once the updater has matched it
   to Google). Also hand-curated, and always optional (missing = the
@@ -159,6 +159,12 @@ and run `node --check` on it. (The first commit shipped with a missing
   venue goes through `focusVenue()`, which zooms to `FOCUS_ZOOM` and lets
   the cluster layer unfold the pin before opening its popup — don't call
   `marker.openPopup()` directly, a clustered pin has no map to open on.
+  Each pin is a category-colored circle with a white inline-SVG glyph
+  (`CATEGORY_ICONS`, next to `CATEGORY_COLORS` in the template; 24x24 box,
+  stroke-based, styled by `.pin svg`). A new category needs an entry in both
+  maps — without an icon it falls back to a plain dot. Glyphs were checked at
+  the real 14px size, where fine outlines turn to mush (a stroked pine tree
+  read as a triangle, so it's filled).
 - **Favorites and "Best age?" votes are per-browser only** (`localStorage`
   keys `naperkids_favs_v1` and `naperkids_votes_v1`, no backend). This was
   an explicit choice to avoid standing up a server. A Google Sheets + Apps
@@ -200,13 +206,25 @@ and run `node --check` on it. (The first commit shipped with a missing
   Egg Harbor/Ramsay's post prices. Phone and hours are included only when the
   chain's own location page published them.
 
+  A second batch (same day) added 11 more — Outback, IHOP, MISSION BBQ,
+  Steak 'n Shake, McAlister's, Smashburger, Rock Bottom, Uncle Julio's, Honey
+  Berry, Home Run Inn and Colonial Cafe — for 28 restaurants in all. Same
+  rules, plus what that batch taught: many chains build their menu only after
+  you pick a store, so open the *store-specific* menu URL in the browser (Outback:
+  `/menu/naperville/category/<id>`; Rock Bottom's Popmenu site: the "Kid's
+  Menu" tab, then "Show all items"); some publish a printable PDF or an image
+  (McAlister's, Steak 'n Shake, Colonial Cafe) — render PDF pages to PNG with
+  PDFKit and *look* at them, because extracted PDF text interleaves columns.
+  Never push through a CAPTCHA or bot wall (Red Lobster's ShieldSquare): log
+  it in RESTAURANTS.md and move on.
+
   **`RESTAURANTS.md` is the research log: read it before researching a
   restaurant, and keep it current.** It records what's *not* on the page —
   the one confirmed "no kids menu" (Lou Malnati's), places that aren't (or
   are no longer) in Naperville (2Toots, Everdine's), the leads that do have a
   kids menu but couldn't be read yet (Olive Garden, Maggiano's, Giordano's,
-  Panda Express, Jason's Deli, Denny's, Chipotle, Dairy Queen) with what to
-  try next, a not-yet-researched backlog, and how the research was done
+  Panda Express, Jason's Deli, Denny's, Chipotle, Dairy Queen, Red Lobster,
+  Biaggi's, ...) with what to try next, a not-yet-researched backlog, and how the research was done
   (OpenStreetMap pool, per-chain verification, PDF text via macOS PDFKit).
   Two lessons from it worth repeating here: OpenStreetMap has stale entries,
   so confirm every store on the chain's own page, and the Census geocoder can
