@@ -290,8 +290,13 @@ and run `node --check` on it. (The first commit shipped with a missing
 
 ## Not yet done
 
-- Pushed to a private GitHub repo (`origin` = github.com/yijiang1/naper-kids,
-  branch `main`). The `GOOGLE_PLACES_API_KEY` secret is set and the weekly
+- Pushed to a **public** GitHub repo (`origin` = github.com/yijiang1/naper-kids,
+  branch `main`; these notes used to say "private", but `gh repo view` reports
+  public as of 2026-10-03, so assume everything committed and every Actions
+  log is world-readable). The key is never in the repo: `GOOGLE_PLACES_API_KEY` is only
+  an Actions secret (and the script sends it in a header, so it can't leak via
+  a URL); keep it that way, and restrict the key to "Places API (New)" in
+  Google Cloud (not verified that it is). The secret is set and the weekly
   workflow has run successfully against the real API (first run
   2026-09-18: 19 of 22 venues refreshed; Winding Creek Park, DuPage
   Children's Museum and Urban Air weren't in Google's top results, which is
@@ -304,15 +309,16 @@ and run `node --check` on it. (The first commit shipped with a missing
   Science and Industry, Lincoln Park Zoo, Chicago Children's Museum,
   Chicago Botanic Garden, Adler Planetarium, Peggy Notebaert Nature Museum,
   LEGOLAND Discovery Center, Naper Settlement, Cantigny Park, Fermilab's
-  Lederman Science Center, Phillips Park Zoo). `candidates` is empty until
-  the next automated run finds more. Hours/prices for all of these were
+  Lederman Science Center, Phillips Park Zoo). The weekly runs have since
+  refilled `candidates` (178 unreviewed entries as of 2026-10-03), so another
+  review-and-clear pass is due; the page ignores them meanwhile. Hours/prices for all of these were
   researched, not guessed, but weren't independently re-verified by a human
   after the fact — worth a spot-check before relying on the pricier/less
   obvious ones (Morton Arboretum and Ball Factory in particular have no
   fixed per-visit price, so `cost` says "Check website" for those).
 - Shared (cross-visitor) voting was discussed but intentionally not built.
 - Not yet hosted anywhere. GitHub Pages setup is documented in README.md
-  but hasn't been done; note that Pages on a *private* repo needs a paid
-  GitHub plan, so it may need to be made public first.
+  but hasn't been done (checked 2026-10-03: no Pages site exists). The repo is
+  public, so Pages is available on the free plan.
 - Cosley Zoo's `note` says "~$8 admission" while its `cost` says $12 — one
   of them is stale; check the zoo's site.
