@@ -3130,6 +3130,180 @@
       }
     }
   ],
+  "care": [
+    {
+      "id": "edward-hospital-er",
+      "name": "Edward Hospital Emergency Department",
+      "category": "Hospitals & ER",
+      "lat": 41.7613703,
+      "lng": -88.1492158,
+      "address": "801 S Washington St, Naperville, IL 60540",
+      "phone": "(630) 527-3000",
+      "website": "https://www.endeavorhealth.org/locations/edward-hospital-emergency-pediatric-emergency-department",
+      "hours": "ER open 24/7",
+      "note": "Naperville's own hospital. Approved by the state for pediatric emergencies (EDAP), with child-sized equipment, and one of only 11 Pediatric Critical Care Centers in Illinois. Also has an inpatient pediatric unit and a NICU.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "nm-central-dupage-pediatric-er",
+      "name": "Northwestern Medicine Central DuPage Hospital – Pediatric ER",
+      "category": "Hospitals & ER",
+      "lat": 41.8731919,
+      "lng": -88.1558292,
+      "address": "25 N Winfield Rd, Winfield, IL 60190",
+      "phone": "(630) 933-2600",
+      "website": "https://www.nm.org/conditions-and-care-areas/pediatrics/pediatric-emergency-department",
+      "hours": "Pediatric ER about 9 AM–1 AM (shorter on weekends/holidays — call to confirm); main ER open 24/7",
+      "note": "A separate children's ER staffed by board-certified pediatric emergency physicians from Lurie Children's, with child life specialists, child-sized equipment and a state pediatric-emergency designation. Level II trauma center. When the pediatric ER is closed, kids are seen in the main ER.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "advocate-good-samaritan-er",
+      "name": "Advocate Good Samaritan Hospital Emergency Department",
+      "category": "Hospitals & ER",
+      "lat": 41.8186259,
+      "lng": -88.0101547,
+      "address": "3815 Highland Ave, Downers Grove, IL 60515",
+      "phone": "(800) 323-2862",
+      "website": "https://www.advocatehealth.com/gsam/health-services/emergency-services",
+      "hours": "ER open 24/7",
+      "note": "Approved by the state of Illinois to treat pediatric injuries and illnesses (EDAP). The phone number is Advocate's 800-3-ADVOCATE line; in an emergency call 911.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "lurie-childrens-er",
+      "name": "Lurie Children's Hospital Emergency Department",
+      "category": "Hospitals & ER",
+      "lat": 41.8966959,
+      "lng": -87.6229253,
+      "address": "225 E Chicago Ave, Chicago, IL 60611",
+      "phone": "(312) 227-4000",
+      "website": "https://www.luriechildrens.org/en/specialties-conditions/pediatric-emergency-room/",
+      "hours": "ER open 24/7",
+      "note": "Chicago's dedicated children's hospital: a state-designated Level 1 pediatric trauma center, staffed around the clock by board-certified pediatric emergency specialists. A long drive from Naperville.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "pm-pediatric-urgent-care-naperville",
+      "name": "PM Pediatric Urgent Care (Lurie Children's partner)",
+      "category": "Urgent Care",
+      "lat": 41.7127944,
+      "lng": -88.2072719,
+      "address": "2835 Showplace Dr, Suite 119, Naperville, IL 60564",
+      "phone": "(630) 470-4878",
+      "website": "https://pmpediatriccare.com/location/naperville/",
+      "hours": "Mon–Sat 10 AM–10 PM, Sun 8 AM–10 PM (final registration 20 min before close)",
+      "age": "0–26",
+      "insurance": "Most major plans (no list posted); self-pay available",
+      "note": "Walk-ins welcome, no appointment needed; online check-in holds your place in line but not a set time. On-site X-rays, stitches, splinting, strep/flu tests, nebulizer treatments and concussion checks, with anxiety-reducing techniques for procedures. In the Naperville Crossings shopping center.",
+      "tags": [
+        "walk-in",
+        "evenings-weekends",
+        "online-booking"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "afc-urgent-care-naperville",
+      "name": "AFC Urgent Care Naperville",
+      "category": "Urgent Care",
+      "lat": 41.7959394,
+      "lng": -88.1220502,
+      "address": "1355 E Ogden Ave, Suite 109, Naperville, IL 60563",
+      "phone": "(630) 984-9480",
+      "website": "https://www.afcurgentcare.com/naperville/patient-services/childrens-urgent-care/",
+      "insurance": "Most major plans; self-pay options",
+      "note": "General urgent care that sees children of all ages; walk-ins welcome. Its page says infants under 2 months with a fever should go to an ER. The page doesn't say the staff are pediatric specialists.",
+      "tags": [
+        "walk-in"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "tic-tac-tooth-pediatric-dentistry",
+      "name": "Tic Tac Tooth Pediatric Dentistry",
+      "category": "Pediatric Dentists",
+      "lat": 41.680654,
+      "lng": -88.2013409,
+      "address": "2812 Hassert Blvd, Suite 104, Naperville, IL 60564",
+      "phone": "(630) 995-3393",
+      "website": "https://www.tictactooth.com",
+      "hours": "Mon 9–5, Tue–Wed 10–6, Thu 8–4; Fri–Sat by appointment only",
+      "insurance": "In-network with Delta Dental Premier; other plans handled out-of-network",
+      "note": "Infants through college age. Same-day emergency appointments, nitrous oxide, special-needs dentistry, injection-free anesthetic and silver diamine fluoride for early cavities. Online scheduling and digital new-patient forms.",
+      "tags": [
+        "sedation",
+        "special-needs",
+        "emergency-dental",
+        "online-booking"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "innovative-pediatric-dentistry",
+      "name": "Innovative Pediatric Dentistry",
+      "category": "Pediatric Dentists",
+      "lat": 41.7745599,
+      "lng": -88.1495405,
+      "address": "55 S Main St, Suite 261, Naperville, IL 60540",
+      "phone": "(630) 848-7336",
+      "website": "https://www.innovativepediatricdentistry.com",
+      "hours": "Mon, Wed, Thu 8–4; Tue 9–5; Fri 8–2; Sat 8–2 (one Saturday a month)",
+      "age": "0–13 (plus patients with special needs)",
+      "insurance": "Accepts dental insurance (plans not listed — call)",
+      "note": "Downtown Naperville. Nitrous oxide and general anesthesia available, special-needs dental care, orthodontics and frenectomy. Online appointment booking.",
+      "tags": [
+        "sedation",
+        "special-needs",
+        "online-booking"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "small-smiles-naperville",
+      "name": "Small Smiles Pediatric Dentistry",
+      "category": "Pediatric Dentists",
+      "lat": 41.7481901,
+      "lng": -88.1855275,
+      "address": "1980 Three Farms Ave, Suite 108, Naperville, IL 60540",
+      "phone": "(630) 527-8686",
+      "website": "https://www.smallsmiles.org",
+      "note": "Infants, children, teens and children with special needs. Sports dentistry, laser soft-tissue therapy, limited orthodontics and pediatric dental emergency care. Appointment request form on the site; hours and insurance aren't listed there, so call.",
+      "tags": [
+        "special-needs",
+        "emergency-dental"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "gg-pediatric-dentistry-naperville",
+      "name": "G+G Pediatric Dentistry & Orthodontics",
+      "category": "Pediatric Dentists",
+      "lat": 41.7926979,
+      "lng": -88.1275765,
+      "address": "1108 E Ogden Ave, Naperville, IL 60563",
+      "phone": "(630) 778-9500",
+      "website": "https://www.endeavorhealth.org/providers/cory-grathwol",
+      "note": "Pediatric dentistry and orthodontics, with a second office in Lake Zurich. No practice website turned up, so this comes from the dentist's Endeavor Health listing (an independent practice, not an Endeavor employee). Call for hours, insurance and new-patient status.",
+      "checked": "2026-10-02"
+    }
+  ],
   "candidates": [
     {
       "id": "maggie-daley-park-play-garden",

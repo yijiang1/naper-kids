@@ -14,6 +14,10 @@ holding pen and are allowed to be incomplete until promoted):
     well-formed: a link to the restaurant's own menu, a "checked" date, and
     at least one section with at least one named item
 
+It also checks the separate "care" list (hospitals/ERs, urgent care,
+pediatric dentists): required fields, a fixed category and tag vocabulary,
+phone/website/checked-date shapes, and ids that don't collide with "venues".
+
 Runs by hand, or in the weekly workflow right before build.py:
     python3 check_data.py
 """
@@ -34,6 +38,13 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_DISTANCE_KM = 90.0  # matches update_venues.py's MAX_CANDIDATE_DISTANCE_M
 TAG_VOCAB = {"restrooms", "fenced", "shade", "stroller", "food", "water-play", "picnic", "parking"}
 SEASON_VOCAB = {"year-round", "summer", "winter"}
+CARE_REQUIRED_FIELDS = ("name", "category", "lat", "lng", "address", "phone", "website", "note", "checked")
+CARE_OPTIONAL_FIELDS = ("id", "place_id", "rating", "rating_count", "hours", "age", "insurance", "tags")
+CARE_CATEGORIES = {"Hospitals & ER", "Urgent Care", "Pediatric Dentists"}
+# Keep in sync with CARE_TAG_LABELS in index_template.html.
+CARE_TAG_VOCAB = {"open-24-7", "peds-er", "walk-in", "evenings-weekends", "online-booking",
+                  "sedation", "special-needs", "emergency-dental"}
+PHONE_RE = re.compile(r"^\(\d{3}\) \d{3}-\d{4}$")
 RESTAURANT_CATEGORY = "Restaurants"  # these must carry a kids_menu
 MENU_KEYS = {"url", "summary", "sections", "checked"}
 MENU_SECTION_KEYS = {"title", "note", "items"}
@@ -151,6 +162,63 @@ def check_kids_menu(v, errors):
                     errors.append("{}.{} must be non-empty text if present".format(iwhere, key))
 
 
+def check_id_and_coords(v, center, seen_ids, errors):
+    vid = v.get("id")
+    if not vid:
+        errors.append("{}: missing 'id'".format(describe(v)))
+    else:
+        if vid in seen_ids:
+            errors.append("id '{}' is used more than once".format(vid))
+        seen_ids.add(vid)
+        if not SLUG_RE.match(vid):
+            errors.append("id '{}' is not a clean slug (lowercase, hyphen-separated)".format(vid))
+    lat, lng = v.get("lat"), v.get("lng")
+    if isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+        dist_km = upd.distance_m(center["lat"], center["lng"], lat, lng) / 1000.0
+        if dist_km > MAX_DISTANCE_KM:
+            errors.append("{}: {:.1f} km from center, over the {:.0f} km limit".format(
+                describe(v), dist_km, MAX_DISTANCE_KM))
+
+
+def check_care(v, center, seen_ids, errors):
+    who = describe(v)
+    for field in CARE_REQUIRED_FIELDS:
+        if v.get(field) in (None, ""):
+            errors.append("{}: missing '{}'".format(who, field))
+    check_unknown_keys(who, v, set(CARE_REQUIRED_FIELDS) | set(CARE_OPTIONAL_FIELDS) | {"id"}, errors)
+    check_id_and_coords(v, center, seen_ids, errors)
+
+    if v.get("category") and v["category"] not in CARE_CATEGORIES:
+        errors.append("{}: category {!r} is not one of {}".format(who, v["category"], sorted(CARE_CATEGORIES)))
+    phone = v.get("phone")
+    if phone and not PHONE_RE.match(phone):
+        errors.append("{}: phone {!r} should look like (630) 555-1234".format(who, phone))
+    website = v.get("website")
+    if website and not URL_RE.match(website):
+        errors.append("{}: website must be an http(s) link, got {!r}".format(who, website))
+    checked = v.get("checked")
+    if checked and not (isinstance(checked, str) and DATE_RE.match(checked)):
+        errors.append("{}: checked must be a YYYY-MM-DD date, got {!r}".format(who, checked))
+    for key in ("hours", "age", "insurance"):
+        if key in v and not (isinstance(v[key], str) and v[key].strip()):
+            errors.append("{}: {} must be non-empty text if present".format(who, key))
+    tags = v.get("tags")
+    if tags is not None:
+        if not isinstance(tags, list):
+            errors.append("{}: tags must be a list, got {!r}".format(who, tags))
+        else:
+            for t in tags:
+                if t not in CARE_TAG_VOCAB:
+                    errors.append("{}: care tag {!r} is not in the fixed vocabulary {}".format(
+                        who, t, sorted(CARE_TAG_VOCAB)))
+    rating = v.get("rating")
+    if rating is not None and not (isinstance(rating, (int, float)) and 0 <= rating <= 5):
+        errors.append("{}: rating {!r} is outside 0-5".format(who, rating))
+    count = v.get("rating_count")
+    if count is not None and not (isinstance(count, int) and not isinstance(count, bool) and count >= 0):
+        errors.append("{}: rating_count must be a whole number >= 0, got {!r}".format(who, count))
+
+
 def main():
     with open(DATA_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -192,6 +260,10 @@ def main():
         check_indoor(v, errors)
         check_kids_menu(v, errors)
 
+    care = data.get("care", [])
+    for v in care:
+        check_care(v, center, seen_ids, errors)
+
     if errors:
         print("venues.json failed validation ({} issue{}):".format(
             len(errors), "" if len(errors) == 1 else "s"), file=sys.stderr)
@@ -199,7 +271,7 @@ def main():
             print("  - " + e, file=sys.stderr)
         sys.exit(1)
 
-    print("venues.json OK ({} venues checked)".format(len(venues)))
+    print("venues.json OK ({} venues, {} care entries checked)".format(len(venues), len(care)))
 
 
 if __name__ == "__main__":

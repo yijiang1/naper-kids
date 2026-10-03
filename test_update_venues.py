@@ -21,11 +21,13 @@ sys.path.insert(0, HERE)
 import update_venues as upd  # noqa: E402
 
 
-def place(pid, name, lat, lng, rating=None, phone=None, website=None, addr=""):
+def place(pid, name, lat, lng, rating=None, phone=None, website=None, addr="", count=None):
     p = {"id": pid, "displayName": {"text": name},
          "location": {"latitude": lat, "longitude": lng}, "formattedAddress": addr}
     if rating is not None:
         p["rating"] = rating
+    if count is not None:
+        p["userRatingCount"] = count
     if phone:
         p["nationalPhoneNumber"] = phone
     if website:
@@ -36,10 +38,14 @@ def place(pid, name, lat, lng, rating=None, phone=None, website=None, addr=""):
 QUERY_TO_CATEGORY = {q: c for c, q in upd.CATEGORIES.items()}
 
 
-def run_updater(fake_results, path):
-    """Run main() with search_category answering from `fake_results` (category -> places)."""
+def run_updater(fake_results, path, fake_care=None):
+    """Run main() with search_category answering from `fake_results` (category -> places)
+    and search_provider answering from `fake_care` (care entry name -> places)."""
     upd.OUTPUT_PATH = path
     upd.search_category = lambda query: fake_results.get(QUERY_TO_CATEGORY[query], [])
+    fake_care = fake_care or {}
+    upd.search_provider = lambda query, lat, lng: next(
+        (places for name, places in fake_care.items() if query.startswith(name)), [])
     buf = io.StringIO()
     old_out, old_err = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = buf
@@ -112,9 +118,40 @@ def main():
                   phone="+1 331-244-2550"),
         ],
     }
-    data, log = run_updater(fake, path)
+    # The care list: Google also (wrongly) offers a phone/address/website/name, which must be ignored.
+    care = {c["id"]: c for c in before["care"]}
+    edward, cdh = care["edward-hospital-er"], care["nm-central-dupage-pediatric-er"]
+    tic, small = care["tic-tac-tooth-pediatric-dentistry"], care["small-smiles-naperville"]
+    afc, innov = care["afc-urgent-care-naperville"], care["innovative-pediatric-dentistry"]
+    fake_care = {
+        edward["name"]: [
+            place("c0", "Edward Hospital Gift Shop Parking", edward["lat"], edward["lng"], rating=1.0, count=3),
+            place("c1", "Edward Hospital", edward["lat"] + 0.0005, edward["lng"], rating=4.1, count=1234,
+                  phone="+1 111-111-1111", website="https://example.com/wrong", addr="Wrong St"),
+        ],
+        # same name but ~5 km away -> a different building, must not match
+        cdh["name"]: [place("c2", "Northwestern Medicine Central DuPage Hospital", cdh["lat"] + 0.05, cdh["lng"], rating=3.0, count=9)],
+        # right spot, unrelated business -> must not match
+        tic["name"]: [place("c3", "Joe's Pizza", tic["lat"], tic["lng"], rating=4.9, count=500)],
+        small["name"]: [],   # Google has nothing
+        innov["name"]: [place("c5", "Innovative Pediatric Dentistry", innov["lat"], innov["lng"], rating=4.9, count=88)],
+    }
+    data, log = run_updater(fake, path, fake_care)
     V = {v["id"]: v for v in data["venues"]}
     assert [v["id"] for v in data["venues"]] == before_ids, "venue list changed"
+    C = {c["id"]: c for c in data["care"]}
+    assert [c["id"] for c in data["care"]] == [c["id"] for c in before["care"]], "care list changed"
+    assert C["edward-hospital-er"]["rating"] == 4.1 and C["edward-hospital-er"]["rating_count"] == 1234
+    assert C["edward-hospital-er"]["place_id"] == "c1", "the near, similarly named result should win"
+    assert C["innovative-pediatric-dentistry"]["rating"] == 4.9 and C["innovative-pediatric-dentistry"]["rating_count"] == 88
+    for cid in ("nm-central-dupage-pediatric-er", "tic-tac-tooth-pediatric-dentistry",
+                "small-smiles-naperville", "afc-urgent-care-naperville"):
+        assert "rating" not in C[cid] and "place_id" not in C[cid], cid + " was matched to the wrong place"
+    stripped = lambda c: {k: v for k, v in c.items() if k not in ("rating", "rating_count", "place_id")}
+    for cid, c in care.items():
+        assert stripped(C[cid]) == c, "care entry {} had hand-curated fields changed".format(cid)
+    assert len(data["candidates"]) == 1, "care lookups must never create candidates"
+    assert "2 of 10 entries had reviews refreshed" in log, log
     assert V["knoch-park"]["rating"] == 4.6 and V["knoch-park"]["place_id"] == "g1"
     assert V["knoch-park"]["address"] == "724 S West St, Naperville, IL 60540", V["knoch-park"]["address"]
     assert V["knoch-park"]["phone"] == "(630) 848-5000", V["knoch-park"]["phone"]
@@ -158,8 +195,9 @@ def main():
     # --- Run 3: every API call fails -> nothing but the date changes ---------
     def boom(query):
         raise RuntimeError("network down")
-    kept_venues, kept_candidates = data["venues"], data["candidates"]
+    kept_venues, kept_candidates, kept_care = data["venues"], data["candidates"], data["care"]
     upd.search_category = boom
+    upd.search_provider = lambda query, lat, lng: boom(query)
     buf = io.StringIO()
     old_out, old_err = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = buf
@@ -170,6 +208,7 @@ def main():
     with io.open(path, encoding="utf-8") as f:
         data = json.load(f)
     assert data["venues"] == kept_venues and data["candidates"] == kept_candidates
+    assert data["care"] == kept_care, "care list changed when its lookups failed"
     print("run 3 OK: API failures leave the data untouched")
 
     shutil.rmtree(tmpdir, ignore_errors=True)

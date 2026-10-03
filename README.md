@@ -3,7 +3,9 @@
 A personal dashboard of kid-friendly places in Naperville, IL — parks, splash
 pads, museums, libraries, nature centers, bowling/arcades, forest preserve
 trails, and restaurants with kids' menus. List view + map view, filterable by
-category, age, and cost, searchable by name, note, or address.
+category, age, and cost, searchable by name, note, or address. A second tab,
+**Kids' care**, lists nearby children's ERs, urgent care, and pediatric
+dentists.
 
 > **Project status:** development has stopped. A similar site, naperkids.com,
 > already exists, so this repo is shared as-is for anyone who finds it useful.
@@ -33,6 +35,12 @@ Things you can do on the page:
   card to see what's on it (items, prices, and a link to the restaurant's own
   menu). Search also looks inside the menus, so "mac and cheese" or
   "pancake" finds the places that serve it.
+- **Kids' care** — the tab under the title switches to hospitals/ERs, urgent
+  care, and pediatric dentists, each with hours, phone, insurance notes, a
+  one-tap **Call** button, the Google star rating with review count, and the
+  date the details were checked. Filter by
+  "Pediatric ER", "Walk-ins", "Sedation", "Special needs" and so on, or search
+  an insurance name. `…/index.html#care` opens it directly.
 - **★ Favorites** — tap the star on a card to save it, then use the
   Favorites chip to see just those.
 - **📍 Near me** — sorts everything by distance from where you are and shows
@@ -110,6 +118,14 @@ change.
   [{"name": "Mac & Cheese", "price": "$5", "desc": "optional"}]}]}`. `price`
   and `desc` are optional, so list a menu without prices if the site doesn't
   post them. `python3 check_data.py` will tell you if the shape is off.
+- **Add a hospital, urgent care, or dentist:** add an entry to the separate
+  `care` list in `venues.json` (the updater only adds its Google star rating and review count; it never changes the rest). Required:
+  `name`, `category` (`Hospitals & ER`, `Urgent Care`, or `Pediatric Dentists`),
+  `lat`, `lng`, `address`, `phone` as `(630) 555-1234`, `website`, `note`, and
+  `checked` (YYYY-MM-DD, the day you read the provider's own site). Optional:
+  `hours`, `age`, `insurance`, and `tags` from a fixed list (see
+  `CARE_TAG_VOCAB` in `check_data.py`). Copy facts from the provider's own
+  site, not a directory — see `CARE.md` for what went wrong when we didn't.
 - **Change what gets searched:** edit the `CATEGORIES` dict near the top of
   `update_venues.py` (each entry is a category name → a search phrase).
 - **Change the search area:** edit `CENTER` and `RADIUS_METERS` in the same
@@ -129,6 +145,7 @@ change.
 | `update_venues.py` | Refreshes `venues.json` from Google Places |
 | `test_update_venues.py` | Checks the updater can't lose your hand-written data (no key needed) |
 | `CLAUDE.md` | Dev notes — architecture, constraints, what's not done yet |
+| `CARE.md` | Research log for the Kids' care list: source conflicts, gaps, leads |
 | `ROADMAP.md` | Ideas and planned features, in priority order |
 | `.github/workflows/update-venues.yml` | Runs the script on a schedule if hosted on GitHub |
 

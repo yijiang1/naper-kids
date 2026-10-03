@@ -19,6 +19,15 @@ WHAT IT DOES:
   hand-written "note", "hours", "cost", "age", "season", "tags", "indoor",
   or "kids_menu" fields.
 
+  The separate "care" list (hospitals, urgent care, kids' dentists) is
+  hand-researched, and Google's phone/address/website have disagreed with the
+  providers' own sites, so none of that is ever overwritten. The one thing
+  taken from Google for it is the review summary: each entry is looked up by
+  name + address (one small search per entry, accepted only if the result is
+  within CARE_MATCH_RADIUS_M and the names overlap) and gets "place_id",
+  "rating" and "rating_count". Entries Google can't match keep what they had.
+  Care entries never produce candidates.
+
   Results are matched to existing venues by Google place id (saved into
   each venue as "place_id" the first time it's seen), then by the venue's
   "id" slug, then by "same spot + similar name" as a last resort. Venues
@@ -36,6 +45,8 @@ COST:
   or monthly) — still just one call per category (8/week) even now that
   CATEGORIES searches the whole Chicago area rather than one city; only
   the search radius and result count per call grew, not the call count.
+  The care list adds one more small search per entry (10 at the time of
+  writing).
   Check current pricing before heavy use:
   https://mapsplatform.google.com/pricing/
 """
@@ -90,6 +101,20 @@ CATEGORIES = {
 # The only fields this script is allowed to change on an existing venue.
 REFRESHABLE = ("lat", "lng", "address", "rating", "phone", "website")
 
+# ...and on a "care" entry (hospital, urgent care, dentist): just the review
+# summary. Their phone/address/website are copied from the provider's own site.
+CARE_REFRESHABLE = ("rating", "rating_count")
+# A care entry's coordinates are a geocoded street address; a hospital campus is
+# big, so the match radius is looser than MATCH_RADIUS_M, but the names must
+# still overlap (CARE_MATCH_NAME_SCORE) so a neighbour can't be mistaken for it.
+CARE_MATCH_RADIUS_M = 800.0
+CARE_MATCH_NAME_SCORE = 0.5
+
+# Preferred key order when writing a care entry back out (purely cosmetic).
+CARE_KEY_ORDER = ("id", "place_id", "name", "category", "lat", "lng", "address",
+                  "phone", "website", "rating", "rating_count", "hours", "age",
+                  "insurance", "note", "tags", "checked")
+
 # Preferred key order when writing a venue back out (purely cosmetic).
 KEY_ORDER = ("id", "place_id", "name", "category", "lat", "lng", "address",
              "rating", "phone", "website", "hours", "note", "cost", "age",
@@ -101,6 +126,7 @@ FIELD_MASK = ",".join([
     "places.formattedAddress",
     "places.location",
     "places.rating",
+    "places.userRatingCount",
     "places.nationalPhoneNumber",
     "places.websiteUri",
 ])
@@ -130,6 +156,24 @@ def search_category(query):
     req.add_header("X-Goog-Api-Key", API_KEY)
     req.add_header("X-Goog-FieldMask", FIELD_MASK)
 
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        return json.loads(resp.read().decode("utf-8")).get("places", [])
+
+
+def search_provider(query, lat, lng):
+    """Look up one specific provider near (lat, lng); a handful of results is plenty."""
+    url = "https://places.googleapis.com/v1/places:searchText"
+    body = json.dumps({
+        "textQuery": query,
+        "locationBias": {
+            "circle": {"center": {"latitude": lat, "longitude": lng}, "radius": 1000.0}
+        },
+        "maxResultCount": 5,
+    }).encode("utf-8")
+    req = urllib.request.Request(url, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    req.add_header("X-Goog-Api-Key", API_KEY)
+    req.add_header("X-Goog-FieldMask", FIELD_MASK)
     with urllib.request.urlopen(req, timeout=20) as resp:
         return json.loads(resp.read().decode("utf-8")).get("places", [])
 
@@ -183,6 +227,7 @@ def to_venue(place, category):
         "lng": clean_coord(loc.get("longitude")),
         "address": clean_address(place.get("formattedAddress", "")),
         "rating": place.get("rating"),
+        "rating_count": place.get("userRatingCount"),
         "phone": clean_phone(place.get("nationalPhoneNumber")),
         "website": clean_website(place.get("websiteUri")),
         "hours": None,
@@ -269,9 +314,57 @@ def refresh_fields(target, fresh):
     return changed
 
 
-def ordered(venue):
+def refresh_care(care):
+    """Fill in place_id / rating / rating_count on each care entry from Google.
+
+    Returns (updated entry names, entry names Google couldn't match). Never
+    touches any other field, and a failed lookup leaves the entry as it was.
+    """
+    updated, unmatched = [], []
+    taken = set()
+    for entry in care:
+        query = "{} {}".format(entry["name"], entry["address"])
+        try:
+            places = search_provider(query, entry["lat"], entry["lng"])
+        except Exception as e:
+            print("  care lookup failed for {}: {}".format(entry["name"], e), file=sys.stderr)
+            unmatched.append(entry["name"])
+            continue
+        best, best_key = None, None
+        for place in places:
+            fresh = to_venue(place, entry.get("category", ""))
+            if fresh["lat"] is None or fresh["lng"] is None or fresh["place_id"] in taken:
+                continue
+            same_id = bool(entry.get("place_id")) and entry["place_id"] == fresh["place_id"]
+            dist = distance_m(entry["lat"], entry["lng"], fresh["lat"], fresh["lng"])
+            score = name_score(fresh["name"], entry["name"])
+            if not same_id and (dist > CARE_MATCH_RADIUS_M or score < CARE_MATCH_NAME_SCORE):
+                continue
+            key = (same_id, score, -dist)
+            if best_key is None or key > best_key:
+                best, best_key = fresh, key
+        if best is None:
+            unmatched.append(entry["name"])
+            continue
+        taken.add(best["place_id"])
+        changed = []
+        for field in CARE_REFRESHABLE:
+            new = best.get(field)
+            if new is not None and entry.get(field) != new:
+                entry[field] = new
+                changed.append(field)
+        if entry.get("place_id") != best["place_id"]:
+            entry["place_id"] = best["place_id"]
+            changed.append("place_id")
+        if changed:
+            updated.append(entry["name"])
+            print("  updated {}: {}".format(entry["name"], ", ".join(changed)))
+    return updated, unmatched
+
+
+def ordered(venue, key_order=KEY_ORDER):
     out = {}
-    for key in KEY_ORDER:
+    for key in key_order:
         if key in venue:
             out[key] = venue[key]
     for key in venue:
@@ -346,13 +439,23 @@ def main():
 
     not_seen = [v["name"] for v in venues if v["id"] not in taken]
 
+    # 2b. Review summary for the hand-curated care list (never adds candidates).
+    care_updated, care_unmatched = [], []
+    if data.get("care"):
+        print("Looking up reviews for {} care providers ...".format(len(data["care"])))
+        care_updated, care_unmatched = refresh_care(data["care"])
+
     # 3. Write it back. Venues keep their order; nothing is ever dropped.
     out = {
         "generated_at": datetime.date.today().isoformat(),
         "center": data.get("center", CENTER),
         "venues": [ordered(v) for v in venues],
-        "candidates": [ordered(c) for c in candidates.values()],
     }
+    if data.get("care"):
+        out["care"] = [ordered(c, CARE_KEY_ORDER) for c in data["care"]]
+    elif "care" in data:
+        out["care"] = data["care"]
+    out["candidates"] = [ordered(c) for c in candidates.values()]
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
         f.write("\n")
@@ -361,6 +464,10 @@ def main():
     print("Kept all {} venues; {} had fields refreshed.".format(len(venues), refreshed))
     if not_seen:
         print("Not returned by Google this run (left unchanged): " + "; ".join(not_seen))
+    if data.get("care"):
+        print("Care list: {} of {} entries had reviews refreshed{}.".format(
+            len(care_updated), len(data["care"]),
+            "; no Google match for " + "; ".join(care_unmatched) if care_unmatched else ""))
     print("{} candidate(s) waiting in the 'candidates' list ({} new this run; "
           "ignored {} duplicate listing(s) and {} too far away).".format(
               len(candidates), new_candidates, duplicates, too_far))

@@ -20,9 +20,11 @@ adjust, `venues.json` is hand-curated.
 | 1.4 | Indoor flag + rainy-day chip | Instant answer on a wet day | Small | ☑ |
 | 2.1 | Promote the good candidates | More places, same quality bar | Content | ☑ |
 | 2.2 | Add well-known places Google missed | Arboretum, Naper Settlement, etc. | Content | ☑ |
-| 2.3 | Show rating counts | 4.9 (12) ≠ 4.5 (2,000) | Small | ☐ |
+| 2.3 | Show rating counts | 4.9 (12) ≠ 4.5 (2,000) — done for Kids' care (`rating_count`); places still to do | Small | ☐ |
 | 2.4 | Seasonal farms / pumpkin patches | Fall-specific content, `season` field already exists | Content | ☐ |
 | 2.5 | Restaurants with kids menus | "Where can we eat?" is half of every outing | Medium | ☑ |
+| 2.7 | Kids' care (hospitals, urgent care, pediatric dentists) | The other thing you need to find fast, with the phone number one tap away | Medium | ☑ |
+| 2.8 | More care providers (and re-check them) | 10 so far; leads and gaps in CARE.md | Content | ☐ |
 | 2.6 | More restaurants (and re-check menus) | 28 verified so far; some big names still blocked | Content | ☐ |
 | 3.1 | Filters + selected place in the URL | Text a link to your spouse | Small | ☐ |
 | 3.2 | Saved home location | Distance sort without a GPS prompt | Small | ☐ |
@@ -181,6 +183,15 @@ way to notice a venue that quietly closed.
 
 ## Done
 
+- Kids' care (Oct 2 2026): a "Kids' care" tab on the same page backed by a
+  separate `care` list in `venues.json` — 4 hospital ERs, 2 urgent care and 4
+  pediatric dentists, researched from each provider's own site. Care-specific
+  fields (`phone`, `website`, `checked`, `insurance`, `tags`), a Call button,
+  filters for pediatric ER / walk-in / sedation / special needs, search by
+  insurance, `check_data.py` validation of the `care` list, `CARE.md` as the
+  research log, and Google star ratings with review counts (`rating`,
+  `rating_count`) that the weekly updater fills in per entry — never touching
+  phone/address/website — with an updater test covering the wrong-match cases.
 - Page fixed, favorites, near-me, sorting, address search, stable map
   (Sep 2026)
 - Updater made safe for curated data; formatting normalised; candidates

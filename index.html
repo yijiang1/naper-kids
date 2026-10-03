@@ -92,6 +92,44 @@
     outline-offset:1px;
   }
 
+  /* "Places to go" / "Kids' care" switch under the title. */
+  .mode-row{max-width:1160px;margin:14px auto 0;}
+  .mode-tabs{
+    display:inline-flex;
+    gap:2px;
+    padding:3px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--bg);
+  }
+  .mode-tab{
+    border:0;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    min-height:36px;
+    padding:0 16px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .mode-tab[aria-pressed="true"]{background:var(--ink);color:#fff;}
+  .mode-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  /* Kids' care mode drops the controls that only make sense for fun outings. */
+  body.mode-care .places-only{display:none !important;}
+  body:not(.mode-care) .care-only{display:none !important;}
+  .care-banner{max-width:1160px;margin:10px auto 0;padding:0 20px;}
+  .care-banner p{
+    margin:0;
+    background:#FBEAE7;
+    color:#8A2B21;
+    border-radius:10px;
+    padding:9px 14px;
+    font-size:13px;
+    font-weight:500;
+  }
+
   .toolbar{
     max-width:1160px;
     margin:14px auto 0;
@@ -433,11 +471,14 @@
   }
   .card-actions{
     display:flex;
+    flex-wrap:wrap;   /* a care card on a phone has four buttons: let them wrap rather than squeeze */
     gap:8px;
     margin-top:12px;
   }
   .card-actions .act{
     flex:1 1 0;
+    min-width:max-content;
+    padding:0 12px;
     min-height:36px;
     display:inline-flex;
     align-items:center;
@@ -453,6 +494,8 @@
     cursor:pointer;
   }
   .card-actions .act:hover{border-color:var(--accent);}
+  .card-rating .rating-link{color:inherit;text-decoration:underline dotted;text-underline-offset:3px;}
+  .card-rating .rating-link:hover{color:var(--accent);}
   .card-actions .act-map{display:none;}  /* desktop already shows the map beside the list */
 
   /* z-index:0 makes the map its own stacking context, so Leaflet's internal
@@ -530,6 +573,9 @@
     header{padding:16px 16px 12px;}
     .header-row{display:block;}
     .title-block h1{font-size:24px;}
+    .mode-tabs{display:flex;}
+    .mode-tab{flex:1 1 0;min-height:44px;}
+    .care-banner{padding:0 16px;}
     .title-block p{font-size:13.5px;}
 
     .appbar{
@@ -747,14 +793,25 @@
   <div class="header-row">
     <div class="title-block">
       <h1 class="display">Naper Kids</h1>
-      <p>Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, restaurants with kids' menus, and more.</p>
+      <p id="headerBlurb">Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, restaurants with kids' menus, and more.</p>
     </div>
     <!-- On phones this moves into the sticky .appbar below (see placeSearch()). -->
     <div class="search-wrap">
       <input type="search" id="search" placeholder="Search by name or vibe…" aria-label="Search places" enterkeyhint="search" autocomplete="off">
     </div>
   </div>
+  <!-- Hidden until venues.json has a "care" list. -->
+  <div class="mode-row" id="modeRow" hidden>
+    <div class="mode-tabs" role="group" aria-label="What to browse">
+      <button class="mode-tab" type="button" data-mode="places" aria-pressed="true">Places to go</button>
+      <button class="mode-tab" type="button" data-mode="care" aria-pressed="false">Kids' care</button>
+    </div>
+  </div>
 </header>
+
+<div class="care-banner care-only">
+  <p>Emergency? Call 911. Reference list only, not medical advice — call ahead to confirm hours, insurance and new patients.</p>
+</div>
 
 <div class="appbar" id="appbar">
   <button class="filters-btn" id="btnFilters" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="filterPanel">
@@ -773,7 +830,7 @@
 </div>
 <div class="sheet-body">
 <div class="toolbar" data-label="Price &amp; category">
-  <label class="free-toggle" id="freeToggleLabel">
+  <label class="free-toggle places-only" id="freeToggleLabel">
     <input type="checkbox" id="freeOnly">
     Free only
   </label>
@@ -781,10 +838,10 @@
 </div>
 
 <div class="toolbar" data-label="Age, sort &amp; more">
-  <span id="ageChips" style="display:contents"></span>
-  <button class="chip" id="indoorChip" title="Only show venues with indoor space">🏠 Indoor</button>
+  <span id="ageChips" class="places-only" style="display:contents"></span>
+  <button class="chip places-only" id="indoorChip" title="Only show venues with indoor space">🏠 Indoor</button>
   <button class="chip fav" id="favChip" title="Show only the places you've starred">★ Favorites</button>
-  <button class="chip" id="seasonChip" title="Include venues that are closed for the season" hidden>Show out-of-season</button>
+  <button class="chip places-only" id="seasonChip" title="Include venues that are closed for the season" hidden>Show out-of-season</button>
   <span class="tools-right">
     <button class="chip" id="btnNearMe" title="Sort by how far each place is from you right now">📍 Near me</button>
     <select class="sort-select" id="sort" aria-label="Sort places">
@@ -807,7 +864,7 @@
 </div>
 
 <div class="status-bar" id="status" hidden></div>
-<div class="rain-hint-row" id="rainHintRow" hidden>
+<div class="rain-hint-row places-only" id="rainHintRow" hidden>
   <span class="rain-hint" id="rainHint"></span>
 </div>
 <div class="count-line" id="countLine"></div>
@@ -820,7 +877,8 @@
 <button class="view-switch" id="btnViewSwitch" type="button" aria-label="Show map"></button>
 
 <footer>
-  <p>Data pulled from Google Places; admission prices, suggested ages, and kids' menus researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. Each kids' menu is copied from the restaurant's own site on the date shown, so menus and prices may have changed since.</p>
+  <p class="care-only">Hospital, urgent care and dentist details were copied by hand from each provider's own website on the date shown on its card. Hours, insurance and new-patient status change often, and the local hospitals' pediatric ERs keep different hours from their main ERs — call before you go, and call 911 in an emergency. Star ratings and review counts come from Google and are refreshed weekly; they're one family-to-family signal, not a measure of medical quality. "Pediatric ER" here means the hospital says it is state-approved or designated for children's emergencies; this page isn't a medical referral or a ranking.</p>
+  <p class="places-only">Data pulled from Google Places; admission prices, suggested ages, and kids' menus researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. Each kids' menu is copied from the restaurant's own site on the date shown, so menus and prices may have changed since.</p>
   <p>Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere.</p>
   <p>Hours, openings, and prices change — worth a quick check before you go.<span id="dataDate"></span></p>
 </footer>
@@ -3959,6 +4017,180 @@ const VENUES_FALLBACK = {
         "checked": "2026-09-30"
       }
     }
+  ],
+  "care": [
+    {
+      "id": "edward-hospital-er",
+      "name": "Edward Hospital Emergency Department",
+      "category": "Hospitals & ER",
+      "lat": 41.7613703,
+      "lng": -88.1492158,
+      "address": "801 S Washington St, Naperville, IL 60540",
+      "phone": "(630) 527-3000",
+      "website": "https://www.endeavorhealth.org/locations/edward-hospital-emergency-pediatric-emergency-department",
+      "hours": "ER open 24/7",
+      "note": "Naperville's own hospital. Approved by the state for pediatric emergencies (EDAP), with child-sized equipment, and one of only 11 Pediatric Critical Care Centers in Illinois. Also has an inpatient pediatric unit and a NICU.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "nm-central-dupage-pediatric-er",
+      "name": "Northwestern Medicine Central DuPage Hospital – Pediatric ER",
+      "category": "Hospitals & ER",
+      "lat": 41.8731919,
+      "lng": -88.1558292,
+      "address": "25 N Winfield Rd, Winfield, IL 60190",
+      "phone": "(630) 933-2600",
+      "website": "https://www.nm.org/conditions-and-care-areas/pediatrics/pediatric-emergency-department",
+      "hours": "Pediatric ER about 9 AM–1 AM (shorter on weekends/holidays — call to confirm); main ER open 24/7",
+      "note": "A separate children's ER staffed by board-certified pediatric emergency physicians from Lurie Children's, with child life specialists, child-sized equipment and a state pediatric-emergency designation. Level II trauma center. When the pediatric ER is closed, kids are seen in the main ER.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "advocate-good-samaritan-er",
+      "name": "Advocate Good Samaritan Hospital Emergency Department",
+      "category": "Hospitals & ER",
+      "lat": 41.8186259,
+      "lng": -88.0101547,
+      "address": "3815 Highland Ave, Downers Grove, IL 60515",
+      "phone": "(800) 323-2862",
+      "website": "https://www.advocatehealth.com/gsam/health-services/emergency-services",
+      "hours": "ER open 24/7",
+      "note": "Approved by the state of Illinois to treat pediatric injuries and illnesses (EDAP). The phone number is Advocate's 800-3-ADVOCATE line; in an emergency call 911.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "lurie-childrens-er",
+      "name": "Lurie Children's Hospital Emergency Department",
+      "category": "Hospitals & ER",
+      "lat": 41.8966959,
+      "lng": -87.6229253,
+      "address": "225 E Chicago Ave, Chicago, IL 60611",
+      "phone": "(312) 227-4000",
+      "website": "https://www.luriechildrens.org/en/specialties-conditions/pediatric-emergency-room/",
+      "hours": "ER open 24/7",
+      "note": "Chicago's dedicated children's hospital: a state-designated Level 1 pediatric trauma center, staffed around the clock by board-certified pediatric emergency specialists. A long drive from Naperville.",
+      "tags": [
+        "open-24-7",
+        "peds-er"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "pm-pediatric-urgent-care-naperville",
+      "name": "PM Pediatric Urgent Care (Lurie Children's partner)",
+      "category": "Urgent Care",
+      "lat": 41.7127944,
+      "lng": -88.2072719,
+      "address": "2835 Showplace Dr, Suite 119, Naperville, IL 60564",
+      "phone": "(630) 470-4878",
+      "website": "https://pmpediatriccare.com/location/naperville/",
+      "hours": "Mon–Sat 10 AM–10 PM, Sun 8 AM–10 PM (final registration 20 min before close)",
+      "age": "0–26",
+      "insurance": "Most major plans (no list posted); self-pay available",
+      "note": "Walk-ins welcome, no appointment needed; online check-in holds your place in line but not a set time. On-site X-rays, stitches, splinting, strep/flu tests, nebulizer treatments and concussion checks, with anxiety-reducing techniques for procedures. In the Naperville Crossings shopping center.",
+      "tags": [
+        "walk-in",
+        "evenings-weekends",
+        "online-booking"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "afc-urgent-care-naperville",
+      "name": "AFC Urgent Care Naperville",
+      "category": "Urgent Care",
+      "lat": 41.7959394,
+      "lng": -88.1220502,
+      "address": "1355 E Ogden Ave, Suite 109, Naperville, IL 60563",
+      "phone": "(630) 984-9480",
+      "website": "https://www.afcurgentcare.com/naperville/patient-services/childrens-urgent-care/",
+      "insurance": "Most major plans; self-pay options",
+      "note": "General urgent care that sees children of all ages; walk-ins welcome. Its page says infants under 2 months with a fever should go to an ER. The page doesn't say the staff are pediatric specialists.",
+      "tags": [
+        "walk-in"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "tic-tac-tooth-pediatric-dentistry",
+      "name": "Tic Tac Tooth Pediatric Dentistry",
+      "category": "Pediatric Dentists",
+      "lat": 41.680654,
+      "lng": -88.2013409,
+      "address": "2812 Hassert Blvd, Suite 104, Naperville, IL 60564",
+      "phone": "(630) 995-3393",
+      "website": "https://www.tictactooth.com",
+      "hours": "Mon 9–5, Tue–Wed 10–6, Thu 8–4; Fri–Sat by appointment only",
+      "insurance": "In-network with Delta Dental Premier; other plans handled out-of-network",
+      "note": "Infants through college age. Same-day emergency appointments, nitrous oxide, special-needs dentistry, injection-free anesthetic and silver diamine fluoride for early cavities. Online scheduling and digital new-patient forms.",
+      "tags": [
+        "sedation",
+        "special-needs",
+        "emergency-dental",
+        "online-booking"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "innovative-pediatric-dentistry",
+      "name": "Innovative Pediatric Dentistry",
+      "category": "Pediatric Dentists",
+      "lat": 41.7745599,
+      "lng": -88.1495405,
+      "address": "55 S Main St, Suite 261, Naperville, IL 60540",
+      "phone": "(630) 848-7336",
+      "website": "https://www.innovativepediatricdentistry.com",
+      "hours": "Mon, Wed, Thu 8–4; Tue 9–5; Fri 8–2; Sat 8–2 (one Saturday a month)",
+      "age": "0–13 (plus patients with special needs)",
+      "insurance": "Accepts dental insurance (plans not listed — call)",
+      "note": "Downtown Naperville. Nitrous oxide and general anesthesia available, special-needs dental care, orthodontics and frenectomy. Online appointment booking.",
+      "tags": [
+        "sedation",
+        "special-needs",
+        "online-booking"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "small-smiles-naperville",
+      "name": "Small Smiles Pediatric Dentistry",
+      "category": "Pediatric Dentists",
+      "lat": 41.7481901,
+      "lng": -88.1855275,
+      "address": "1980 Three Farms Ave, Suite 108, Naperville, IL 60540",
+      "phone": "(630) 527-8686",
+      "website": "https://www.smallsmiles.org",
+      "note": "Infants, children, teens and children with special needs. Sports dentistry, laser soft-tissue therapy, limited orthodontics and pediatric dental emergency care. Appointment request form on the site; hours and insurance aren't listed there, so call.",
+      "tags": [
+        "special-needs",
+        "emergency-dental"
+      ],
+      "checked": "2026-10-02"
+    },
+    {
+      "id": "gg-pediatric-dentistry-naperville",
+      "name": "G+G Pediatric Dentistry & Orthodontics",
+      "category": "Pediatric Dentists",
+      "lat": 41.7926979,
+      "lng": -88.1275765,
+      "address": "1108 E Ogden Ave, Naperville, IL 60563",
+      "phone": "(630) 778-9500",
+      "website": "https://www.endeavorhealth.org/providers/cory-grathwol",
+      "note": "Pediatric dentistry and orthodontics, with a second office in Lake Zurich. No practice website turned up, so this comes from the dentist's Endeavor Health listing (an independent practice, not an Endeavor employee). Call for hours, insurance and new-patient status.",
+      "checked": "2026-10-02"
+    }
   ]
 };
 
@@ -3970,7 +4202,11 @@ const CATEGORY_COLORS = {
   "Nature & Zoos": "#5C7A3A",
   "Bowling & Arcades": "#C24E4E",
   "Forest Preserves & Trails": "#2E5339",
-  "Restaurants": "#C2417C"
+  "Restaurants": "#C2417C",
+  // Kids' care mode
+  "Hospitals & ER": "#B3392F",
+  "Urgent Care": "#C46F12",
+  "Pediatric Dentists": "#2F8F9D"
 };
 
 // One glyph per category for the map pins, drawn in a 24x24 box (stroke only,
@@ -3992,7 +4228,13 @@ const CATEGORY_ICONS = {
   // pine tree (filled — the outline version read as a plain triangle at 14px)
   "Forest Preserves & Trails": '<path d="M12 2.5 6.5 10H9l-4 6h14l-4-6h2.5z" fill="currentColor"/><path d="M12 16v5.5"/>',
   // fork and knife
-  "Restaurants": '<path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>'
+  "Restaurants": '<path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>',
+  // medical cross
+  "Hospitals & ER": '<path d="M12 4v16M4 12h16" stroke-width="3.2"/>',
+  // lightning bolt
+  "Urgent Care": '<path d="M13 2 4.5 13.5H11L10 22l9-12h-6.5z" fill="currentColor"/>',
+  // tooth
+  "Pediatric Dentists": '<path d="M7.5 3C5 3 3.5 5 3.5 7.6c0 2 .8 3.4 1.4 5.2.7 2.3.6 5.2 1.6 7.2.5 1 1.6 1.4 2.3.3.8-1.2.9-3.6 3.2-3.6s2.4 2.4 3.2 3.6c.7 1.1 1.8.7 2.3-.3 1-2 .9-4.9 1.6-7.2.6-1.8 1.4-3.2 1.4-5.2C20.5 5 19 3 16.5 3c-1.9 0-2.9 1-4.5 1S9.4 3 7.5 3z"/>'
 };
 
 const AGE_BANDS = [
@@ -4015,7 +4257,24 @@ const TAG_LABELS = {
 };
 const TAG_ORDER = Object.keys(TAG_LABELS);
 
-let allVenues = [];
+// Kids' care tags — keep in sync with check_data.py's CARE_TAG_VOCAB.
+const CARE_TAG_LABELS = {
+  'open-24-7': 'ER open 24/7',
+  'peds-er': 'Pediatric ER',
+  'walk-in': 'Walk-ins',
+  'evenings-weekends': 'Evenings & weekends',
+  'online-booking': 'Book/check in online',
+  sedation: 'Sedation',
+  'special-needs': 'Special needs',
+  'emergency-dental': 'Emergency visits',
+};
+const CARE_TAG_ORDER = Object.keys(CARE_TAG_LABELS);
+
+const BASE_TITLE = document.title;
+let allVenues = [];        // whatever the current mode is browsing
+let placesData = [];       // venues.json "venues"
+let careData = [];         // venues.json "care" (hospitals, urgent care, kids' dentists)
+let mode = 'places';       // 'places' or 'care'
 let dataMeta = {};
 let activeCategories = new Set();
 let activeAgeBands = new Set();
@@ -4038,6 +4297,11 @@ const FOCUS_ZOOM = 14;     // how far the map zooms in on a venue picked from th
 // Same breakpoint as the CSS: at or below it we're in the one-column phone layout.
 const mqMobile = window.matchMedia('(max-width: 860px)');
 function isMobile(){ return mqMobile.matches; }
+
+function inCare(){ return mode === 'care'; }
+function tagLabels(){ return inCare() ? CARE_TAG_LABELS : TAG_LABELS; }
+function tagOrder(){ return inCare() ? CARE_TAG_ORDER : TAG_ORDER; }
+function noun(n){ return inCare() ? (n === 1 ? 'provider' : 'providers') : (n === 1 ? 'place' : 'places'); }
 
 const ICON_MAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 const ICON_LIST = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>';
@@ -4065,13 +4329,17 @@ function activeFilterCount(){
     + (indoorOnly ? 1 : 0) + (favOnly ? 1 : 0) + (showOutOfSeason ? 1 : 0);
 }
 
-function clearFilters(){
+function resetFilterState(){
   activeCategories.clear();
   activeAgeBands.clear();
   activeTags.clear();
   favOnly = indoorOnly = showOutOfSeason = false;
   document.getElementById('freeOnly').checked = false;
   document.getElementById('freeToggleLabel').classList.remove('active');
+}
+
+function clearFilters(){
+  resetFilterState();
   applyFilters();
 }
 
@@ -4103,7 +4371,9 @@ function closeFilters(){
 function placeSearch(){
   const wrap = document.querySelector('.search-wrap');
   // The bar is narrow on phones, so the longer hint would be clipped there.
-  document.getElementById('search').placeholder = isMobile() ? 'Search places…' : 'Search by name or vibe…';
+  document.getElementById('search').placeholder = inCare()
+    ? (isMobile() ? 'Search care…' : 'Name, insurance, service…')
+    : (isMobile() ? 'Search places…' : 'Search by name or vibe…');
   if(isMobile()){
     const bar = document.getElementById('appbar');
     if(wrap.parentNode !== bar) bar.insertBefore(wrap, document.getElementById('btnFilters'));
@@ -4192,12 +4462,12 @@ function renderTagChips(){
   wrap.innerHTML = '';
   const present = new Set();
   allVenues.forEach(v => (v.tags || []).forEach(t => present.add(t)));
-  const tags = TAG_ORDER.filter(t => present.has(t));
+  const tags = tagOrder().filter(t => present.has(t));
   document.getElementById('tagToolbar').hidden = tags.length === 0;
   tags.forEach(t => {
     const chip = document.createElement('button');
     chip.className = 'chip tag';
-    chip.textContent = TAG_LABELS[t];
+    chip.textContent = tagLabels()[t];
     chip.dataset.tag = t;
     chip.onclick = () => {
       if(activeTags.has(t)) activeTags.delete(t); else activeTags.add(t);
@@ -4224,6 +4494,12 @@ async function loadData(){
   }catch(e){
     return Array.isArray(VENUES_FALLBACK) ? {venues: VENUES_FALLBACK} : VENUES_FALLBACK;
   }
+}
+
+// tel: link from a "(630) 555-1234" style phone; '' when there isn't a usable one.
+function telHref(v){
+  const digits = String(v.phone || '').replace(/[^\d]/g, '');
+  return digits.length >= 10 ? `tel:+1${digits.slice(-10)}` : '';
 }
 
 function directionsUrl(v){
@@ -4382,6 +4658,18 @@ function starString(rating){
   return '★ ' + rating.toFixed(1);
 }
 
+// Care cards also show how many Google reviews the rating is based on (4.9 from
+// 12 people isn't 4.5 from 2,000), linking to the place's Google page.
+function ratingHtml(v){
+  if(!inCare()) return esc(starString(v.rating));
+  if(!v.rating) return '';
+  const n = Number.isInteger(v.rating_count) && v.rating_count > 0 ? ` (${v.rating_count.toLocaleString()})` : '';
+  const text = esc(starString(v.rating) + n);
+  if(!v.place_id) return text;
+  const url = `https://www.google.com/maps/search/?api=1&query=${v.lat},${v.lng}&query_place_id=${encodeURIComponent(v.place_id)}`;
+  return `<a class="rating-link" href="${url}" target="_blank" rel="noopener" title="Google reviews">${text}</a>`;
+}
+
 function costBadge(v){
   if(!v.cost) return '';
   const free = isFree(v);
@@ -4425,7 +4713,7 @@ function ageBadge(v){
 
 function tagsHtml(v){
   if(!v.tags || !v.tags.length) return '';
-  const pills = v.tags.map(t => `<span class="tag-pill">${esc(TAG_LABELS[t] || t)}</span>`).join('');
+  const pills = v.tags.map(t => `<span class="tag-pill">${esc(tagLabels()[t] || t)}</span>`).join('');
   return `<div class="card-tags">${pills}</div>`;
 }
 
@@ -4441,7 +4729,9 @@ function menuItems(v){
 }
 
 function baseSearchText(v){
-  return [v.name, v.note, v.category, v.address].join(' ').toLowerCase();
+  // Care entries are also searchable by insurance ("delta") and service ("sedation").
+  const extra = inCare() ? [v.insurance, (v.tags || []).map(t => CARE_TAG_LABELS[t] || t).join(' ')] : [];
+  return [v.name, v.note, v.category, v.address].concat(extra).join(' ').toLowerCase();
 }
 
 // Everything on the menu that search should be able to find ("mac and cheese").
@@ -4523,7 +4813,7 @@ function renderList(venues){
       <div class="card-top">
         <p class="card-name">${esc(v.name)}</p>
         <span class="card-side">
-          <span class="card-rating">${starString(v.rating)}</span>
+          <span class="card-rating">${ratingHtml(v)}</span>
           <button class="fav-btn${fav ? ' on' : ''}" title="${favTitle}" aria-label="${favTitle}" aria-pressed="${fav}">${fav ? '★' : '☆'}</button>
         </span>
       </div>
@@ -4540,14 +4830,18 @@ function renderList(venues){
         ${v.hours ? `<span>${esc(v.hours)}</span>` : ''}
         ${v.cost && !isFree(v) ? `<span>${esc(costDetail(v))}</span>` : ''}
         ${ageDetail(v) ? `<span>${esc(ageDetail(v))}</span>` : ''}
+        ${v.insurance ? `<span>Insurance: ${esc(v.insurance)}</span>` : ''}
+        ${inCare() && v.phone ? `<span>${esc(v.phone)}</span>` : ''}
+        ${inCare() && formatCheckedDate(v.checked) ? `<span>Checked ${esc(formatCheckedDate(v.checked))}</span>` : ''}
       </div>
       <div class="card-actions">
+        ${telHref(v) ? `<a class="act" href="${telHref(v)}">Call</a>` : ''}
         <a class="act" href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>
         ${v.website ? `<a class="act" href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
         <button class="act act-map" type="button">On map</button>
       </div>
       ${menuHtml(v, forceMenu)}
-      ${voteRowHtml(v)}
+      ${inCare() ? '' : voteRowHtml(v)}
     `;
     // On a phone the map replaces the list, so tapping the card body only
     // highlights it; the "On map" button is the deliberate way to jump there.
@@ -4566,7 +4860,7 @@ function renderList(venues){
     };
     // Links and the vote/menu disclosures are their own targets: they must not
     // also trigger the card's click (which used to flip the phone to the map view).
-    card.querySelectorAll('.card-actions a, .vote-wrap, .menu-wrap').forEach(el => {
+    card.querySelectorAll('.card-actions a, .card-rating a, .vote-wrap, .menu-wrap').forEach(el => {
       el.addEventListener('click', e => e.stopPropagation());
     });
     const menuWrap = card.querySelector('.menu-wrap');
@@ -4581,9 +4875,11 @@ function renderList(venues){
       selectVenue(v.id, true);
     };
     const voteWrap = card.querySelector('.vote-wrap');
-    voteWrap.addEventListener('toggle', () => {
-      if(voteWrap.open) openVotes.add(v.id); else openVotes.delete(v.id);
-    });
+    if(voteWrap){
+      voteWrap.addEventListener('toggle', () => {
+        if(voteWrap.open) openVotes.add(v.id); else openVotes.delete(v.id);
+      });
+    }
     card.querySelectorAll('.vote-btn').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation();
@@ -4638,6 +4934,7 @@ function popupHtml(v){
   const bits = [];
   if(v.cost) bits.push(isFree(v) ? 'Free' : (v.cost.length > 26 ? 'Paid' : v.cost));
   if(v.age) bits.push(ageLabel(v));
+  if(inCare() && v.phone) bits.push(v.phone);
   if(dist) bits.push(dist);
   const seasonNote = !inSeason(v) ? '<br><span style="color:#5B6960">Closed for the season</span>' : '';
   // Kept short on purpose — the full note, hours and prices live on the card.
@@ -4759,6 +5056,41 @@ function showRainHint(chance){
   row.hidden = false;
 }
 
+// Swap between the fun-places list and the kids' care list. Both share the same
+// list, map and filter machinery; only the data and a few controls differ.
+function setMode(next, quiet){
+  if(next === 'care' && careData.length === 0) next = 'places';
+  const changed = next !== mode;
+  mode = next;
+  allVenues = inCare() ? careData : placesData;
+  document.body.classList.toggle('mode-care', inCare());
+  document.querySelectorAll('.mode-tab').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  document.getElementById('headerBlurb').textContent = inCare()
+    ? "Children's ERs, urgent care and pediatric dentists in and around Naperville — hours, phone numbers, insurance and what each offers for kids."
+    : "Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, restaurants with kids' menus, and more.";
+  document.getElementById('search').setAttribute('aria-label', inCare() ? 'Search kids\' care' : 'Search places');
+  document.querySelector('.toolbar[data-label]').dataset.label = inCare() ? 'Category' : 'Price & category';
+  document.title = inCare() ? "Naper Kids — Kids' care" : BASE_TITLE;
+  if(changed){
+    resetFilterState();
+    document.getElementById('search').value = '';
+    selectedId = null;
+    closeFilters();
+    if(!quiet){
+      try { history.replaceState(null, '', inCare() ? '#care' : location.pathname + location.search); } catch(e){ /* file:// or sandboxed — the hash is just a convenience */ }
+    }
+  }
+  renderChips();
+  renderTagChips();
+  placeSearch();
+  if(changed){
+    refresh();
+    if(isMobile()){ showView('list'); window.scrollTo(0, 0); }
+  }
+}
+
+function modeFromHash(){ return location.hash === '#care' ? 'care' : 'places'; }
+
 function showDataDate(){
   if(!dataMeta.generated_at) return;
   const d = new Date(dataMeta.generated_at + 'T12:00:00');
@@ -4807,10 +5139,10 @@ function refresh(){
   seasonChip.hidden = outOfSeasonCount === 0 && !showOutOfSeason;
   seasonChip.textContent = `Show out-of-season${outOfSeasonCount ? ' (' + outOfSeasonCount + ')' : ''}`;
   seasonChip.classList.toggle('active', showOutOfSeason);
-  const countText = `${venues.length} place${venues.length===1?'':'s'}`;
+  const countText = `${venues.length} ${noun(venues.length)}`;
   document.getElementById('countTag').textContent = countText;
   document.getElementById('countLine').textContent = countText;
-  document.getElementById('btnShowResults').textContent = venues.length ? `Show ${countText}` : 'No places match — adjust filters';
+  document.getElementById('btnShowResults').textContent = venues.length ? `Show ${countText}` : `No ${noun(0)} match — adjust filters`;
   const nFilters = activeFilterCount();
   const badge = document.getElementById('filterBadge');
   badge.hidden = nFilters === 0;
@@ -4865,13 +5197,15 @@ document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeFilter
 function onBreakpointChange(){
   closeFilters();
   placeSearch();
-  if(!isMobile()){
+  if(!isMobile() && map){   // the breakpoint can flip before the first data load has built the map
     map.invalidateSize({animate:false});
     if(pendingFitBounds) fitMapTo(pendingFitBounds);
   }
 }
 if(mqMobile.addEventListener) mqMobile.addEventListener('change', onBreakpointChange);
 else mqMobile.addListener(onBreakpointChange);   // older Safari
+document.querySelectorAll('.mode-tab').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+window.addEventListener('hashchange', () => setMode(modeFromHash(), true));
 document.getElementById('sort').addEventListener('change', (e) => { sortMode = e.target.value; applyFilters(); });
 document.getElementById('btnNearMe').addEventListener('click', locateMe);
 document.getElementById('favChip').addEventListener('click', () => { favOnly = !favOnly; applyFilters(); });
@@ -4880,15 +5214,16 @@ document.getElementById('seasonChip').addEventListener('click', () => { showOutO
 
 (async function(){
   dataMeta = await loadData();
-  allVenues = dataMeta.venues;
+  placesData = dataMeta.venues;
+  careData = Array.isArray(dataMeta.care) ? dataMeta.care : [];
+  allVenues = placesData;
+  document.getElementById('modeRow').hidden = careData.length === 0;
   if(!navigator.geolocation) document.getElementById('btnNearMe').hidden = true;
   showDataDate();
   initMap();
-  renderChips();
   renderAgeChips();
-  renderTagChips();
+  setMode(modeFromHash(), true);   // renders the chips and the first list
   refresh();
-  placeSearch();
   showView('list');   // sets the switch label; on phones also hides the map until asked for
   checkRain();
 })();

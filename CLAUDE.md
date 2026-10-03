@@ -24,7 +24,14 @@ file.
   `"partly"` / omitted for outdoor), and `kids_menu` (see below; *required*
   for the `Restaurants` category, optional for anything else). `candidates` is a holding pen for
   places the updater found that nobody has curated yet; the page ignores
-  it. This is what changes most often.
+  it. This is what changes most often. A third list, `care`, holds the
+  **Kids' care** providers (see below): hand-researched, never searched
+  for by category; the updater looks each entry up by name + address
+  (`refresh_care()`, accepted only within `CARE_MATCH_RADIUS_M` with a
+  `CARE_MATCH_NAME_SCORE` name overlap) and fills in only `place_id`,
+  `rating` and `rating_count`. Google's phone/address/website are never
+  copied onto care entries (they disagreed with the providers' own sites);
+  care results never become candidates.
 - **`index_template.html`** — the real source of the page: markup, CSS, and
   all JS logic (filtering, sorting, the map, favorites, voting). Has one
   placeholder, `__VENUES_JSON__`, where the data gets inlined at build time.
@@ -57,13 +64,17 @@ file.
 - **`check_data.py`** — validates `venues.json`: required fields present,
   ids unique clean slugs, coordinates within ~90 km of `center`, rating in
   0–5, `season`/`tags`/`indoor` restricted to their vocabularies, and
-  `kids_menu` well-formed (http(s) `url`, `checked` date, non-empty sections
+  `kids_menu` well-formed (and, separately, the `care` list — see the Kids'
+  care bullet below) (http(s) `url`, `checked` date, non-empty sections
   and items, no unknown keys — so a typo like `prise` fails loudly instead of
   silently not rendering; every `Restaurants` venue must have one). Only
   checks `venues`, not `candidates` (those are allowed to be incomplete).
   Runs in the weekly workflow right before `build.py` so a bad hand edit
   never gets baked into `index.html`; also worth running by hand after
   editing `venues.json`.
+- **`CARE.md`** — the Kids' care research log (source conflicts, gaps on
+  first-party pages, leads, backlog). Same idea as `RESTAURANTS.md`: update it
+  when you add or rule out a provider.
 - **`RESTAURANTS.md`** — the restaurant research log: confirmed "no kids menu"
   verdicts, closed/not-in-Naperville dead ends, leads that need another
   attempt, and a backlog. Not read by any script; it exists so research isn't
@@ -165,6 +176,37 @@ and run `node --check` on it. (The first commit shipped with a missing
   maps — without an icon it falls back to a plain dot. Glyphs were checked at
   the real 14px size, where fine outlines turn to mush (a stroked pine tree
   read as a triangle, so it's filled).
+- **Kids' care is a second mode of the same page, not a second page.**
+  `venues.json` has a `care` array (10 entries as of Oct 2026: 4 hospital
+  ERs, 2 urgent care, 4 pediatric dentists); the "Places to go" / "Kids' care"
+  tabs under the title call `setMode()`, which swaps `allVenues` between
+  `placesData` and `careData`, clears the filters and search, re-renders the
+  chips, list and map, and writes `#care` into the URL (`hashchange` is
+  honored too). The tabs hide themselves if there's no `care` list (e.g. an
+  older hosted `venues.json`). The list/map/filter code is shared; what
+  differs: `.places-only` controls (free toggle, indoor, out-of-season, age
+  chips, rain hint, the places footer) are hidden in care mode via
+  `body.mode-care`, `.care-only` ones (911 banner, care footer) show only
+  there; tags use `CARE_TAG_LABELS` instead of `TAG_LABELS` (`tagLabels()`);
+  cards get a Call button (`telHref()`), insurance and "Checked <date>"
+  lines, a star rating with the review count that links to the place's Google
+  page when it has a `place_id` (`ratingHtml()`; the count is shown for care
+  only for now — ROADMAP 2.3 would extend it to places), and no "Best age?" votes; search also matches `insurance` and the tag
+  labels in care mode only. Care entries have different required fields than
+  venues (`phone`, `website`, `checked` required; no `cost`/`age` needed) —
+  `check_data.py`'s `check_care()` enforces them, a fixed category list
+  (`Hospitals & ER`, `Urgent Care`, `Pediatric Dentists`), the tag vocabulary
+  (`CARE_TAG_VOCAB`, keep in step with `CARE_TAG_LABELS`) and that ids don't
+  collide with `venues`. Ids are shared across both lists, since favorites are
+  keyed by id. A new care category needs entries in `CATEGORY_COLORS` and
+  `CATEGORY_ICONS`.
+  **Medical data rules:** every fact comes from the provider's own site and
+  `checked` is the day it was read; leave a field out rather than guess
+  (insurance in particular — only set where a page said something concrete).
+  Directories were wrong on first contact (Small Smiles' address, Tic Tac
+  Tooth's phone), so use them only to find leads. The page carries a "call
+  911" banner and a not-medical-advice footer in care mode; keep both.
+  See `CARE.md` for conflicts, gaps and leads.
 - **Favorites and "Best age?" votes are per-browser only** (`localStorage`
   keys `naperkids_favs_v1` and `naperkids_votes_v1`, no backend). This was
   an explicit choice to avoid standing up a server. A Google Sheets + Apps
