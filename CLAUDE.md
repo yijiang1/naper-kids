@@ -401,8 +401,10 @@ and run `node --check` on it. (The first commit shipped with a missing
   obvious ones (Morton Arboretum and Ball Factory in particular have no
   fixed per-visit price, so `cost` says "Check website" for those).
 - Shared (cross-visitor) voting was discussed but intentionally not built.
-- Not yet hosted anywhere. GitHub Pages setup is documented in README.md
-  but hasn't been done (checked 2026-10-03: no Pages site exists). The repo is
-  public, so Pages is available on the free plan.
+- **Hosted on GitHub Pages** at https://yijiang1.github.io/naper-kids/ (legacy
+  "deploy from a branch": `main`, `/`, HTTPS enforced; checked 2026-10-04, the
+  latest build matched the latest commit). Every push to `main`, including the
+  Monday bot commit, rebuilds it in under a minute. Because it's served over
+  https the page fetches `./venues.json` live rather than using the baked-in copy.
 - Cosley Zoo's `note` says "~$8 admission" while its `cost` says $12 — one
   of them is stale; check the zoo's site.
