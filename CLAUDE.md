@@ -139,6 +139,11 @@ and run `node --check` on it. (The first commit shipped with a missing
   `pendingFitBounds` and `showView('map')` applies it. The map is also only
   re-fitted when the *set* of visible venues changes, so starring/voting
   doesn't move it.
+- **Page width is one CSS variable, `--page-w` (1680px, in `:root`).** The
+  header, toolbars, banners, list + map grid and footer all use it, so they
+  stay aligned; change it there rather than per container. The list column is
+  fixed at 320–420px, so every extra pixel goes to the map. The footer's
+  paragraphs are capped at 900px so the fine print stays readable.
 - **The phone layout (≤ 860px) is a different UI, not just a squeezed
   desktop.** A sticky `.appbar` holds the search box and a **Filters**
   button (with an active-count badge); the three `.toolbar`s live in
@@ -207,6 +212,19 @@ and run `node --check` on it. (The first commit shipped with a missing
   Tooth's phone), so use them only to find leads. The page carries a "call
   911" banner and a not-medical-advice footer in care mode; keep both.
   See `CARE.md` for conflicts, gaps and leads.
+- **The "Where" filter is three nested rings, not a stored field.** `AREAS` /
+  `inArea()` in the template: *Naperville only* = the address says
+  `, Naperville, IL`; *Naperville + neighbors* = that, or within
+  `AREA_NEAR_MILES` (15) of `center`; *Greater Chicago area* = everything, and
+  it's the unfiltered default (so it doesn't count toward the filter badge).
+  It's by address city rather than radius on purpose — Naperville's limits are
+  ragged (Tic Tac Tooth is Naperville at 5.4 mi, IHOP is Aurora at 2.7 mi),
+  and a hand-entered `address` is already required. Consequence: a venue's
+  address must keep the `City, IL` shape (see the `clean_*` notes above) or
+  it falls through to the radius test. 15 mi sits in the empty stretch between
+  Blackberry Farm (12.3) and St. Charles (15.7); recheck it if venues land in
+  that gap. It applies in both modes (care providers have addresses too) and
+  resets with the other filters on a mode switch.
 - **Favorites and "Best age?" votes are per-browser only** (`localStorage`
   keys `naperkids_favs_v1` and `naperkids_votes_v1`, no backend). This was
   an explicit choice to avoid standing up a server. A Google Sheets + Apps

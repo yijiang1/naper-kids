@@ -41,6 +41,10 @@ Things you can do on the page:
   date the details were checked. Filter by
   "Pediatric ER", "Walk-ins", "Sedation", "Special needs" and so on, or search
   an insurance name. `…/index.html#care` opens it directly.
+- **Where** — narrow the list to *Naperville only*, *Naperville + neighbors*
+  (Aurora, Bolingbrook, Wheaton, Lisle and the other towns within about 15
+  miles), or the *Greater Chicago area* (everything, the default). The map
+  re-fits to whatever is left. Works in Kids' care too.
 - **★ Favorites** — tap the star on a card to save it, then use the
   Favorites chip to see just those.
 - **📍 Near me** — sorts everything by distance from where you are and shows

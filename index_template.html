@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
 <style>
   :root{
+    --page-w: 1680px;   /* width of every page-level container (header, toolbars, list + map, footer) */
     --bg: #F1F3EA;
     --panel: #FFFFFF;
     --ink: #223028;
@@ -60,7 +61,7 @@
     align-items:baseline;
     justify-content:space-between;
     gap:16px;
-    max-width:1160px;
+    max-width:var(--page-w);
     margin:0 auto;
     flex-wrap:wrap;
   }
@@ -93,7 +94,7 @@
   }
 
   /* "Places to go" / "Kids' care" switch under the title. */
-  .mode-row{max-width:1160px;margin:14px auto 0;}
+  .mode-row{max-width:var(--page-w);margin:14px auto 0;}
   .mode-tabs{
     display:inline-flex;
     gap:2px;
@@ -119,7 +120,7 @@
   /* Kids' care mode drops the controls that only make sense for fun outings. */
   body.mode-care .places-only{display:none !important;}
   body:not(.mode-care) .care-only{display:none !important;}
-  .care-banner{max-width:1160px;margin:10px auto 0;padding:0 20px;}
+  .care-banner{max-width:var(--page-w);margin:10px auto 0;padding:0 20px;}
   .care-banner p{
     margin:0;
     background:#FBEAE7;
@@ -131,7 +132,7 @@
   }
 
   .toolbar{
-    max-width:1160px;
+    max-width:var(--page-w);
     margin:14px auto 0;
     padding:0 20px;
     display:flex;
@@ -198,7 +199,7 @@
   }
   .sort-select:focus{outline:2px solid var(--accent);outline-offset:1px;}
   .status-bar{
-    max-width:1160px;
+    max-width:var(--page-w);
     margin:8px auto 0;
     padding:0 20px;
     font-size:13px;
@@ -260,7 +261,7 @@
   }
 
   .rain-hint-row{
-    max-width:1160px;
+    max-width:var(--page-w);
     margin:8px auto 0;
     padding:0 20px;
   }
@@ -374,7 +375,7 @@
   .appbar, .view-switch, .count-line, .sheet-head, .sheet-foot, .sheet-only{display:none;}
 
   main{
-    max-width:1160px;
+    max-width:var(--page-w);
     margin:16px auto 40px;
     padding:0 20px;
     display:grid;
@@ -559,13 +560,13 @@
   .empty .chip{margin-top:12px;}
 
   footer{
-    max-width:1160px;
+    max-width:var(--page-w);
     margin:0 auto 30px;
     padding:0 20px;
     color:var(--ink-soft);
     font-size:12.5px;
   }
-  footer p{margin:0 0 8px;}
+  footer p{margin:0 0 8px;max-width:900px;}   /* the page is wide now; keep the fine print readable */
 
   /* ---- Phones and small tablets: one column, sticky search + Filters bar,
      filters in a full-screen sheet, floating List/Map switch. ---- */
@@ -620,7 +621,7 @@
 
     .count-line{
       display:block;
-      max-width:1160px;
+      max-width:var(--page-w);
       margin:12px auto 0;
       padding:0 16px;
       font-size:13px;
@@ -829,7 +830,12 @@
   <button class="sheet-x" id="btnCloseFilters" type="button" aria-label="Close filters">&times;</button>
 </div>
 <div class="sheet-body">
-<div class="toolbar" data-label="Price &amp; category">
+<div class="toolbar" data-label="Area">
+  <span class="tag-label">Where:</span>
+  <span id="areaChips" style="display:contents"></span>
+</div>
+
+<div class="toolbar" id="categoryToolbar" data-label="Price &amp; category">
   <label class="free-toggle places-only" id="freeToggleLabel">
     <input type="checkbox" id="freeOnly">
     Free only
@@ -973,6 +979,7 @@ let dataMeta = {};
 let activeCategories = new Set();
 let activeAgeBands = new Set();
 let activeTags = new Set();
+let activeArea = 'metro';  // 'naperville' | 'near' | 'metro' (everything — the unfiltered default)
 let favOnly = false;
 let indoorOnly = false;
 let showOutOfSeason = false;
@@ -1019,11 +1026,13 @@ function applyFilters(){
 
 function activeFilterCount(){
   return activeCategories.size + activeAgeBands.size + activeTags.size
+    + (activeArea !== 'metro' ? 1 : 0)
     + (document.getElementById('freeOnly').checked ? 1 : 0)
     + (indoorOnly ? 1 : 0) + (favOnly ? 1 : 0) + (showOutOfSeason ? 1 : 0);
 }
 
 function resetFilterState(){
+  activeArea = 'metro';
   activeCategories.clear();
   activeAgeBands.clear();
   activeTags.clear();
@@ -1090,14 +1099,37 @@ function toggleFav(id){
   refresh();
 }
 
-function distMiles(v){
-  if(!userPos) return null;
+function milesBetween(lat1, lng1, lat2, lng2){
   const R = 3958.8;
   const toRad = d => d * Math.PI / 180;
-  const dLat = toRad(v.lat - userPos.lat), dLng = toRad(v.lng - userPos.lng);
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
   const a = Math.sin(dLat/2)*Math.sin(dLat/2)
-          + Math.cos(toRad(userPos.lat))*Math.cos(toRad(v.lat))*Math.sin(dLng/2)*Math.sin(dLng/2);
+          + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)*Math.sin(dLng/2);
   return 2 * R * Math.asin(Math.sqrt(a));
+}
+function distMiles(v){
+  if(!userPos) return null;
+  return milesBetween(userPos.lat, userPos.lng, v.lat, v.lng);
+}
+
+// The "Where" filter. Three nested rings, so each one includes the one before it:
+// Naperville (by the city in the address — Naperville's limits are ragged, and
+// Tic Tac Tooth is in Naperville at 5.4 mi while IHOP is in Aurora at 2.7 mi),
+// then everything within AREA_NEAR_MILES of the center (Aurora, Bolingbrook,
+// Wheaton, Lisle, Warrenville...), then everything. Keep the ring a place falls
+// in predictable: change the mileage here, not per venue.
+const AREAS = [
+  {id:'naperville', label:'Naperville only', hint:'Places with a Naperville address'},
+  {id:'near', label:'Naperville + neighbors', hint:'Naperville plus Aurora, Bolingbrook, Wheaton, Lisle and the other towns within about 15 miles'},
+  {id:'metro', label:'Greater Chicago area', hint:'Everything, out to the city and the north suburbs'},
+];
+const AREA_NEAR_MILES = 15;
+function inArea(v, area){
+  if(area === 'metro') return true;
+  if(/,\s*Naperville,\s*IL\b/i.test(v.address || '')) return true;
+  if(area === 'naperville') return false;
+  const c = (dataMeta && dataMeta.center) || {lat:41.7508, lng:-88.1535};
+  return milesBetween(c.lat, c.lng, v.lat, v.lng) <= AREA_NEAR_MILES;
 }
 function distLabel(v){
   const d = distMiles(v);
@@ -1125,6 +1157,28 @@ function ageRange(v){
   m = v.age.match(/^(\d+)\+/);
   if(m) return {min:parseInt(m[1],10), max:99};
   return {min:0, max:99};
+}
+
+function renderAreaChips(){
+  const wrap = document.getElementById('areaChips');
+  wrap.innerHTML = '';
+  AREAS.forEach(a => {
+    const chip = document.createElement('button');
+    chip.className = 'chip area';
+    chip.textContent = a.label;
+    chip.title = a.hint;
+    chip.dataset.area = a.id;
+    chip.onclick = () => { activeArea = a.id; applyFilters(); };
+    wrap.appendChild(chip);
+  });
+}
+
+function updateAreaChipStates(){
+  document.querySelectorAll('.chip.area').forEach(chip => {
+    const on = chip.dataset.area === activeArea;
+    chip.classList.toggle('active', on);
+    chip.setAttribute('aria-pressed', String(on));
+  });
 }
 
 function renderAgeChips(){
@@ -1340,7 +1394,7 @@ function filteredVenues(){
     const favOk = !favOnly || favorites.has(v.id);
     const indoorOk = !indoorOnly || isIndoor(v);
     const searchOk = !q || baseSearchText(v).includes(q) || menuSearchText(v).includes(q);
-    return catOk && freeOk && favOk && indoorOk && ageOverlaps(v) && hasAllTags(v) && searchOk;
+    return catOk && inArea(v, activeArea) && freeOk && favOk && indoorOk && ageOverlaps(v) && hasAllTags(v) && searchOk;
   });
   const outOfSeasonCount = base.reduce((n, v) => n + (inSeason(v) ? 0 : 1), 0);
   const matches = showOutOfSeason ? base : base.filter(inSeason);
@@ -1763,7 +1817,7 @@ function setMode(next, quiet){
     ? "Children's ERs, urgent care and pediatric dentists in and around Naperville — hours, phone numbers, insurance and what each offers for kids."
     : "Places to take the kids around Naperville and the greater Chicago area — parks, splash pads, museums, restaurants with kids' menus, and more.";
   document.getElementById('search').setAttribute('aria-label', inCare() ? 'Search kids\' care' : 'Search places');
-  document.querySelector('.toolbar[data-label]').dataset.label = inCare() ? 'Category' : 'Price & category';
+  document.getElementById('categoryToolbar').dataset.label = inCare() ? 'Category' : 'Price & category';
   document.title = inCare() ? "Naper Kids — Kids' care" : BASE_TITLE;
   if(changed){
     resetFilterState();
@@ -1823,6 +1877,7 @@ function focusVenue(id){
 }
 
 function refresh(){
+  updateAreaChipStates();
   updateChipStates();
   updateAgeChipStates();
   updateTagChipStates();
@@ -1915,6 +1970,7 @@ document.getElementById('seasonChip').addEventListener('click', () => { showOutO
   if(!navigator.geolocation) document.getElementById('btnNearMe').hidden = true;
   showDataDate();
   initMap();
+  renderAreaChips();
   renderAgeChips();
   setMode(modeFromHash(), true);   // renders the chips and the first list
   refresh();
