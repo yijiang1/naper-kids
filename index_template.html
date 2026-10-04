@@ -497,7 +497,7 @@
   .card-actions .act:hover{border-color:var(--accent);}
   .card-rating .rating-link{color:inherit;text-decoration:underline dotted;text-underline-offset:3px;}
   .card-rating .rating-link:hover{color:var(--accent);}
-  .card-actions .act-map{display:none;}  /* desktop already shows the map beside the list */
+  .card-actions .act-map{display:none;}  /* only the phone's list needs it; on desktop the card is already on the map */
 
   /* z-index:0 makes the map its own stacking context, so Leaflet's internal
      z-indexes (up to 1000) can't poke through the sticky bar or filter sheet. */
@@ -552,6 +552,59 @@
     text-decoration:none;
   }
 
+  /* On desktop the place card is the popup: same card, flattened into Leaflet's bubble. */
+  .leaflet-popup.card-popup .leaflet-popup-content-wrapper{border-radius:14px;padding:0;overflow:hidden;}
+  .card-popup .leaflet-popup-content{
+    margin:0;
+    font-size:15px;
+    line-height:1.5;
+    max-height:var(--popup-max, 520px);   /* set from the map's height in updatePopupMax() */
+    overflow-y:auto;
+  }
+  .card-popup .card,
+  .card-popup .card:hover,
+  .card-popup .card.selected{
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    cursor:default;
+    padding:14px 16px 12px;
+  }
+  .card-popup .card-top{padding-right:26px;}   /* keep the star clear of Leaflet's close button */
+  /* Leaflet gives popup paragraphs a 1.3em margin, which beats the card's own single-class rules. */
+  .card-popup .card .card-name{margin:0;}
+  .card-popup .card .card-note{margin:8px 0 0;}
+  .card-popup .card .menu-sum{margin:2px 0 6px;}
+  .card-popup .card .menu-foot{margin:8px 0 0;}
+  .leaflet-tooltip.pin-tip{
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    border:0;
+    border-radius:8px;
+    padding:4px 9px;
+    box-shadow:0 1px 5px rgba(0,0,0,0.3);
+  }
+
+  /* Desktop only: "nothing matches" floats over the map, since there's no list to hold it. */
+  .map-empty{
+    position:absolute;
+    z-index:700;
+    left:50%;
+    top:120px;
+    transform:translateX(-50%);
+    max-width:min(420px, 90%);
+    padding:20px 26px;
+    text-align:center;
+    color:var(--ink-soft);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.18);
+  }
+  .map-empty .chip{margin-top:12px;}
+
   .empty{
     padding:40px 10px;
     text-align:center;
@@ -567,6 +620,136 @@
     font-size:12.5px;
   }
   footer p{margin:0 0 8px;max-width:900px;}   /* the page is wide now; keep the fine print readable */
+
+  /* ---- The filter panel's pieces, shared by the phone sheet and the desktop dropdown. ---- */
+  .sheet-head{
+    align-items:center;
+    gap:8px;
+    padding:6px 8px 6px 16px;
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+  }
+  .sheet-head h2{margin:0;font-size:20px;flex:1;}
+  .link-btn{
+    min-height:44px;
+    padding:0 10px;
+    border:none;
+    background:none;
+    color:var(--accent);
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .sheet-x{
+    width:44px;height:44px;
+    border:none;
+    background:none;
+    color:var(--ink);
+    font-size:28px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .sheet-body{
+    flex:1;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding-bottom:16px;
+  }
+  .sheet-body .toolbar::before{
+    content:attr(data-label);
+    flex:0 0 100%;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .map-bar{display:none;}   /* desktop only; see below */
+
+  /* ---- Desktop: the map is the page. It runs edge to edge, each place's card
+     opens inside it next to the pin you click (buildCard / renderMarkers), and the
+     filters live in a dropdown over it. The list is for phones only. ---- */
+  @media (min-width: 861px){
+    :root{--map-h:max(560px, calc(100vh - 150px));}
+    main{max-width:none;margin:14px 0 0;padding:0;display:block;position:relative;}
+    #list{display:none;}
+    #map{
+      height:var(--map-h);
+      border-radius:0;
+      border-width:1px 0;
+    }
+    .sort-select{display:none;}   /* nothing to sort without a list */
+    footer{margin-top:22px;}
+
+    /* The floating bar, clear of Leaflet's zoom buttons at the top left. */
+    .map-bar{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      position:absolute;
+      z-index:700;
+      top:10px;
+      left:56px;
+      max-width:calc(100% - 76px);
+      padding:6px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.18);
+    }
+    .map-bar .filters-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      min-height:36px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--ink);
+      font-family:inherit;
+      font-size:13.5px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .map-bar .filters-btn[aria-expanded="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
+    .map-bar .filters-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+    .map-bar .badge{
+      min-width:20px;height:20px;
+      padding:0 6px;
+      border-radius:999px;
+      background:var(--accent);
+      color:#fff;
+      font-size:12px;
+      line-height:20px;
+      text-align:center;
+    }
+    .map-count{padding:0 8px 0 4px;font-size:13px;color:var(--ink-soft);white-space:nowrap;}
+
+    /* The panel itself: the phone sheet's contents, dropped down over the map. */
+    .filter-panel{
+      display:none;
+      position:absolute;
+      z-index:800;
+      top:66px;
+      left:56px;
+      width:min(720px, calc(100% - 76px));
+      max-height:calc(var(--map-h) - 82px);
+      flex-direction:column;
+      overflow:hidden;
+      background:var(--bg);
+      border:1px solid var(--line);
+      border-radius:14px;
+      box-shadow:0 8px 28px rgba(0,0,0,0.26);
+    }
+    .filter-panel.open{display:flex;}
+    .sheet-head{display:flex;}
+    .sheet-body .toolbar{max-width:none;margin:16px 0 0;padding:0 16px;gap:8px;}
+    #areaToolbar{display:none;}   /* the map bar already has the area switch */
+    .tag-label, .count-tag{display:none;}
+    .tools-right{margin-left:0;}
+  }
 
   /* ---- Phones and small tablets: one column, sticky search + Filters bar,
      filters in a full-screen sheet, floating List/Map switch. ---- */
@@ -651,6 +834,7 @@
     footer{padding:0 16px;margin-bottom:96px;}  /* clear the floating switch */
 
     .card-actions .act-map{display:inline-flex;}
+    .map-empty{display:none !important;}
 
     .view-switch{
       display:inline-flex;
@@ -686,41 +870,7 @@
     }
     .filter-panel.open{display:flex;}
     body.sheet-open{overflow:hidden;}
-    .sheet-head{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:6px 8px 6px 16px;
-      background:var(--panel);
-      border-bottom:1px solid var(--line);
-    }
-    .sheet-head h2{margin:0;font-size:20px;flex:1;}
-    .link-btn{
-      min-height:44px;
-      padding:0 10px;
-      border:none;
-      background:none;
-      color:var(--accent);
-      font-family:inherit;
-      font-size:14px;
-      font-weight:600;
-      cursor:pointer;
-    }
-    .sheet-x{
-      width:44px;height:44px;
-      border:none;
-      background:none;
-      color:var(--ink);
-      font-size:28px;
-      line-height:1;
-      cursor:pointer;
-    }
-    .sheet-body{
-      flex:1;
-      overflow-y:auto;
-      overscroll-behavior:contain;
-      padding-bottom:16px;
-    }
+    .sheet-head{display:flex;}
     .sheet-foot{
       display:block;
       padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
@@ -740,15 +890,6 @@
       cursor:pointer;
     }
     .sheet-body .toolbar{max-width:none;margin:18px 0 0;padding:0 16px;gap:8px;}
-    .sheet-body .toolbar::before{
-      content:attr(data-label);
-      flex:0 0 100%;
-      font-size:12px;
-      font-weight:600;
-      letter-spacing:0.06em;
-      text-transform:uppercase;
-      color:var(--ink-soft);
-    }
     .tag-label, .count-tag{display:none;}
     .tools-right{margin-left:0;width:100%;display:flex;flex-wrap:nowrap;}
     .tools-right .sort-select{flex:1 1 auto;min-width:0;}
@@ -822,7 +963,26 @@
   </button>
 </div>
 
-<!-- Desktop: just the toolbars, inline. Phone: a full-screen sheet opened by #btnFilters. -->
+<div class="status-bar" id="status" hidden></div>
+<div class="rain-hint-row places-only" id="rainHintRow" hidden>
+  <span class="rain-hint" id="rainHint"></span>
+</div>
+<div class="count-line" id="countLine"></div>
+
+<main>
+  <div id="list"></div>
+  <div id="map"></div>
+  <!-- Desktop only: a floating bar over the map — the Filters button, the area switch and the result count. -->
+  <div class="map-bar" id="mapBar">
+    <button class="filters-btn" id="btnFiltersDesk" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="filterPanel">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+      <span>Filters</span>
+      <span class="badge" id="filterBadgeDesk" hidden>0</span>
+    </button>
+    <span id="areaBar" style="display:contents"></span>
+    <span class="map-count" id="mapCount"></span>
+  </div>
+<!-- Filters: a full-screen sheet on phones (opened from #btnFilters), a dropdown over the map on desktop (opened from the map bar). -->
 <div class="filter-panel" id="filterPanel">
 <div class="sheet-head">
   <h2 class="display">Filters</h2>
@@ -830,7 +990,7 @@
   <button class="sheet-x" id="btnCloseFilters" type="button" aria-label="Close filters">&times;</button>
 </div>
 <div class="sheet-body">
-<div class="toolbar" data-label="Area">
+<div class="toolbar" id="areaToolbar" data-label="Area">
   <span class="tag-label">Where:</span>
   <span id="areaChips" style="display:contents"></span>
 </div>
@@ -868,16 +1028,7 @@
   <button class="show-btn" id="btnShowResults" type="button">Show places</button>
 </div>
 </div>
-
-<div class="status-bar" id="status" hidden></div>
-<div class="rain-hint-row places-only" id="rainHintRow" hidden>
-  <span class="rain-hint" id="rainHint"></span>
-</div>
-<div class="count-line" id="countLine"></div>
-
-<main>
-  <div id="list"></div>
-  <div id="map"></div>
+  <div class="map-empty" id="mapEmpty" hidden></div>
 </main>
 
 <button class="view-switch" id="btnViewSwitch" type="button" aria-label="Show map"></button>
@@ -1046,18 +1197,25 @@ function clearFilters(){
   applyFilters();
 }
 
-// The phone filter sheet. On desktop the same panel is just the inline toolbars.
+// The filter panel: a full-screen sheet on phones, a dropdown over the map on desktop.
+// Same element either way; only the modal bits (scroll lock, aria-modal) are phone-only.
+function setFiltersExpanded(on){
+  ['btnFilters', 'btnFiltersDesk'].forEach(id => document.getElementById(id).setAttribute('aria-expanded', String(on)));
+}
 function openFilters(){
   const panel = document.getElementById('filterPanel');
   panel.classList.add('open');
   panel.setAttribute('role', 'dialog');
-  panel.setAttribute('aria-modal', 'true');
   panel.setAttribute('aria-label', 'Filters');
-  document.body.classList.add('sheet-open');
-  document.getElementById('btnFilters').setAttribute('aria-expanded', 'true');
+  if(isMobile()){
+    panel.setAttribute('aria-modal', 'true');
+    document.body.classList.add('sheet-open');
+  }
+  setFiltersExpanded(true);
   document.getElementById('btnCloseFilters').focus();
 }
-function closeFilters(){
+// `refocus` is false when the panel closes because you moved on to the map.
+function closeFilters(refocus){
   const panel = document.getElementById('filterPanel');
   if(!panel.classList.contains('open')) return;
   panel.classList.remove('open');
@@ -1065,9 +1223,8 @@ function closeFilters(){
   panel.removeAttribute('aria-modal');
   panel.removeAttribute('aria-label');
   document.body.classList.remove('sheet-open');
-  const opener = document.getElementById('btnFilters');
-  opener.setAttribute('aria-expanded', 'false');
-  opener.focus();
+  setFiltersExpanded(false);
+  if(refocus !== false) document.getElementById(isMobile() ? 'btnFilters' : 'btnFiltersDesk').focus();
 }
 
 // One search box, two homes: the header on desktop, the sticky bar on phones.
@@ -1159,17 +1316,21 @@ function ageRange(v){
   return {min:0, max:99};
 }
 
+// Two copies of the same three chips: in the filter panel (what phones see) and in
+// the desktop map bar. Only one is visible at a time; both track `activeArea`.
 function renderAreaChips(){
-  const wrap = document.getElementById('areaChips');
-  wrap.innerHTML = '';
-  AREAS.forEach(a => {
-    const chip = document.createElement('button');
-    chip.className = 'chip area';
-    chip.textContent = a.label;
-    chip.title = a.hint;
-    chip.dataset.area = a.id;
-    chip.onclick = () => { activeArea = a.id; applyFilters(); };
-    wrap.appendChild(chip);
+  ['areaChips', 'areaBar'].forEach(id => {
+    const wrap = document.getElementById(id);
+    wrap.innerHTML = '';
+    AREAS.forEach(a => {
+      const chip = document.createElement('button');
+      chip.className = 'chip area';
+      chip.textContent = a.label;
+      chip.title = a.hint;
+      chip.dataset.area = a.id;
+      chip.onclick = () => { activeArea = a.id; applyFilters(); };
+      wrap.appendChild(chip);
+    });
   });
 }
 
@@ -1532,68 +1693,73 @@ function formatCheckedDate(iso){
   return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
 }
 
-function renderList(venues){
-  const list = document.getElementById('list');
-  const scrollTop = list.scrollTop;
+// What to say when nothing matches. It goes in the list on phones and floats over
+// the map on desktop (where there is no list).
+function emptyState(){
+  const msg = (favOnly && favorites.size === 0)
+    ? 'No favorites yet — tap the ☆ on a place to save it here.'
+    : 'Nothing matches that yet — try a different filter or search term.';
+  return {msg, canClear: activeFilterCount() > 0};
+}
+function fillEmpty(el){
+  const {msg, canClear} = emptyState();
+  el.innerHTML = `${msg}${canClear ? '<br><button class="chip" type="button">Clear filters</button>' : ''}`;
+  const btn = el.querySelector('button');
+  if(btn) btn.onclick = clearFilters;
+}
+
+// One place's card. The phone list is made of these; on desktop the same card is
+// the content of the map popup (`inPopup`), where there's no card-level click to
+// handle (it's already open) and a disclosure that grows must keep the popup in view.
+function buildCard(v, inPopup){
   const q = document.getElementById('search').value.trim().toLowerCase();
-  list.innerHTML = '';
-  if(venues.length === 0){
-    const msg = (favOnly && favorites.size === 0)
-      ? 'No favorites yet — tap the ☆ on a place to save it here.'
-      : 'Nothing matches that yet — try a different filter or search term.';
-    const canClear = activeFilterCount() > 0;
-    list.innerHTML = `<div class="empty">${msg}${canClear ? '<br><button class="chip" id="emptyClear" type="button">Clear filters</button>' : ''}</div>`;
-    if(canClear) document.getElementById('emptyClear').onclick = clearFilters;
-    return;
-  }
-  venues.forEach(v => {
-    const card = document.createElement('div');
-    card.className = 'card' + (v.id === selectedId ? ' selected' : '');
-    card.dataset.id = v.id;
-    card.tabIndex = 0;
-    const color = CATEGORY_COLORS[v.category] || '#888';
-    const fav = favorites.has(v.id);
-    const favTitle = fav ? 'Remove from favorites' : 'Save to favorites';
-    const dist = distLabel(v);
-    const outSeason = !inSeason(v);
-    const forceMenu = matchedOnlyByMenu(v, q);
-    card.innerHTML = `
-      <div class="card-top">
-        <p class="card-name">${esc(v.name)}</p>
-        <span class="card-side">
-          <span class="card-rating">${ratingHtml(v)}</span>
-          <button class="fav-btn${fav ? ' on' : ''}" title="${favTitle}" aria-label="${favTitle}" aria-pressed="${fav}">${fav ? '★' : '☆'}</button>
-        </span>
-      </div>
-      <div class="card-cat">
-        <span class="dot" style="background:${color}"></span>${esc(v.category)}
-        ${outSeason ? '<span class="cost-badge out-season" title="Closed for the season">Closed for the season</span>' : costBadge(v)}
-        ${ageBadge(v)}
-      </div>
-      ${tagsHtml(v)}
-      ${v.note ? `<p class="card-note">${esc(v.note)}</p>` : ''}
-      <div class="card-meta">
-        ${dist ? `<span class="card-dist">${dist}</span>` : ''}
-        <span>${esc(v.address)}</span>
-        ${v.hours ? `<span>${esc(v.hours)}</span>` : ''}
-        ${v.cost && !isFree(v) ? `<span>${esc(costDetail(v))}</span>` : ''}
-        ${ageDetail(v) ? `<span>${esc(ageDetail(v))}</span>` : ''}
-        ${v.insurance ? `<span>Insurance: ${esc(v.insurance)}</span>` : ''}
-        ${inCare() && v.phone ? `<span>${esc(v.phone)}</span>` : ''}
-        ${inCare() && formatCheckedDate(v.checked) ? `<span>Checked ${esc(formatCheckedDate(v.checked))}</span>` : ''}
-      </div>
-      <div class="card-actions">
-        ${telHref(v) ? `<a class="act" href="${telHref(v)}">Call</a>` : ''}
-        <a class="act" href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>
-        ${v.website ? `<a class="act" href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
-        <button class="act act-map" type="button">On map</button>
-      </div>
-      ${menuHtml(v, forceMenu)}
-      ${inCare() ? '' : voteRowHtml(v)}
-    `;
+  const card = document.createElement('div');
+  card.className = 'card' + (inPopup ? ' card-flat' : (v.id === selectedId ? ' selected' : ''));
+  card.dataset.id = v.id;
+  const color = CATEGORY_COLORS[v.category] || '#888';
+  const fav = favorites.has(v.id);
+  const favTitle = fav ? 'Remove from favorites' : 'Save to favorites';
+  const dist = distLabel(v);
+  const outSeason = !inSeason(v);
+  const forceMenu = matchedOnlyByMenu(v, q);
+  card.innerHTML = `
+    <div class="card-top">
+      <p class="card-name">${esc(v.name)}</p>
+      <span class="card-side">
+        <span class="card-rating">${ratingHtml(v)}</span>
+        <button class="fav-btn${fav ? ' on' : ''}" title="${favTitle}" aria-label="${favTitle}" aria-pressed="${fav}">${fav ? '★' : '☆'}</button>
+      </span>
+    </div>
+    <div class="card-cat">
+      <span class="dot" style="background:${color}"></span>${esc(v.category)}
+      ${outSeason ? '<span class="cost-badge out-season" title="Closed for the season">Closed for the season</span>' : costBadge(v)}
+      ${ageBadge(v)}
+    </div>
+    ${tagsHtml(v)}
+    ${v.note ? `<p class="card-note">${esc(v.note)}</p>` : ''}
+    <div class="card-meta">
+      ${dist ? `<span class="card-dist">${dist}</span>` : ''}
+      <span>${esc(v.address)}</span>
+      ${v.hours ? `<span>${esc(v.hours)}</span>` : ''}
+      ${v.cost && !isFree(v) ? `<span>${esc(costDetail(v))}</span>` : ''}
+      ${ageDetail(v) ? `<span>${esc(ageDetail(v))}</span>` : ''}
+      ${v.insurance ? `<span>Insurance: ${esc(v.insurance)}</span>` : ''}
+      ${inCare() && v.phone ? `<span>${esc(v.phone)}</span>` : ''}
+      ${inCare() && formatCheckedDate(v.checked) ? `<span>Checked ${esc(formatCheckedDate(v.checked))}</span>` : ''}
+    </div>
+    <div class="card-actions">
+      ${telHref(v) ? `<a class="act" href="${telHref(v)}">Call</a>` : ''}
+      <a class="act" href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>
+      ${v.website ? `<a class="act" href="${esc(v.website)}" target="_blank" rel="noopener">Website</a>` : ''}
+      ${inPopup ? '' : '<button class="act act-map" type="button">On map</button>'}
+    </div>
+    ${menuHtml(v, forceMenu)}
+    ${inCare() ? '' : voteRowHtml(v)}
+  `;
+  if(!inPopup){
     // On a phone the map replaces the list, so tapping the card body only
     // highlights it; the "On map" button is the deliberate way to jump there.
-    // (On desktop the map is right alongside, so a card click pans it.)
+    card.tabIndex = 0;
     const onCardActivate = () => selectVenue(v.id, !isMobile());
     card.onclick = onCardActivate;
     card.onkeydown = (e) => {
@@ -1602,40 +1768,59 @@ function renderList(venues){
         onCardActivate();
       }
     };
-    card.querySelector('.fav-btn').onclick = (e) => {
-      e.stopPropagation();
-      toggleFav(v.id);
-    };
-    // Links and the vote/menu disclosures are their own targets: they must not
-    // also trigger the card's click (which used to flip the phone to the map view).
-    card.querySelectorAll('.card-actions a, .card-rating a, .vote-wrap, .menu-wrap').forEach(el => {
-      el.addEventListener('click', e => e.stopPropagation());
-    });
-    const menuWrap = card.querySelector('.menu-wrap');
-    if(menuWrap){
-      menuWrap.addEventListener('toggle', () => {
-        if(forceMenu) return;   // opened by the search, not by the user — don't remember it
-        if(menuWrap.open) openMenus.add(v.id); else openMenus.delete(v.id);
-      });
-    }
     card.querySelector('.act-map').onclick = (e) => {
       e.stopPropagation();
       selectVenue(v.id, true);
     };
-    const voteWrap = card.querySelector('.vote-wrap');
-    if(voteWrap){
-      voteWrap.addEventListener('toggle', () => {
-        if(voteWrap.open) openVotes.add(v.id); else openVotes.delete(v.id);
-      });
-    }
-    card.querySelectorAll('.vote-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        castVote(btn.dataset.venue, btn.dataset.band);
-      };
-    });
-    list.appendChild(card);
+  }
+  card.querySelector('.fav-btn').onclick = (e) => {
+    e.stopPropagation();
+    toggleFav(v.id);
+  };
+  // Links and the vote/menu disclosures are their own targets: they must not
+  // also trigger the card's click (which used to flip the phone to the map view).
+  card.querySelectorAll('.card-actions a, .card-rating a, .vote-wrap, .menu-wrap').forEach(el => {
+    el.addEventListener('click', e => e.stopPropagation());
   });
+  const menuWrap = card.querySelector('.menu-wrap');
+  if(menuWrap){
+    menuWrap.addEventListener('toggle', () => {
+      if(forceMenu) return;   // opened by the search, not by the user — don't remember it
+      const was = openMenus.has(v.id);
+      if(menuWrap.open) openMenus.add(v.id); else openMenus.delete(v.id);
+      if(inPopup && was !== menuWrap.open) keepPopupInView();
+    });
+  }
+  const voteWrap = card.querySelector('.vote-wrap');
+  if(voteWrap){
+    voteWrap.addEventListener('toggle', () => {
+      const was = openVotes.has(v.id);
+      if(voteWrap.open) openVotes.add(v.id); else openVotes.delete(v.id);
+      if(inPopup && was !== voteWrap.open) keepPopupInView();
+    });
+  }
+  card.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      castVote(btn.dataset.venue, btn.dataset.band);
+    };
+  });
+  return card;
+}
+
+// The phone's list (hidden on desktop, where cards open inside the map instead).
+function renderList(venues){
+  const list = document.getElementById('list');
+  const scrollTop = list.scrollTop;
+  list.innerHTML = '';
+  if(venues.length === 0){
+    const box = document.createElement('div');
+    box.className = 'empty';
+    fillEmpty(box);
+    list.appendChild(box);
+    return;
+  }
+  venues.forEach(v => list.appendChild(buildCard(v, false)));
   list.scrollTop = scrollTop;
 }
 
@@ -1656,6 +1841,9 @@ function initMap(){
       })
     : L.layerGroup();
   markerLayer.addTo(map);
+  updatePopupMax();
+  map.on('resize', updatePopupMax);
+  map.on('click', () => closeFilters(false));
 }
 
 function clusterIcon(cluster){
@@ -1673,7 +1861,7 @@ function pinIcon(v, selected){
     html:`<div class="pin" style="background:${color}"><svg viewBox="0 0 24 24" aria-hidden="true">${glyph}</svg></div>`,
     iconSize:[36,36],
     iconAnchor:[18,18],
-    popupAnchor:[0,-12]
+    popupAnchor:[0,-20]   // clears a selected (1.5x) pin
   });
 }
 
@@ -1689,7 +1877,30 @@ function popupHtml(v){
   return `<b>${esc(v.name)}</b><br>${esc(v.category)}${bits.length ? '<br>' + esc(bits.join(' · ')) : ''}${seasonNote}<br><a class="popup-dir" href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>`;
 }
 
+const POPUP_W = 380;
+let markersForMobile = null;   // were the current pins built for the phone (short popups) or desktop (full cards)?
+let popupVenueId = null;       // the place whose popup is open, if any
+
+// A tall card scrolls inside its popup rather than running off the map.
+function updatePopupMax(){
+  const h = Math.max(260, Math.min(640, map.getSize().y - 150));   // room for the map bar above and the pin below
+  map.getContainer().style.setProperty('--popup-max', h + 'px');
+}
+
+function popupOptions(mobile){
+  return mobile
+    ? {maxWidth:240, autoPanPadding:[24,24]}
+    : {className:'card-popup', minWidth:POPUP_W, maxWidth:POPUP_W,
+       autoPanPaddingTopLeft:[64,76], autoPanPaddingBottomRight:[24,24]};   // 76: clear of the map bar
+}
+
 function renderMarkers(venues){
+  const fitKey = venues.map(v => v.id).sort().join('|');
+  const mobile = isMobile();
+  const setChanged = fitKey !== lastFitKey;
+  // Starring, voting or re-sorting doesn't change which pins exist, so leave them
+  // (and whatever popup is open) alone.
+  if(!setChanged && mobile === markersForMobile) return;
   markerLayer.clearLayers();
   markersById = {};
   const bounds = [];
@@ -1698,19 +1909,62 @@ function renderMarkers(venues){
       icon: pinIcon(v, v.id === selectedId),
       zIndexOffset: v.id === selectedId ? 1000 : 0
     });
-    marker.bindPopup(popupHtml(v), {maxWidth:240, autoPanPadding:[24,24]});
-    marker.on('click', () => selectVenue(v.id, false));
+    // Phones get a short summary (the card lives in the list there); desktop gets the whole card.
+    marker.bindPopup(mobile ? () => popupHtml(v) : () => buildCard(v, true), popupOptions(mobile));
+    // Hover shows the name (there's no list to read it from). The tooltip is unbound
+    // while the card is open: Leaflet would otherwise re-open it on the click.
+    const bindTip = () => marker.bindTooltip(esc(v.name), {direction:'top', offset:[0,-16], className:'pin-tip'});
+    if(!mobile) bindTip();
+    marker.on('popupopen', () => {
+      popupVenueId = v.id;
+      if(!mobile){
+        marker.unbindTooltip();
+        closeFilters(false);   // you've moved on to a place; don't leave the panel over the map
+      }
+      selectVenue(v.id, false);
+    });
+    marker.on('popupclose', () => {
+      if(popupVenueId === v.id) popupVenueId = null;
+      if(!mobile) bindTip();
+      if(selectedId === v.id) selectVenue(null, false);
+    });
     markerLayer.addLayer(marker);
     markersById[v.id] = marker;
     bounds.push([v.lat, v.lng]);
   });
   // Only re-fit the map when the set of places actually changes, so starring
   // or voting on a card doesn't yank the view around.
-  const fitKey = venues.map(v => v.id).sort().join('|');
-  if(bounds.length && fitKey !== lastFitKey){
+  if(setChanged && bounds.length){
     fitMapTo(bounds);
   }
   lastFitKey = fitKey;
+  markersForMobile = mobile;
+}
+
+// After a star or vote the open card needs redrawing, but not the pins. Leaflet
+// re-runs the content function; keep the card scrolled where it was.
+function refreshOpenPopup(){
+  const marker = popupVenueId && markersById[popupVenueId];
+  const popup = marker && marker.getPopup();
+  if(!popup || !popup.isOpen()) return;
+  const body = popup.getElement().querySelector('.leaflet-popup-content');
+  const top = body ? body.scrollTop : 0;
+  popup.update();
+  if(body) body.scrollTop = top;
+  keepPopupInView();
+}
+
+// The popup hangs above its pin, so when a card grows (a menu opens) the pin has
+// to sit at least a popup's height below the top edge or the title is cut off.
+function keepPopupInView(){
+  const marker = popupVenueId && markersById[popupVenueId];
+  const popup = marker && marker.getPopup();
+  const el = popup && popup.isOpen() && popup.getElement();
+  if(!el) return;
+  map.panInside(popup.getLatLng(), {
+    paddingTopLeft:[POPUP_W/2 + 24, el.offsetHeight + 108],   // 108 = tip + gap + the map bar
+    paddingBottomRight:[POPUP_W/2 + 24, 24]
+  });
 }
 
 function fitMapTo(bounds){
@@ -1767,6 +2021,11 @@ function locateMe(){
     setStatus('');
     placeUserMarker();
     applyFilters();
+    // No list to re-sort on desktop, so show where you are instead (unless that's nowhere near these pins).
+    const c = (dataMeta && dataMeta.center) || {lat:41.7508, lng:-88.1535};
+    if(!isMobile() && milesBetween(c.lat, c.lng, userPos.lat, userPos.lng) <= 60){
+      map.setView([userPos.lat, userPos.lng], 12, {animate:false});
+    }
   }, err => {
     btn.disabled = false;
     setStatus(err.code === 1
@@ -1850,7 +2109,7 @@ function showDataDate(){
 function selectVenue(id, showOnMap){
   const prevId = selectedId;
   selectedId = id;
-  document.querySelectorAll('.card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
+  document.querySelectorAll('#list .card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
   // Re-skin the old and new pins (the selected one is larger and on top).
   [prevId, id].forEach(vid => {
     const m = markersById[vid];
@@ -1893,12 +2152,19 @@ function refresh(){
   document.getElementById('countLine').textContent = countText;
   document.getElementById('btnShowResults').textContent = venues.length ? `Show ${countText}` : `No ${noun(0)} match — adjust filters`;
   const nFilters = activeFilterCount();
-  const badge = document.getElementById('filterBadge');
-  badge.hidden = nFilters === 0;
-  badge.textContent = nFilters;
+  ['filterBadge', 'filterBadgeDesk'].forEach(id => {
+    const badge = document.getElementById(id);
+    badge.hidden = nFilters === 0;
+    badge.textContent = nFilters;
+  });
+  document.getElementById('mapCount').textContent = countText;
   document.getElementById('btnClearFilters').hidden = nFilters === 0;
   renderList(venues);
   renderMarkers(venues);
+  refreshOpenPopup();
+  const mapEmpty = document.getElementById('mapEmpty');
+  mapEmpty.hidden = venues.length > 0;
+  if(venues.length === 0) fillEmpty(mapEmpty);
 }
 
 // Phones show either the list or the map. Leaving the list remembers how far
@@ -1939,6 +2205,9 @@ document.getElementById('btnViewSwitch').addEventListener('click', () => {
   showView(currentView === 'list' ? 'map' : 'list');
 });
 document.getElementById('btnFilters').addEventListener('click', openFilters);
+document.getElementById('btnFiltersDesk').addEventListener('click', () => {
+  if(document.getElementById('filterPanel').classList.contains('open')) closeFilters(); else openFilters();
+});
 document.getElementById('btnCloseFilters').addEventListener('click', closeFilters);
 document.getElementById('btnShowResults').addEventListener('click', closeFilters);
 document.getElementById('btnClearFilters').addEventListener('click', clearFilters);
@@ -1946,6 +2215,7 @@ document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeFilter
 function onBreakpointChange(){
   closeFilters();
   placeSearch();
+  if(map) refresh();   // the pins' popups differ between phone and desktop
   if(!isMobile() && map){   // the breakpoint can flip before the first data load has built the map
     map.invalidateSize({animate:false});
     if(pendingFitBounds) fitMapTo(pendingFitBounds);

@@ -2,7 +2,9 @@
 
 A personal dashboard of kid-friendly places in Naperville, IL — parks, splash
 pads, museums, libraries, nature centers, bowling/arcades, forest preserve
-trails, and restaurants with kids' menus. List view + map view, filterable by
+trails, and restaurants with kids' menus. On a computer the page is one big
+edge-to-edge map — click a pin and the place's card opens right next to it; on
+a phone it's a list view + map view. Filterable by
 category, age, and cost, searchable by name, note, or address. A second tab,
 **Kids' care**, lists nearby children's ERs, urgent care, and pediatric
 dentists.
@@ -30,7 +32,9 @@ hours and new spots will drift out of date over time.
 Things you can do on the page:
 
 - **Filter** by category, by the age of your kids, or free-only; **search**
-  by name, note, or address (e.g. "aurora" or a zip code).
+  by name, note, or address (e.g. "aurora" or a zip code). On a computer the
+  **Filters** button floats over the map and opens a panel there; on a phone it
+  opens a full-screen sheet.
 - **Kids menus** — pick the **Restaurants** chip, then tap **Kids menu** on a
   card to see what's on it (items, prices, and a link to the restaurant's own
   menu). Search also looks inside the menus, so "mac and cheese" or
@@ -47,10 +51,10 @@ Things you can do on the page:
   re-fits to whatever is left. Works in Kids' care too.
 - **★ Favorites** — tap the star on a card to save it, then use the
   Favorites chip to see just those.
-- **📍 Near me** — sorts everything by distance from where you are and shows
-  the miles on each card. The browser will ask for location permission the
+- **📍 Near me** — shows the miles on each card, sorts the phone list by
+  distance, and on a computer centers the map on you. The browser will ask for location permission the
   first time.
-- **Sort** by rating or name.
+- **Sort** by rating or name (phones — on a computer there's no list to sort).
 - **Best age?** — vote on which age a place suits best.
 
 Favorites and votes are stored in the browser you're using, not shared —

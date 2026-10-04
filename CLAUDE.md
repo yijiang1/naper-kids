@@ -140,15 +140,58 @@ and run `node --check` on it. (The first commit shipped with a missing
   re-fitted when the *set* of visible venues changes, so starring/voting
   doesn't move it.
 - **Page width is one CSS variable, `--page-w` (1680px, in `:root`).** The
-  header, toolbars, banners, list + map grid and footer all use it, so they
-  stay aligned; change it there rather than per container. The list column is
-  fixed at 320–420px, so every extra pixel goes to the map. The footer's
-  paragraphs are capped at 900px so the fine print stays readable.
+  header, toolbars, banners and footer all use it, so they stay aligned;
+  change it there rather than per container. (On desktop the map itself is
+  *not* bound by it — see the next bullet.) The footer's paragraphs are capped
+  at 900px so the fine print stays readable.
+- **Desktop (> 860px) is map-first: no list, the card opens in the map.**
+  `#list` is `display:none` there and the map runs edge to edge
+  (`@media (min-width: 861px)` block, before the phone block). The same
+  `buildCard(v, inPopup)` that makes the phone's list cards is the content of
+  the Leaflet popup (`renderMarkers()` binds `() => buildCard(v, true)`;
+  phones keep the short `popupHtml()`). Things that bit while building it:
+  - **Don't rebuild the pins unless the set of places changed.** Starring or
+    voting calls `refresh()`; `renderMarkers()` now returns early when the
+    visible ids are unchanged (and the layout hasn't flipped between phone and
+    desktop), so the open popup survives. `refreshOpenPopup()` then calls
+    `popup.update()` to redraw the card in place, keeping its scroll position.
+    A filter/search that changes the set still closes the popup — expected.
+  - Leaflet gives popup `<p>`s a 1.3em margin that beats the card's single-class
+    rules; the `.card-popup .card .card-name/.card-note/.menu-sum/.menu-foot`
+    overrides undo that. New `<p>` classes inside a card need the same.
+  - A tall card scrolls inside the popup (`max-height:var(--popup-max)`, set from
+    the map's height in `updatePopupMax()`); opening the kids menu or "Best age?"
+    calls `keepPopupInView()` (`map.panInside`) so the title isn't pushed off the
+    top. Leaflet's own `maxHeight` option isn't used because it only measures
+    when the popup opens, not when a `<details>` grows.
+  - Selection follows the popup (`popupopen`/`popupclose` → `selectVenue`), not
+    the other way round. Tooltips (pin name on hover) are unbound while a popup
+    is open because Leaflet re-opens them on click. The "nothing matches"
+    message floats over the map (`#mapEmpty`) since there's no list to hold it.
+  - `popupAnchor` (-20) is sized for the 1.5x selected pin; change them together.
+  - "Sort" is hidden on desktop (nothing to sort); "Near me" instead centers the
+    map on you (if you're within 60 mi of `center`).
+  - **The filters are a dropdown over the map, not rows above it.** A floating
+    `#mapBar` (top-left, clear of Leaflet's zoom buttons) holds a **Filters**
+    button with the active-count badge, the three "Where" chips and the result
+    count; the button toggles `#filterPanel`, which is the *same element* as the
+    phone's full-screen sheet (it lives inside `<main>` so it can be positioned
+    over the map). It stays open while you pick filters and closes on Esc, ×, the
+    button, a click on empty map, or a place card opening (`closeFilters(false)`
+    skips the focus-return). `openFilters()` only locks page scroll and sets
+    `aria-modal` on phones. The area chips are rendered twice (`#areaChips` in the
+    panel, `#areaBar` in the bar) and `#areaToolbar` is hidden on desktop, so
+    only one set shows per layout; `refresh()` updates both badges
+    (`#filterBadge` phone, `#filterBadgeDesk`). The map is `--map-h` tall
+    (`max(560px, 100vh - 150px)`) so it fits under the ~170px header.
+  - Popups leave room for the bar: `autoPanPaddingTopLeft` top is 76 and
+    `keepPopupInView()` / `updatePopupMax()` allow for it. If the bar gets
+    taller, change those numbers too.
 - **The phone layout (≤ 860px) is a different UI, not just a squeezed
   desktop.** A sticky `.appbar` holds the search box and a **Filters**
-  button (with an active-count badge); the three `.toolbar`s live in
-  `#filterPanel`, which is inline on desktop and a full-screen sheet on
-  phones; a floating pill (`#btnViewSwitch`) flips List/Map; in map view the
+  button (with an active-count badge); the `.toolbar`s live in
+  `#filterPanel`, which is a dropdown over the map on desktop and a
+  full-screen sheet on phones; a floating pill (`#btnViewSwitch`) flips List/Map; in map view the
   header/footer hide and the map fills the screen under the bar. Gotchas:
   - There is one `.search-wrap`; `placeSearch()` moves it between the header
     (desktop) and `#appbar` (phone), also on breakpoint change. `isMobile()`
