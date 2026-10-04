@@ -4,7 +4,8 @@ A personal dashboard of kid-friendly places in Naperville, IL — parks, splash
 pads, museums, libraries, nature centers, bowling/arcades, forest preserve
 trails, and restaurants with kids' menus. On a computer the page is one big
 edge-to-edge map — click a pin and the place's card opens right next to it; on
-a phone it's a list view + map view. Filterable by
+a phone it's a list view + map view, and tapping a pin slides its card up over
+the bottom of the map. Filterable by
 category, age, and cost, searchable by name, note, or address. A second tab,
 **Kids' care**, lists nearby children's ERs, urgent care, and pediatric
 dentists.

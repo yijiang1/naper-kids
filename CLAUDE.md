@@ -148,8 +148,9 @@ and run `node --check` on it. (The first commit shipped with a missing
   `#list` is `display:none` there and the map runs edge to edge
   (`@media (min-width: 861px)` block, before the phone block). The same
   `buildCard(v, inPopup)` that makes the phone's list cards is the content of
-  the Leaflet popup (`renderMarkers()` binds `() => buildCard(v, true)`;
-  phones keep the short `popupHtml()`). Things that bit while building it:
+  the Leaflet popup (`renderMarkers()` binds `() => buildCard(v, true)`; phones
+  open it as a bottom sheet instead, see the phone-layout bullet). Things that
+  bit while building it:
   - **Don't rebuild the pins unless the set of places changed.** Starring or
     voting calls `refresh()`; `renderMarkers()` now returns early when the
     visible ids are unchanged (and the layout hasn't flipped between phone and
@@ -212,6 +213,28 @@ and run `node --check` on it. (The first commit shipped with a missing
     keeps the map in its own stacking context. Keep that line.
   - The List/Map pill is lifted in map view so it doesn't cover Esri's
     attribution line, which their terms require us to show.
+  - **The phone's map view is the desktop idea scaled down.** Tapping a pin
+    doesn't open a Leaflet popup (a 380px bubble doesn't fit a 390px screen);
+    `renderMarkers()` wires `marker.on('click')` to `openMapCard()`, which fills
+    `#mapCard` with the same `buildCard(v, true)` and slides it up over the bottom
+    of the map. `keepPinAboveCard()` pans so the pin sits in what's left (above
+    the sheet; beside it when the card is docked left on a small tablet >= 600px
+    or right on a phone in landscape, per the CSS) and is also what
+    `keepPopupInView()` does when a menu opens. The card closes with the x,
+    Esc, a tap on empty map, a downward drag on its handle, leaving for the list,
+    or any change to the set of places (the map re-fits then). While it's open
+    the List/Map pill is hidden (`body.card-open`). Don't call `marker.openPopup()`
+    on a phone; there's no popup bound.
+  - The three "Where" chips float over the top of the phone's map in the same
+    `#mapBar` the desktop uses (Filters button and count hidden, since the sticky bar
+    has them), with the Leaflet zoom buttons pushed to `top:56px` beneath. They
+    carry two labels (`.long`/`.short`; "Naperville", "+ Neighbors", "Chicago area"
+    under 520px) because the full wording is wider than a 360px phone. The row
+    is `pointer-events:none` except for the chips so it doesn't eat map drags.
+  - In Kids' care the 911 note is squeezed to one line in map view
+    (`--care-h`) and the map is shortened by it. Before that the map overflowed
+    the screen by the banner's height, which hid the attribution and the card.
+    `#mapEmpty` (nothing matches) is shown over the phone map too.
 - **Map pins are clustered via `leaflet.markercluster`** (cdnjs, next to
   Leaflet). If it fails to load the page falls back to plain pins
   (`L.layerGroup`), so it degrades the same way the tiles do. Selecting a

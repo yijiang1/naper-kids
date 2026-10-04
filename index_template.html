@@ -33,6 +33,7 @@
     --cat-restaurant: #C2417C;
 
     --appbar-h: 64px;
+    --care-h: 34px;     /* the phone map view's one-line 911 note */
   }
 
   *{box-sizing:border-box;}
@@ -665,7 +666,9 @@
     text-transform:uppercase;
     color:var(--ink-soft);
   }
-  .map-bar{display:none;}   /* desktop only; see below */
+  .map-bar{display:none;}   /* the desktop bar, and the phone's area chips in map view; see below */
+  .map-card{display:none;}  /* the phone's pin card; see the phone block */
+  .chip.area .short{display:none;}
 
   /* ---- Desktop: the map is the page. It runs edge to edge, each place's card
      opens inside it next to the pin you click (buildCard / renderMarkers), and the
@@ -827,6 +830,24 @@
     body.view-map footer,
     body.view-map .count-line,
     body.view-map .rain-hint-row{display:none;}
+    /* Kids' care keeps its 911 note over the map, squeezed to one line so the map
+       still ends at the bottom of the screen (otherwise its last 80px, with the
+       attribution and the card, would sit below the fold). */
+    body.view-map .care-banner{margin-top:0;padding:0;}
+    body.view-map .care-banner p{
+      height:var(--care-h);
+      padding:0 16px;
+      border-radius:0;
+      font-size:12.5px;
+      line-height:var(--care-h);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    body.view-map.mode-care #map{
+      height:calc(100vh - var(--appbar-h) - var(--care-h));
+      height:calc(100dvh - var(--appbar-h) - var(--care-h));
+    }
     body.view-map main{padding:0;margin:0;}
     /* Lift the switch above Leaflet's attribution line, which Esri's terms require us to show. */
     body.view-map .view-switch{bottom:calc(56px + env(safe-area-inset-bottom, 0px));}
@@ -834,7 +855,95 @@
     footer{padding:0 16px;margin-bottom:96px;}  /* clear the floating switch */
 
     .card-actions .act-map{display:inline-flex;}
-    .map-empty{display:none !important;}
+    body:not(.view-map) .map-empty{display:none !important;}   /* in list view the list says it */
+
+    /* The phone's map view, same idea as the desktop's: the area chips float over the
+       top of the map, and tapping a pin opens that place's card as a sheet at the
+       bottom (openMapCard) instead of a cramped bubble. */
+    main{position:relative;}
+    body.view-map .map-bar{
+      display:flex;
+      position:absolute;
+      z-index:700;
+      top:8px;left:8px;right:8px;
+      gap:6px;
+      padding:2px 2px 8px;   /* room for the chips' shadows inside the scroller */
+      overflow-x:auto;
+      scrollbar-width:none;
+      pointer-events:none;   /* empty stretches of the row pass touches through to the map */
+    }
+    body.view-map .map-bar::-webkit-scrollbar{display:none;}
+    .map-bar .filters-btn, .map-bar .map-count{display:none;}   /* the sticky bar already has Filters */
+    .map-bar .chip{flex:0 0 auto;padding:0 12px;white-space:nowrap;pointer-events:auto;box-shadow:0 1px 5px rgba(0,0,0,0.25);}
+    .map-bar .chip.area .long{display:none;}
+    .map-bar .chip.area .short{display:inline;}
+    @media (min-width: 520px){   /* room for the full wording again */
+      .map-bar .chip.area .long{display:inline;}
+      .map-bar .chip.area .short{display:none;}
+    }
+    body.view-map #map .leaflet-top{top:56px;}   /* zoom buttons sit under the chips */
+    body.card-open .view-switch{display:none;}   /* the card takes the pill's spot; its x goes back */
+
+    .map-card{
+      display:flex;
+      flex-direction:column;
+      position:absolute;
+      z-index:700;
+      left:8px;right:8px;
+      bottom:28px;   /* leaves Esri's attribution line showing underneath */
+      max-height:62%;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:0 4px 22px rgba(0,0,0,0.3);
+      overflow:hidden;
+      animation:card-up .18s ease-out;
+    }
+    @keyframes card-up{from{transform:translateY(24px);opacity:0;}to{transform:none;opacity:1;}}
+    @media (prefers-reduced-motion: reduce){ .map-card{animation:none;} }
+    .map-card-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
+    .map-card-grip{   /* drag down to dismiss; sits in the middle so it can't catch the star or the x */
+      position:absolute;
+      top:0;left:30%;right:30%;
+      height:22px;
+      z-index:2;
+      touch-action:none;
+    }
+    .map-card-grip::after{
+      content:"";
+      position:absolute;
+      top:7px;left:50%;
+      width:36px;height:4px;margin-left:-18px;
+      border-radius:2px;
+      background:var(--line);
+    }
+    .map-card-x{
+      position:absolute;
+      top:2px;right:2px;
+      z-index:3;
+      width:44px;height:44px;
+      border:none;
+      background:none;
+      color:var(--ink-soft);
+      font-size:28px;
+      line-height:1;
+      cursor:pointer;
+    }
+    .map-card .card, .map-card .card:hover, .map-card .card.selected{
+      border:0;
+      border-radius:0;
+      box-shadow:none;
+      cursor:default;
+      padding:20px 16px 14px;
+    }
+    .map-card .card-top{padding-right:36px;}   /* keep the star clear of the x */
+    @media (max-width: 400px){ .map-card{bottom:40px;} }   /* Esri's attribution wraps to two lines here */
+    /* Wider screens (small tablets): a card at the bottom left is plenty. */
+    @media (min-width: 600px){ .map-card{right:auto;width:440px;} }
+    /* A phone on its side has no height to spare: dock the card to the right, full height. */
+    @media (orientation: landscape) and (max-height: 520px){
+      .map-card{left:auto;right:8px;top:60px;bottom:28px;width:min(400px, 50%);max-height:none;}
+    }
 
     .view-switch{
       display:inline-flex;
@@ -1029,6 +1138,12 @@
 </div>
 </div>
   <div class="map-empty" id="mapEmpty" hidden></div>
+  <!-- Phones only: the card for the pin you tapped (see openMapCard). -->
+  <div class="map-card" id="mapCard" role="dialog" aria-label="Place details" hidden>
+    <div class="map-card-grip" id="mapCardGrip"></div>
+    <button class="map-card-x" id="btnCloseCard" type="button" aria-label="Close">&times;</button>
+    <div class="map-card-body" id="mapCardBody"></div>
+  </div>
 </main>
 
 <button class="view-switch" id="btnViewSwitch" type="button" aria-label="Show map"></button>
@@ -1276,9 +1391,9 @@ function distMiles(v){
 // Wheaton, Lisle, Warrenville...), then everything. Keep the ring a place falls
 // in predictable: change the mileage here, not per venue.
 const AREAS = [
-  {id:'naperville', label:'Naperville only', hint:'Places with a Naperville address'},
-  {id:'near', label:'Naperville + neighbors', hint:'Naperville plus Aurora, Bolingbrook, Wheaton, Lisle and the other towns within about 15 miles'},
-  {id:'metro', label:'Greater Chicago area', hint:'Everything, out to the city and the north suburbs'},
+  {id:'naperville', label:'Naperville only', short:'Naperville', hint:'Places with a Naperville address'},
+  {id:'near', label:'Naperville + neighbors', short:'+ Neighbors', hint:'Naperville plus Aurora, Bolingbrook, Wheaton, Lisle and the other towns within about 15 miles'},
+  {id:'metro', label:'Greater Chicago area', short:'Chicago area', hint:'Everything, out to the city and the north suburbs'},
 ];
 const AREA_NEAR_MILES = 15;
 function inArea(v, area){
@@ -1325,7 +1440,9 @@ function renderAreaChips(){
     AREAS.forEach(a => {
       const chip = document.createElement('button');
       chip.className = 'chip area';
-      chip.textContent = a.label;
+      // The phone's map row is narrow, so it shows the short wording (CSS swaps the two).
+      chip.innerHTML = `<span class="long">${a.label}</span><span class="short" aria-hidden="true">${a.short}</span>`;
+      chip.setAttribute('aria-label', a.label);
       chip.title = a.hint;
       chip.dataset.area = a.id;
       chip.onclick = () => { activeArea = a.id; applyFilters(); };
@@ -1843,7 +1960,7 @@ function initMap(){
   markerLayer.addTo(map);
   updatePopupMax();
   map.on('resize', updatePopupMax);
-  map.on('click', () => closeFilters(false));
+  map.on('click', () => { closeFilters(false); closeMapCard(); });
 }
 
 function clusterIcon(cluster){
@@ -1865,21 +1982,10 @@ function pinIcon(v, selected){
   });
 }
 
-function popupHtml(v){
-  const dist = distLabel(v);
-  const bits = [];
-  if(v.cost) bits.push(isFree(v) ? 'Free' : (v.cost.length > 26 ? 'Paid' : v.cost));
-  if(v.age) bits.push(ageLabel(v));
-  if(inCare() && v.phone) bits.push(v.phone);
-  if(dist) bits.push(dist);
-  const seasonNote = !inSeason(v) ? '<br><span style="color:#5B6960">Closed for the season</span>' : '';
-  // Kept short on purpose — the full note, hours and prices live on the card.
-  return `<b>${esc(v.name)}</b><br>${esc(v.category)}${bits.length ? '<br>' + esc(bits.join(' · ')) : ''}${seasonNote}<br><a class="popup-dir" href="${directionsUrl(v)}" target="_blank" rel="noopener">Directions</a>`;
-}
-
 const POPUP_W = 380;
-let markersForMobile = null;   // were the current pins built for the phone (short popups) or desktop (full cards)?
-let popupVenueId = null;       // the place whose popup is open, if any
+let markersForMobile = null;   // were the current pins built for the phone (tap opens the bottom card) or desktop (popups)?
+let popupVenueId = null;       // the place whose popup is open, if any (desktop)
+let mapCardId = null;          // the place whose card is open at the bottom of the map (phones)
 
 // A tall card scrolls inside its popup rather than running off the map.
 function updatePopupMax(){
@@ -1887,11 +1993,9 @@ function updatePopupMax(){
   map.getContainer().style.setProperty('--popup-max', h + 'px');
 }
 
-function popupOptions(mobile){
-  return mobile
-    ? {maxWidth:240, autoPanPadding:[24,24]}
-    : {className:'card-popup', minWidth:POPUP_W, maxWidth:POPUP_W,
-       autoPanPaddingTopLeft:[64,76], autoPanPaddingBottomRight:[24,24]};   // 76: clear of the map bar
+function popupOptions(){
+  return {className:'card-popup', minWidth:POPUP_W, maxWidth:POPUP_W,
+          autoPanPaddingTopLeft:[64,76], autoPanPaddingBottomRight:[24,24]};   // 76: clear of the map bar
 }
 
 function renderMarkers(venues){
@@ -1901,6 +2005,7 @@ function renderMarkers(venues){
   // Starring, voting or re-sorting doesn't change which pins exist, so leave them
   // (and whatever popup is open) alone.
   if(!setChanged && mobile === markersForMobile) return;
+  closeMapCard();   // its pin is about to be rebuilt (and the map re-fitted)
   markerLayer.clearLayers();
   markersById = {};
   const bounds = [];
@@ -1909,25 +2014,28 @@ function renderMarkers(venues){
       icon: pinIcon(v, v.id === selectedId),
       zIndexOffset: v.id === selectedId ? 1000 : 0
     });
-    // Phones get a short summary (the card lives in the list there); desktop gets the whole card.
-    marker.bindPopup(mobile ? () => popupHtml(v) : () => buildCard(v, true), popupOptions(mobile));
-    // Hover shows the name (there's no list to read it from). The tooltip is unbound
-    // while the card is open: Leaflet would otherwise re-open it on the click.
-    const bindTip = () => marker.bindTooltip(esc(v.name), {direction:'top', offset:[0,-16], className:'pin-tip'});
-    if(!mobile) bindTip();
-    marker.on('popupopen', () => {
-      popupVenueId = v.id;
-      if(!mobile){
+    if(mobile){
+      // Phones: the card slides up from the bottom, so the pin stays visible above it.
+      marker.on('click', () => openMapCard(v.id, true));
+    } else {
+      // Desktop: the card opens in a popup next to the pin.
+      marker.bindPopup(() => buildCard(v, true), popupOptions());
+      // Hover shows the name (there's no list to read it from). The tooltip is unbound
+      // while the card is open: Leaflet would otherwise re-open it on the click.
+      const bindTip = () => marker.bindTooltip(esc(v.name), {direction:'top', offset:[0,-16], className:'pin-tip'});
+      bindTip();
+      marker.on('popupopen', () => {
+        popupVenueId = v.id;
         marker.unbindTooltip();
         closeFilters(false);   // you've moved on to a place; don't leave the panel over the map
-      }
-      selectVenue(v.id, false);
-    });
-    marker.on('popupclose', () => {
-      if(popupVenueId === v.id) popupVenueId = null;
-      if(!mobile) bindTip();
-      if(selectedId === v.id) selectVenue(null, false);
-    });
+        selectVenue(v.id, false);
+      });
+      marker.on('popupclose', () => {
+        if(popupVenueId === v.id) popupVenueId = null;
+        bindTip();
+        if(selectedId === v.id) selectVenue(null, false);
+      });
+    }
     markerLayer.addLayer(marker);
     markersById[v.id] = marker;
     bounds.push([v.lat, v.lng]);
@@ -1944,6 +2052,7 @@ function renderMarkers(venues){
 // After a star or vote the open card needs redrawing, but not the pins. Leaflet
 // re-runs the content function; keep the card scrolled where it was.
 function refreshOpenPopup(){
+  if(mapCardId){ renderMapCard(); return; }
   const marker = popupVenueId && markersById[popupVenueId];
   const popup = marker && marker.getPopup();
   if(!popup || !popup.isOpen()) return;
@@ -1957,6 +2066,7 @@ function refreshOpenPopup(){
 // The popup hangs above its pin, so when a card grows (a menu opens) the pin has
 // to sit at least a popup's height below the top edge or the title is cut off.
 function keepPopupInView(){
+  if(mapCardId){ keepPinAboveCard(true); return; }
   const marker = popupVenueId && markersById[popupVenueId];
   const popup = marker && marker.getPopup();
   const el = popup && popup.isOpen() && popup.getElement();
@@ -1965,6 +2075,56 @@ function keepPopupInView(){
     paddingTopLeft:[POPUP_W/2 + 24, el.offsetHeight + 108],   // 108 = tip + gap + the map bar
     paddingBottomRight:[POPUP_W/2 + 24, 24]
   });
+}
+
+// ---- Phones: the tapped pin's card, as a sheet over the bottom of the map. ----
+function renderMapCard(){
+  const v = allVenues.find(x => x.id === mapCardId);
+  if(!v){ closeMapCard(); return; }
+  const body = document.getElementById('mapCardBody');
+  const top = body.scrollTop;   // a star or vote redraws the card; keep it where it was
+  body.innerHTML = '';
+  body.appendChild(buildCard(v, true));
+  body.scrollTop = top;
+  document.getElementById('mapCard').setAttribute('aria-label', v.name);
+}
+
+function openMapCard(id, animate){
+  const reopen = mapCardId === id;
+  mapCardId = id;
+  selectVenue(id, false);
+  const card = document.getElementById('mapCard');
+  card.hidden = false;
+  document.body.classList.add('card-open');
+  renderMapCard();
+  if(!reopen) document.getElementById('mapCardBody').scrollTop = 0;
+  keepPinAboveCard(animate);
+  if(animate) document.getElementById('btnCloseCard').focus({preventScroll:true});   // keyboard users land in the card
+}
+
+function closeMapCard(){
+  if(mapCardId === null) return;
+  mapCardId = null;
+  document.getElementById('mapCard').hidden = true;
+  document.body.classList.remove('card-open');
+  selectVenue(null, false);
+}
+
+// The card covers part of the map, so slide the map until the pin sits in what's left:
+// above a bottom sheet, or beside one that's docked to a side (small tablets, landscape).
+function keepPinAboveCard(animate){
+  const marker = mapCardId && markersById[mapCardId];
+  if(!marker) return;
+  const card = document.getElementById('mapCard');
+  const size = map.getSize();
+  const pad = 30;   // half a selected pin, plus a little air
+  let x0 = pad, x1 = size.x - pad, y0 = 64, y1 = size.y - pad;   // 64: under the area chips
+  if(card.offsetWidth > size.x * 0.8) y1 = card.offsetTop - 52;   // 52: the 1.5x pin's radius plus a clear gap
+  else if(card.offsetLeft > size.x / 2) x1 = card.offsetLeft - pad;
+  else x0 = card.offsetLeft + card.offsetWidth + pad;
+  const p = map.latLngToContainerPoint(marker.getLatLng());
+  if(p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) return;
+  map.panBy([p.x - (x0 + x1) / 2, p.y - (y0 + y1) / 2], {animate: animate !== false});
 }
 
 function fitMapTo(bounds){
@@ -2083,6 +2243,7 @@ function setMode(next, quiet){
     document.getElementById('search').value = '';
     selectedId = null;
     closeFilters();
+    closeMapCard();
     if(!quiet){
       try { history.replaceState(null, '', inCare() ? '#care' : location.pathname + location.search); } catch(e){ /* file:// or sandboxed — the hash is just a convenience */ }
     }
@@ -2130,7 +2291,7 @@ function focusVenue(id){
   const marker = markersById[id];
   if(!marker) return;
   map.setView(marker.getLatLng(), Math.max(map.getZoom(), FOCUS_ZOOM), {animate:false});
-  const open = () => marker.openPopup();
+  const open = () => { if(isMobile()) openMapCard(id, false); else marker.openPopup(); };
   if(typeof markerLayer.zoomToShowLayer === 'function') markerLayer.zoomToShowLayer(marker, open);
   else open();
 }
@@ -2171,6 +2332,7 @@ function refresh(){
 // down it was scrolled so coming back drops you in the same spot.
 function showView(which){
   const changed = which !== currentView;
+  if(which === 'list') closeMapCard();
   if(changed && currentView === 'list') listScrollY = window.scrollY;
   currentView = which;
   document.getElementById('list').classList.toggle('hide-mobile', which === 'map');
@@ -2211,9 +2373,33 @@ document.getElementById('btnFiltersDesk').addEventListener('click', () => {
 document.getElementById('btnCloseFilters').addEventListener('click', closeFilters);
 document.getElementById('btnShowResults').addEventListener('click', closeFilters);
 document.getElementById('btnClearFilters').addEventListener('click', clearFilters);
-document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeFilters(); });
+document.addEventListener('keydown', (e) => {
+  if(e.key !== 'Escape') return;
+  if(document.getElementById('filterPanel').classList.contains('open')) closeFilters(); else closeMapCard();
+});
+document.getElementById('btnCloseCard').addEventListener('click', closeMapCard);
+// Drag the card's handle down to dismiss it.
+(function(){
+  const card = document.getElementById('mapCard'), grip = document.getElementById('mapCardGrip');
+  let startY = null, dy = 0;
+  grip.addEventListener('pointerdown', (e) => { startY = e.clientY; dy = 0; try { grip.setPointerCapture(e.pointerId); } catch(err){ /* a synthetic pointer; the drag just won't follow outside the handle */ } });
+  grip.addEventListener('pointermove', (e) => {
+    if(startY === null) return;
+    dy = Math.max(0, e.clientY - startY);
+    card.style.transform = 'translateY(' + dy + 'px)';
+  });
+  function end(){
+    if(startY === null) return;
+    startY = null;
+    card.style.transform = '';
+    if(dy > 70) closeMapCard();
+  }
+  grip.addEventListener('pointerup', end);
+  grip.addEventListener('pointercancel', end);
+})();
 function onBreakpointChange(){
   closeFilters();
+  closeMapCard();
   placeSearch();
   if(map) refresh();   // the pins' popups differ between phone and desktop
   if(!isMobile() && map){   // the breakpoint can flip before the first data load has built the map
