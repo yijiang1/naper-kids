@@ -185,7 +185,8 @@
       "note": "Downtown location; the whole bottom floor is dedicated kids' space.",
       "cost": "Free",
       "age": "All ages",
-      "indoor": true
+      "indoor": true,
+      "sound": 1
     },
     {
       "id": "95th-street-library",
@@ -202,7 +203,8 @@
       "note": "Attached to a playground and splash pad — read, then run it off outside.",
       "cost": "Free",
       "age": "All ages",
-      "indoor": true
+      "indoor": true,
+      "sound": 1
     },
     {
       "id": "naper-blvd-library",
@@ -222,7 +224,8 @@
       "tags": [
         "parking"
       ],
-      "indoor": true
+      "indoor": true,
+      "sound": 1
     },
     {
       "id": "blackberry-farm",

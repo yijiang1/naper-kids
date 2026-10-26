@@ -1140,6 +1140,7 @@
 <div class="toolbar" data-label="Age, sort &amp; more">
   <span id="ageChips" class="places-only" style="display:contents"></span>
   <button class="chip places-only" id="indoorChip" title="Only show venues with indoor space">🏠 Indoor</button>
+  <button class="chip places-only" id="quietChip" title="Only places visitors rate quiet (2.5 or lower out of 5 for background music). Unrated places are left out.">🔇 Quiet</button>
   <button class="chip fav" id="favChip" title="Show only the places you've starred">★ Favorites</button>
   <button class="chip places-only" id="seasonChip" title="Include venues that are closed for the season" hidden>Show out-of-season</button>
   <span class="tools-right">
@@ -1370,7 +1371,8 @@ const VENUES_FALLBACK = {
       "note": "Downtown location; the whole bottom floor is dedicated kids' space.",
       "cost": "Free",
       "age": "All ages",
-      "indoor": true
+      "indoor": true,
+      "sound": 1
     },
     {
       "id": "95th-street-library",
@@ -1387,7 +1389,8 @@ const VENUES_FALLBACK = {
       "note": "Attached to a playground and splash pad — read, then run it off outside.",
       "cost": "Free",
       "age": "All ages",
-      "indoor": true
+      "indoor": true,
+      "sound": 1
     },
     {
       "id": "naper-blvd-library",
@@ -1407,7 +1410,8 @@ const VENUES_FALLBACK = {
       "tags": [
         "parking"
       ],
-      "indoor": true
+      "indoor": true,
+      "sound": 1
     },
     {
       "id": "blackberry-farm",
@@ -4610,6 +4614,7 @@ let activeTags = new Set();
 let activeArea = 'metro';  // 'naperville' | 'near' | 'metro' (everything — the unfiltered default)
 let favOnly = false;
 let indoorOnly = false;
+let quietOnly = false;
 let showOutOfSeason = false;
 let sortMode = 'default';
 let userPos = null;        // {lat, lng} once "Near me" has been granted
@@ -4656,7 +4661,7 @@ function activeFilterCount(){
   return activeCategories.size + activeAgeBands.size + activeTags.size
     + (activeArea !== 'metro' ? 1 : 0)
     + (document.getElementById('freeOnly').checked ? 1 : 0)
-    + (indoorOnly ? 1 : 0) + (favOnly ? 1 : 0) + (showOutOfSeason ? 1 : 0);
+    + (indoorOnly ? 1 : 0) + (quietOnly ? 1 : 0) + (favOnly ? 1 : 0) + (showOutOfSeason ? 1 : 0);
 }
 
 function resetFilterState(){
@@ -4664,7 +4669,7 @@ function resetFilterState(){
   activeCategories.clear();
   activeAgeBands.clear();
   activeTags.clear();
-  favOnly = indoorOnly = showOutOfSeason = false;
+  favOnly = indoorOnly = quietOnly = showOutOfSeason = false;
   document.getElementById('freeOnly').checked = false;
   document.getElementById('freeToggleLabel').classList.remove('active');
 }
@@ -5059,6 +5064,14 @@ function soundRowHtml(v){
   return `<details class="vote-wrap sound-wrap"${openSounds.has(v.id) ? ' open' : ''}><summary>Music volume${shown ? ' · ' + shown : ''}${you}</summary><div class="vote-row sound-row">${buttons}</div><p class="sound-sum">${SOUND_HELP} ${lines.join(' ')}</p></details>`;
 }
 
+// "Quiet": visitors' average is 2.5 or lower; with no visitor ratings yet, our own
+// `sound` note counts if it's 2 or lower. Places nobody has rated are left out.
+function isQuiet(v){
+  const {n, avg} = soundSummary(v.id);
+  if(n) return avg <= 2.5;
+  return Number.isInteger(v.sound) && v.sound <= 2;
+}
+
 function castSound(id, level){
   const prev = soundMine[id] || 0;
   const next = prev === level ? 0 : level;   // tapping your own rating again clears it
@@ -5149,8 +5162,9 @@ function filteredVenues(){
     const freeOk = !freeOnly || isFree(v);
     const favOk = !favOnly || favorites.has(v.id);
     const indoorOk = !indoorOnly || isIndoor(v);
+    const quietOk = !quietOnly || isQuiet(v);
     const searchOk = !q || baseSearchText(v).includes(q) || menuSearchText(v).includes(q);
-    return catOk && inArea(v, activeArea) && freeOk && favOk && indoorOk && ageOverlaps(v) && hasAllTags(v) && searchOk;
+    return catOk && inArea(v, activeArea) && freeOk && favOk && indoorOk && quietOk && ageOverlaps(v) && hasAllTags(v) && searchOk;
   });
   const outOfSeasonCount = base.reduce((n, v) => n + (inSeason(v) ? 0 : 1), 0);
   const matches = showOutOfSeason ? base : base.filter(inSeason);
@@ -5293,6 +5307,8 @@ function formatCheckedDate(iso){
 function emptyState(){
   const msg = (favOnly && favorites.size === 0)
     ? 'No favorites yet — tap the ☆ on a place to save it here.'
+    : quietOnly
+    ? 'No places rated quiet match yet. Open a place\'s "Music volume" and add your rating to help fill this in — or turn off Quiet.'
     : 'Nothing matches that yet — try a different filter or search term.';
   return {msg, canClear: activeFilterCount() > 0};
 }
@@ -5796,6 +5812,7 @@ function refresh(){
   updateTagChipStates();
   document.getElementById('favChip').classList.toggle('active', favOnly);
   document.getElementById('indoorChip').classList.toggle('active', indoorOnly);
+  document.getElementById('quietChip').classList.toggle('active', quietOnly);
   const {venues, outOfSeasonCount} = filteredVenues();
   const seasonChip = document.getElementById('seasonChip');
   seasonChip.hidden = outOfSeasonCount === 0 && !showOutOfSeason;
@@ -5908,6 +5925,7 @@ document.getElementById('sort').addEventListener('change', (e) => { sortMode = e
 document.getElementById('btnNearMe').addEventListener('click', locateMe);
 document.getElementById('favChip').addEventListener('click', () => { favOnly = !favOnly; applyFilters(); });
 document.getElementById('indoorChip').addEventListener('click', () => { indoorOnly = !indoorOnly; applyFilters(); });
+document.getElementById('quietChip').addEventListener('click', () => { quietOnly = !quietOnly; applyFilters(); });
 document.getElementById('seasonChip').addEventListener('click', () => { showOutOfSeason = !showOutOfSeason; applyFilters(); });
 
 (async function(){

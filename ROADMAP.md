@@ -23,7 +23,7 @@ adjust, `venues.json` is hand-curated.
 | 2.3 | Show rating counts | 4.9 (12) ≠ 4.5 (2,000) — done for Kids' care (`rating_count`); places still to do | Small | ☐ |
 | 2.4 | Seasonal farms / pumpkin patches | Fall-specific content, `season` field already exists | Content | ☐ |
 | 2.5 | Restaurants with kids menus | "Where can we eat?" is half of every outing | Medium | ☑ |
-| 2.9 | "Music volume" ratings (1-5) | Know if a place is calm or bar-loud before you go | Medium | ◐ built; needs `SOUND_API` |
+| 2.9 | "Music volume" ratings (1-5) | Know if a place is calm or bar-loud before you go | Medium | ☑ |
 | 2.7 | Kids' care (hospitals, urgent care, pediatric dentists) | The other thing you need to find fast, with the phone number one tap away | Medium | ☑ |
 | 2.8 | More care providers (and re-check them) | 10 so far; leads and gaps in CARE.md | Content | ☐ |
 | 2.6 | More restaurants (and re-check menus) | 28 verified so far; some big names still blocked | Content | ☐ |
@@ -174,10 +174,9 @@ way to notice a venue that quietly closed.
 
 Built: a five-tier rating on every place card (1 = no background music, 5 =
 loud like a bar), shared between visitors through a Cloudflare Worker + D1 database
-(`worker/`), with an optional hand-researched `sound` seed. **Not live
-until the the Worker is deployed and its URL pasted into `SOUND_API`** (steps
-in `worker/README.md`). Ideas for later: a "Quiet places" filter or sort
-(needs enough ratings to mean anything), a per-meal split (lunch vs. dinner),
+(`worker/`), with an optional hand-researched `sound` seed. Live since Oct 2026 (Worker URL
+in `SOUND_API`; setup notes in `worker/README.md`). The **Quiet** filter chip is
+in. Ideas for later: a sort by quietness, a per-meal split (lunch vs. dinner),
 and a link-check-style job that flags rows that look like spam.
 
 ---

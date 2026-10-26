@@ -309,6 +309,9 @@ and run `node --check` on it. (The first commit shipped with a missing
   `check_data.py`, never touched by the updater) is shown as "~N/5" until then,
   and only where a source actually says so. `worker/test.mjs` (Node 22+) runs the
   Worker's SQL against in-memory SQLite.
+  The **Quiet** chip (`quietOnly`, `isQuiet()`) keeps places whose visitor average is
+  2.5 or lower, or, with no ratings yet, whose `sound` seed is 2 or lower; unrated
+  places are deliberately left out, so it shows little until ratings accumulate.
 - **Favorites and "Best age?" votes are per-browser only** (`localStorage`
   keys `naperkids_favs_v1` and `naperkids_votes_v1`, no backend). This was
   an explicit choice to avoid standing up a server. The "Music volume"
