@@ -291,11 +291,29 @@ and run `node --check` on it. (The first commit shipped with a missing
   Blackberry Farm (12.3) and St. Charles (15.7); recheck it if venues land in
   that gap. It applies in both modes (care providers have addresses too) and
   resets with the other filters on a mode switch.
+- **"Music volume" (1 = no background music ... 5 = bar-loud) is the one
+  shared-across-visitors feature.** Each place card has a second fold-out under
+  "Best age?" with five buttons (`soundRowHtml()`, `castSound()`; places only,
+  not Kids' care). Ratings go to a Cloudflare D1 database through the Worker in
+  `worker/` (setup in `worker/README.md`); the page's `SOUND_API`
+  constant holds the Worker's URL and **is empty until someone deploys it**, in
+  which case a rating just stays in `localStorage` (`naperkids_sound_v1`) and
+  the footer note stays hidden. One row per (place, browser) in a `ratings` table: the browser's
+  random id is `naperkids_voter_v1`, so it is anonymous but not tamper-proof
+  (clear site data = new voter; the Worker caps rows and places per voter and
+  accepts writes only from `ALLOWED_ORIGINS` in `worker/wrangler.toml`). POSTs are
+  `text/plain`, so there's no CORS preflight. The last summary is cached in
+  `naperkids_soundstats_v1` so averages show instantly on the next visit.
+  The summary shown is the visitors' average once there's at least one rating;
+  an optional hand-researched `sound` (whole number 1-5, validated by
+  `check_data.py`, never touched by the updater) is shown as "~N/5" until then,
+  and only where a source actually says so. `worker/test.mjs` (Node 22+) runs the
+  Worker's SQL against in-memory SQLite.
 - **Favorites and "Best age?" votes are per-browser only** (`localStorage`
   keys `naperkids_favs_v1` and `naperkids_votes_v1`, no backend). This was
-  an explicit choice to avoid standing up a server. A Google Sheets + Apps
-  Script "web app" endpoint was discussed as the upgrade path if real
-  cross-visitor shared voting is wanted later — not built yet.
+  an explicit choice to avoid standing up a server. The "Music volume"
+  rating (above) is the exception and shows the upgrade path if these two ever
+  need to be shared: a Cloudflare Worker + D1 like `worker/`.
 - **"Near me" needs a secure context** for `navigator.geolocation`: fine on
   GitHub Pages (https), `localhost`, and `file://` in current browsers. The
   button hides itself if the API is missing; permission errors show in the
@@ -358,7 +376,7 @@ and run `node --check` on it. (The first commit shipped with a missing
   chain's own page 60540), so take address details from the chain.
 - **`cost` and `age` are hand-researched fields** — the Places API returns
   neither, so `update_venues.py` is written to never overwrite them. Same
-  goes for `season`, `tags`, and `indoor`.
+  goes for `season`, `tags`, `indoor`, and `sound`.
 - **A CSS class that sets `display` beats the browser's own `[hidden]`
   rule.** `.chip{display:inline-flex}` silently overrode `hidden` on any
   chip (this bit the out-of-season toggle, and had been quietly true of
@@ -400,7 +418,7 @@ and run `node --check` on it. (The first commit shipped with a missing
   after the fact — worth a spot-check before relying on the pricier/less
   obvious ones (Morton Arboretum and Ball Factory in particular have no
   fixed per-visit price, so `cost` says "Check website" for those).
-- Shared (cross-visitor) voting was discussed but intentionally not built.
+- Shared voting exists only for "Music volume" (see above), and only once `SOUND_API` is set; "Best age?" votes and favorites stay per-browser.
 - **Hosted on GitHub Pages** at https://yijiang1.github.io/naper-kids/ (legacy
   "deploy from a branch": `main`, `/`, HTTPS enforced; checked 2026-10-04, the
   latest build matched the latest commit). Every push to `main`, including the

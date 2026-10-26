@@ -1,0 +1,13 @@
+name = "naper-kids-sound"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Pages allowed to read and write ratings (comma-separated origins).
+[vars]
+ALLOWED_ORIGINS = "https://yijiang1.github.io,http://localhost:8000"
+
+# `wrangler d1 create naper-kids` prints the id; paste it below.
+[[d1_databases]]
+binding = "DB"
+database_name = "naper-kids"
+database_id = "69475e2f-dfe6-4ea0-be86-f8f777bfac95"

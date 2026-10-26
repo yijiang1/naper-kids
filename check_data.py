@@ -10,6 +10,7 @@ holding pen and are allowed to be incomplete until promoted):
   - coordinates are within ~90 km of "center" (the Chicago six-county metro)
   - rating (if set) is between 0 and 5
   - season / tags / indoor (if set) only use their fixed vocabularies
+  - sound (optional) is a whole number 1-5: how loud the background music is
   - kids_menu (required for category "Restaurants", optional elsewhere) is
     well-formed: a link to the restaurant's own menu, a "checked" date, and
     at least one section with at least one named item
@@ -102,6 +103,15 @@ def check_indoor(v, errors):
     if indoor not in (True, False, "partly"):
         errors.append("{}: indoor must be true, false, or 'partly', got {!r}".format(
             describe(v), indoor))
+
+
+def check_sound(v, errors):
+    sound = v.get("sound")
+    if sound is None:
+        return
+    if isinstance(sound, bool) or sound not in (1, 2, 3, 4, 5):
+        errors.append("{}: sound must be a whole number 1-5 (1 = no music, 5 = bar-loud), got {!r}".format(
+            describe(v), sound))
 
 
 def check_unknown_keys(where, obj, allowed, errors):
@@ -258,6 +268,7 @@ def main():
         check_season(v, errors)
         check_tags(v, errors)
         check_indoor(v, errors)
+        check_sound(v, errors)
         check_kids_menu(v, errors)
 
     care = data.get("care", [])

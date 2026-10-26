@@ -372,6 +372,31 @@
   }
   .vote-btn.voted .n{color:#2F5C8A;}
 
+  /* "Music volume": a second disclosure under "Best age?", five buttons 1-5.
+     It reuses .vote-wrap for the fold-out; the buttons have their own class so
+     the age-vote handlers (which select .vote-btn) never pick them up. */
+  .vote-row.sound-row{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .sound-btn{
+    font-size:15px;
+    font-weight:600;
+    padding:5px 2px 4px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1px;
+    font-family:inherit;
+    line-height:1.2;
+  }
+  .sound-btn small{font-size:10px;font-weight:400;white-space:nowrap;}
+  .sound-btn.voted{border-color:#2F5C8A;background:#E4ECF5;color:#2F5C8A;}
+  .sound-sum{margin:6px 0 0;font-size:12px;color:var(--ink-soft);}
+  .sound-wrap summary .avg{color:var(--ink);font-weight:600;}
+
   /* Phone-only chrome (hidden on desktop; the media queries below turn it on). */
   .appbar, .view-switch, .count-line, .sheet-head, .sheet-foot, .sheet-only{display:none;}
 
@@ -1031,7 +1056,7 @@
     .vote-wrap{margin:0 0 -8px;}
     .vote-wrap summary, .menu-wrap summary{min-height:44px;}
     .menu-foot a{display:inline-block;padding:13px 0;}  /* 12.5px text + 26px = a 44px target */
-    .vote-btn{min-height:44px;}
+    .vote-btn, .sound-btn{min-height:44px;}
     .leaflet-container .leaflet-bar a,
     .leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px;}
     .leaflet-container .leaflet-popup-close-button{width:36px;height:36px;font-size:24px;line-height:34px;}
@@ -1151,7 +1176,7 @@
 <footer>
   <p class="care-only">Hospital, urgent care and dentist details were copied by hand from each provider's own website on the date shown on its card. Hours, insurance and new-patient status change often, and the local hospitals' pediatric ERs keep different hours from their main ERs — call before you go, and call 911 in an emergency. Star ratings and review counts come from Google and are refreshed weekly; they're one family-to-family signal, not a measure of medical quality. "Pediatric ER" here means the hospital says it is state-approved or designated for children's emergencies; this page isn't a medical referral or a ranking.</p>
   <p class="places-only">Data pulled from Google Places; admission prices, suggested ages, and kids' menus researched and kept up by hand — the age tag is a rough guide based on what's there, not an official rating. Each kids' menu is copied from the restaurant's own site on the date shown, so menus and prices may have changed since.</p>
-  <p>Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere.</p>
+  <p>Favorites and "Best age?" votes are saved in this browser only, so they won't show up for anyone opening the page elsewhere.<span class="places-only" id="soundNote"> "Music volume" ratings are anonymous, one per browser per place, and shared with other visitors; they're opinions, and a place can sound different at lunch and at Friday dinner.</span></p>
   <p>Hours, openings, and prices change — worth a quick check before you go.<span id="dataDate"></span></p>
 </footer>
 
@@ -1628,6 +1653,122 @@ function voteRowHtml(v){
   return `<details class="vote-wrap"${openVotes.has(v.id) ? ' open' : ''}><summary>Best age?${you}</summary><div class="vote-row">${buttons}</div></details>`;
 }
 
+// ---- Music volume: 1 = no background sound ... 5 = bar-loud ----------------
+// Visitors' ratings are shared through a small Cloudflare Worker + D1 database
+// that keeps one row per (place, browser); see worker/README.md.
+// While SOUND_API is empty (or unreachable) a rating just stays in this browser.
+const SOUND_API = 'https://naper-kids-sound.yj245.workers.dev';
+const SOUND_LEVELS = ['None', 'Quiet', 'Medium', 'Loud', 'Very loud'];
+const SOUND_HELP = '1 = no background music, 5 = loud like a bar.';
+
+function loadSoundMine(){
+  try { return JSON.parse(localStorage.getItem('naperkids_sound_v1') || '{}'); }
+  catch(e){ return {}; }
+}
+// The last summary we got, so averages show instantly on the next visit while
+// a fresh copy loads in the background.
+function loadSoundCache(){
+  if(!SOUND_API) return {};
+  try { return JSON.parse(localStorage.getItem('naperkids_soundstats_v1') || '{}'); }
+  catch(e){ return {}; }
+}
+function saveSoundCache(){
+  try { localStorage.setItem('naperkids_soundstats_v1', JSON.stringify(soundStats)); }
+  catch(e){ /* just a cache */ }
+}
+function saveSoundMine(){
+  try { localStorage.setItem('naperkids_sound_v1', JSON.stringify(soundMine)); }
+  catch(e){ /* storage unavailable — the rating just won't survive a reload */ }
+}
+let soundMine = loadSoundMine();   // id -> 1..5 (this browser's own rating)
+let soundStats = loadSoundCache(); // id -> [n1..n5] from the shared database
+const openSounds = new Set();      // venue ids whose "Music volume" row is expanded
+
+// An anonymous id so the sheet can keep one rating per browser per place.
+function voterId(){
+  try {
+    let id = localStorage.getItem('naperkids_voter_v1');
+    if(!id){
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      id = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+      localStorage.setItem('naperkids_voter_v1', id);
+    }
+    return id;
+  } catch(e){ return ''; }
+}
+
+function soundSummary(id){
+  const c = soundStats[id];
+  if(!c) return {n:0, avg:0};
+  const n = c.reduce((a, b) => a + b, 0);
+  const avg = n ? c.reduce((a, k, i) => a + k * (i + 1), 0) / n : 0;
+  return {n, avg};
+}
+
+function soundRowHtml(v){
+  const {n, avg} = soundSummary(v.id);
+  const mine = soundMine[v.id] || 0;
+  const seed = Number.isInteger(v.sound) ? v.sound : 0;
+  const buttons = SOUND_LEVELS.map((label, i) =>
+    `<button class="sound-btn${mine === i + 1 ? ' voted' : ''}" type="button" data-venue="${esc(v.id)}" data-level="${i + 1}" aria-pressed="${mine === i + 1}" title="${i + 1} of 5: ${label}">${i + 1}<small>${label}</small></button>`
+  ).join('');
+  const shown = n ? `<span class="avg">${avg.toFixed(1)}/5</span> (${n})` : (seed ? `<span class="avg">~${seed}/5</span>` : '');
+  const you = mine ? ` <span class="you">· you: ${mine}</span>` : '';
+  const lines = [];
+  if(n) lines.push(`Visitors' average ${avg.toFixed(1)} from ${n} rating${n === 1 ? '' : 's'}.`);
+  if(seed) lines.push(`Our note: about ${seed} (${SOUND_LEVELS[seed - 1].toLowerCase()}).`);
+  if(!n && !seed) lines.push('No ratings yet.');
+  return `<details class="vote-wrap sound-wrap"${openSounds.has(v.id) ? ' open' : ''}><summary>Music volume${shown ? ' · ' + shown : ''}${you}</summary><div class="vote-row sound-row">${buttons}</div><p class="sound-sum">${SOUND_HELP} ${lines.join(' ')}</p></details>`;
+}
+
+function castSound(id, level){
+  const prev = soundMine[id] || 0;
+  const next = prev === level ? 0 : level;   // tapping your own rating again clears it
+  if(SOUND_API){
+    const c = (soundStats[id] || [0, 0, 0, 0, 0]).slice();
+    if(prev) c[prev - 1] = Math.max(0, c[prev - 1] - 1);
+    if(next) c[next - 1] += 1;
+    soundStats[id] = c;
+  }
+  if(next) soundMine[id] = next; else delete soundMine[id];
+  saveSoundMine();
+  refresh();
+  if(SOUND_API) postSound(id, next);
+}
+
+async function postSound(id, level){
+  const voter = voterId();
+  if(!voter) return;
+  try {
+    // text/plain keeps this a "simple" request, so the browser skips the CORS
+    // preflight; the Worker accepts it either way.
+    const res = await fetch(SOUND_API, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({venue: id, voter: voter, rating: level}),
+    });
+    const j = await res.json();
+    if(j && j.ok && Array.isArray(j.counts)){ soundStats[id] = j.counts; saveSoundCache(); refresh(); }
+  } catch(e){ /* offline or the endpoint is down: the local rating stands */ }
+}
+
+async function loadSoundStats(){
+  if(!SOUND_API) return;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(SOUND_API + '?action=summary', {signal: ctrl.signal});
+    const j = await res.json();
+    if(j && j.ok && j.ratings && typeof j.ratings === 'object'){
+      soundStats = j.ratings;
+      saveSoundCache();
+      refresh();
+    }
+  } catch(e){ /* the page works without shared ratings */ }
+  clearTimeout(timer);
+}
+
 function ageOverlaps(v){
   if(activeAgeBands.size === 0) return true;
   const r = ageRange(v);
@@ -1872,6 +2013,7 @@ function buildCard(v, inPopup){
     </div>
     ${menuHtml(v, forceMenu)}
     ${inCare() ? '' : voteRowHtml(v)}
+    ${inCare() ? '' : soundRowHtml(v)}
   `;
   if(!inPopup){
     // On a phone the map replaces the list, so tapping the card body only
@@ -1916,6 +2058,20 @@ function buildCard(v, inPopup){
       if(inPopup && was !== voteWrap.open) keepPopupInView();
     });
   }
+  const soundWrap = card.querySelector('.sound-wrap');
+  if(soundWrap){
+    soundWrap.addEventListener('toggle', () => {
+      const was = openSounds.has(v.id);
+      if(soundWrap.open) openSounds.add(v.id); else openSounds.delete(v.id);
+      if(inPopup && was !== soundWrap.open) keepPopupInView();
+    });
+  }
+  card.querySelectorAll('.sound-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      castSound(btn.dataset.venue, Number(btn.dataset.level));
+    };
+  });
   card.querySelectorAll('.vote-btn').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
@@ -2424,6 +2580,7 @@ document.getElementById('seasonChip').addEventListener('click', () => { showOutO
   allVenues = placesData;
   document.getElementById('modeRow').hidden = careData.length === 0;
   if(!navigator.geolocation) document.getElementById('btnNearMe').hidden = true;
+  document.getElementById('soundNote').hidden = !SOUND_API;
   showDataDate();
   initMap();
   renderAreaChips();
@@ -2432,6 +2589,7 @@ document.getElementById('seasonChip').addEventListener('click', () => { showOutO
   refresh();
   showView('list');   // sets the switch label; on phones also hides the map until asked for
   checkRain();
+  loadSoundStats();
 })();
 </script>
 </body>
