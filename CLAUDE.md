@@ -20,7 +20,7 @@ file.
   default): `season` (`"year-round"` (default) / `"summer"` / `"winter"` /
   `{"from": M, "to": M}`, generous month ranges — see 1.1 in ROADMAP.md),
   `tags` (fixed vocabulary — `restrooms`, `fenced`, `shade`, `stroller`,
-  `food`, `water-play`, `picnic`, `parking`), `indoor` (`true` /
+  `food`, `water-play`, `picnic`, `parking`, `sensory`), `indoor` (`true` /
   `"partly"` / omitted for outdoor), and `kids_menu` (see below; *required*
   for the `Restaurants` category, optional for anything else). `candidates` is a holding pen for
   places the updater found that nobody has curated yet; the page ignores
@@ -46,7 +46,7 @@ file.
   API (needs a `GOOGLE_PLACES_API_KEY` env var). It never removes a venue,
   never changes a venue's category or name, and never touches the
   hand-curated `note`, `hours`, `cost`, `age`, `season`, `tags`, `indoor`,
-  or `kids_menu` fields; it only refreshes rating/address/phone/website/lat/lng, and only
+  `kids_menu`, `sound`, or `sensory_support` fields; it only refreshes rating/address/phone/website/lat/lng, and only
   when Google actually returns a value. Google results are matched to
   existing venues by `place_id`, then by id slug, then by "within 150 m and
   names mostly overlap" (see `MATCH_RADIUS_M` / `MATCH_NAME_SCORE`).
@@ -312,6 +312,21 @@ and run `node --check` on it. (The first commit shipped with a missing
   The **Quiet** chip (`quietOnly`, `isQuiet()`) keeps places whose visitor average is
   2.5 or lower, or, with no ratings yet, whose `sound` seed is 2 or lower; unrated
   places are deliberately left out, so it shows little until ratings accumulate.
+- **"Sensory support" is a tag plus a sourced note.** `tags` has `sensory` and the
+  venue has `sensory_support: {note, url, checked}` (`check_data.py` requires both
+  together, http(s) `url`, a date, and no unknown keys). The note says what the
+  venue's *own* accessibility page states it offers (headphones, quiet room,
+  sensory-friendly hours, sensory bags/maps/social stories), copied by hand like
+  a kids' menu; it renders as a blue box under the tags (`sensoryHtml()`) and is
+  searchable. 8 venues as of 2026-10-25: DuPage Children's Museum, Shedd, Field
+  Museum, Chicago Children's Museum, Brookfield Zoo, Lincoln Park Zoo, Morton
+  Arboretum, Griffin MSI. Checked and found *nothing stated*: Adler Planetarium,
+  Chicago Botanic Garden, Naperville Public Library's accessibility statement.
+  LEGOLAND Chicago's own pages have no sensory page (other LEGOLAND centers do; don't
+  carry theirs over). Not yet looked at: Naper Settlement (403 to scripts), Cosley
+  Zoo, Peggy Notebaert, nature centers, Urban Air, Main Event, Lucky Strike, the
+  libraries' separate Accessibility Services page. Phone-sized facts like hours of
+  sensory sessions change often, so notes say "check dates" rather than listing them.
 - **Favorites and "Best age?" votes are per-browser only** (`localStorage`
   keys `naperkids_favs_v1` and `naperkids_votes_v1`, no backend). This was
   an explicit choice to avoid standing up a server. The "Music volume"

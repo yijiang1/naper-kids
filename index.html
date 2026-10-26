@@ -375,6 +375,17 @@
   /* "Music volume": a second disclosure under "Best age?", five buttons 1-5.
      It reuses .vote-wrap for the fold-out; the buttons have their own class so
      the age-vote handlers (which select .vote-btn) never pick them up. */
+  .card-sensory{
+    margin:6px 0 0;
+    padding:7px 9px;
+    border-radius:8px;
+    background:#E4ECF5;
+    color:#243F5C;
+    font-size:12.5px;
+    line-height:1.4;
+  }
+  .card-sensory a{color:#2F5C8A;font-weight:600;white-space:nowrap;}
+  .card-sensory .when{color:#4F6B88;white-space:nowrap;}
   .vote-row.sound-row{grid-template-columns:repeat(5,minmax(0,1fr));}
   .sound-btn{
     font-size:15px;
@@ -1336,9 +1347,15 @@ const VENUES_FALLBACK = {
       "cost": "$22/person ages 1+ ($21 seniors); free under 1",
       "age": "1–10",
       "tags": [
-        "food"
+        "food",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Free noise-reducing headphones and a Sensory Social Story to borrow at Visitor Services (photo ID); a Respite Room on the first floor; Adaptive Play Time for kids with disabilities or sensory processing disorders.",
+        "url": "https://dupagechildrens.org/visit/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "urban-air-naperville",
@@ -1871,9 +1888,15 @@ const VENUES_FALLBACK = {
         "parking",
         "stroller",
         "picnic",
-        "shade"
+        "shade",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "KultureCity-certified: sensory bags and care kits with noise-reducing headphones at the North and South Gate guest desks; a Sensory Friendly Family Room in Hamill Family Play Zoo; a social story.",
+        "url": "https://www.brookfieldzoo.org/accessibility",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "morton-arboretum",
@@ -1896,9 +1919,15 @@ const VENUES_FALLBACK = {
         "parking",
         "stroller",
         "picnic",
-        "shade"
+        "shade",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "Free sensory bags (headphones, fidgets) at the Visitor Center or from Children's Garden staff; a Children's Garden sensory map and social stories; Sensory-Friendly Times on select Monday evenings (sign-up required).",
+        "url": "https://mortonarb.org/guides/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "wil-o-way-commons-park",
@@ -2256,9 +2285,15 @@ const VENUES_FALLBACK = {
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "Free sound-reducing headphones and KultureCity sensory bags at the information desk (photo ID); a quiet room on the Main Level; \"Headphone Zone\" signs mark louder areas; Calm Waters events for guests with disabilities.",
+        "url": "https://www.sheddaquarium.org/plan-a-visit/accessibility",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "field-museum",
@@ -2278,9 +2313,15 @@ const VENUES_FALLBACK = {
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Sensory bags (fidgets, sunglasses, headphones, emotion cards) and an auditory and tactile guide at the ground-floor Visitor Center.",
+        "url": "https://www.fieldmuseum.org/visit/accessibility",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "museum-of-science-and-industry",
@@ -2300,9 +2341,15 @@ const VENUES_FALLBACK = {
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Free noise-reducing headphones at Guest Services in the Entry Hall (ID); exhibit-specific sensory details for planning; Low-Sensory Mornings with early access 8:30–9:30 a.m. (check dates).",
+        "url": "https://www.griffinmsi.org/visit/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "lincoln-park-zoo",
@@ -2323,9 +2370,15 @@ const VENUES_FALLBACK = {
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "Free sensory bags (noise-reduction headphones, fidget tools) and weighted lap pads at Searle Visitor Center (leave an ID); quiet rooms there on request; an Accessibility Map marking low- and high-sensory areas; a social narrative.",
+        "url": "https://www.lpzoo.org/visit/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "chicago-childrens-museum",
@@ -2345,9 +2398,15 @@ const VENUES_FALLBACK = {
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Free sound-reducing headphones at the Ticket Desk (photo ID) and self-serve kiosks on floors 2 and 3; quieter \"Recharge and Regroup\" areas on floors 2 and 3; Play for All early entry for registered families with disabilities.",
+        "url": "https://www.chicagochildrensmuseum.org/accessibility-and-inclusion",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "chicago-botanic-garden",
@@ -4586,6 +4645,7 @@ const TAG_LABELS = {
   'water-play': 'Water play',
   picnic: 'Picnic',
   parking: 'Parking',
+  sensory: 'Sensory support',
 };
 const TAG_ORDER = Object.keys(TAG_LABELS);
 
@@ -5229,6 +5289,16 @@ function ageBadge(v){
   return `<span class="age-badge" title="${esc(v.age)}">${esc(ageLabel(v))}</span>`;
 }
 
+// "Sensory support": what the venue's own accessibility page says it offers for
+// noise- or crowd-sensitive kids (headphones, quiet room, sensory hours...).
+function sensoryHtml(v){
+  const s = v.sensory_support;
+  if(!s || !s.note) return '';
+  const link = s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Details</a>` : '';
+  const when = formatCheckedDate(s.checked);
+  return `<div class="card-sensory"><b>Sensory support:</b> ${esc(s.note)}${link}${when ? ` <span class="when">(checked ${esc(when)})</span>` : ''}</div>`;
+}
+
 function tagsHtml(v){
   if(!v.tags || !v.tags.length) return '';
   const pills = v.tags.map(t => `<span class="tag-pill">${esc(tagLabels()[t] || t)}</span>`).join('');
@@ -5249,6 +5319,7 @@ function menuItems(v){
 function baseSearchText(v){
   // Care entries are also searchable by insurance ("delta") and service ("sedation").
   const extra = inCare() ? [v.insurance, (v.tags || []).map(t => CARE_TAG_LABELS[t] || t).join(' ')] : [];
+  if(v.sensory_support && v.sensory_support.note) extra.push(v.sensory_support.note);
   return [v.name, v.note, v.category, v.address].concat(extra).join(' ').toLowerCase();
 }
 
@@ -5347,6 +5418,7 @@ function buildCard(v, inPopup){
       ${ageBadge(v)}
     </div>
     ${tagsHtml(v)}
+    ${sensoryHtml(v)}
     ${v.note ? `<p class="card-note">${esc(v.note)}</p>` : ''}
     <div class="card-meta">
       ${dist ? `<span class="card-dist">${dist}</span>` : ''}

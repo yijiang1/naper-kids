@@ -37,7 +37,7 @@ DATA_PATH = os.path.join(HERE, "venues.json")
 REQUIRED_FIELDS = ("name", "category", "lat", "lng", "address", "cost", "age", "note")
 SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_DISTANCE_KM = 90.0  # matches update_venues.py's MAX_CANDIDATE_DISTANCE_M
-TAG_VOCAB = {"restrooms", "fenced", "shade", "stroller", "food", "water-play", "picnic", "parking"}
+TAG_VOCAB = {"restrooms", "fenced", "shade", "stroller", "food", "water-play", "picnic", "parking", "sensory"}
 SEASON_VOCAB = {"year-round", "summer", "winter"}
 CARE_REQUIRED_FIELDS = ("name", "category", "lat", "lng", "address", "phone", "website", "note", "checked")
 CARE_OPTIONAL_FIELDS = ("id", "place_id", "rating", "rating_count", "hours", "age", "insurance", "tags")
@@ -47,6 +47,7 @@ CARE_TAG_VOCAB = {"open-24-7", "peds-er", "walk-in", "evenings-weekends", "onlin
                   "sedation", "special-needs", "emergency-dental"}
 PHONE_RE = re.compile(r"^\(\d{3}\) \d{3}-\d{4}$")
 RESTAURANT_CATEGORY = "Restaurants"  # these must carry a kids_menu
+SENSORY_KEYS = {"note", "url", "checked"}
 MENU_KEYS = {"url", "summary", "sections", "checked"}
 MENU_SECTION_KEYS = {"title", "note", "items"}
 MENU_ITEM_KEYS = {"name", "desc", "price"}
@@ -103,6 +104,28 @@ def check_indoor(v, errors):
     if indoor not in (True, False, "partly"):
         errors.append("{}: indoor must be true, false, or 'partly', got {!r}".format(
             describe(v), indoor))
+
+
+def check_sensory(v, errors):
+    who = describe(v)
+    s = v.get("sensory_support")
+    has_tag = "sensory" in (v.get("tags") or [])
+    if s is None:
+        if has_tag:
+            errors.append("{}: tag 'sensory' needs a 'sensory_support' note".format(who))
+        return
+    if not isinstance(s, dict):
+        errors.append("{}: sensory_support must be an object, got {!r}".format(who, s))
+        return
+    check_unknown_keys(who + ": sensory_support", s, SENSORY_KEYS, errors)
+    if not (isinstance(s.get("note"), str) and s["note"].strip()):
+        errors.append("{}: sensory_support.note must be non-empty text".format(who))
+    if not re.match(r"^https?://", str(s.get("url", ""))):
+        errors.append("{}: sensory_support.url must be an http(s) link to the venue's own page, got {!r}".format(who, s.get("url")))
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", str(s.get("checked", ""))):
+        errors.append("{}: sensory_support.checked must be a YYYY-MM-DD date, got {!r}".format(who, s.get("checked")))
+    if not has_tag:
+        errors.append("{}: sensory_support is set but the 'sensory' tag is missing".format(who))
 
 
 def check_sound(v, errors):
@@ -269,6 +292,7 @@ def main():
         check_tags(v, errors)
         check_indoor(v, errors)
         check_sound(v, errors)
+        check_sensory(v, errors)
         check_kids_menu(v, errors)
 
     care = data.get("care", [])

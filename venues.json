@@ -150,9 +150,15 @@
       "cost": "$22/person ages 1+ ($21 seniors); free under 1",
       "age": "1–10",
       "tags": [
-        "food"
+        "food",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Free noise-reducing headphones and a Sensory Social Story to borrow at Visitor Services (photo ID); a Respite Room on the first floor; Adaptive Play Time for kids with disabilities or sensory processing disorders.",
+        "url": "https://dupagechildrens.org/visit/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "urban-air-naperville",
@@ -685,9 +691,15 @@
         "parking",
         "stroller",
         "picnic",
-        "shade"
+        "shade",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "KultureCity-certified: sensory bags and care kits with noise-reducing headphones at the North and South Gate guest desks; a Sensory Friendly Family Room in Hamill Family Play Zoo; a social story.",
+        "url": "https://www.brookfieldzoo.org/accessibility",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "morton-arboretum",
@@ -710,9 +722,15 @@
         "parking",
         "stroller",
         "picnic",
-        "shade"
+        "shade",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "Free sensory bags (headphones, fidgets) at the Visitor Center or from Children's Garden staff; a Children's Garden sensory map and social stories; Sensory-Friendly Times on select Monday evenings (sign-up required).",
+        "url": "https://mortonarb.org/guides/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "wil-o-way-commons-park",
@@ -1070,9 +1088,15 @@
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "Free sound-reducing headphones and KultureCity sensory bags at the information desk (photo ID); a quiet room on the Main Level; \"Headphone Zone\" signs mark louder areas; Calm Waters events for guests with disabilities.",
+        "url": "https://www.sheddaquarium.org/plan-a-visit/accessibility",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "field-museum",
@@ -1092,9 +1116,15 @@
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Sensory bags (fidgets, sunglasses, headphones, emotion cards) and an auditory and tactile guide at the ground-floor Visitor Center.",
+        "url": "https://www.fieldmuseum.org/visit/accessibility",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "museum-of-science-and-industry",
@@ -1114,9 +1144,15 @@
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Free noise-reducing headphones at Guest Services in the Entry Hall (ID); exhibit-specific sensory details for planning; Low-Sensory Mornings with early access 8:30–9:30 a.m. (check dates).",
+        "url": "https://www.griffinmsi.org/visit/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "lincoln-park-zoo",
@@ -1137,9 +1173,15 @@
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": "partly"
+      "indoor": "partly",
+      "sensory_support": {
+        "note": "Free sensory bags (noise-reduction headphones, fidget tools) and weighted lap pads at Searle Visitor Center (leave an ID); quiet rooms there on request; an Accessibility Map marking low- and high-sensory areas; a social narrative.",
+        "url": "https://www.lpzoo.org/visit/accessibility/",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "chicago-childrens-museum",
@@ -1159,9 +1201,15 @@
         "restrooms",
         "food",
         "parking",
-        "stroller"
+        "stroller",
+        "sensory"
       ],
-      "indoor": true
+      "indoor": true,
+      "sensory_support": {
+        "note": "Free sound-reducing headphones at the Ticket Desk (photo ID) and self-serve kiosks on floors 2 and 3; quieter \"Recharge and Regroup\" areas on floors 2 and 3; Play for All early entry for registered families with disabilities.",
+        "url": "https://www.chicagochildrensmuseum.org/accessibility-and-inclusion",
+        "checked": "2026-10-25"
+      }
     },
     {
       "id": "chicago-botanic-garden",

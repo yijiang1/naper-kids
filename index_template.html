@@ -375,6 +375,17 @@
   /* "Music volume": a second disclosure under "Best age?", five buttons 1-5.
      It reuses .vote-wrap for the fold-out; the buttons have their own class so
      the age-vote handlers (which select .vote-btn) never pick them up. */
+  .card-sensory{
+    margin:6px 0 0;
+    padding:7px 9px;
+    border-radius:8px;
+    background:#E4ECF5;
+    color:#243F5C;
+    font-size:12.5px;
+    line-height:1.4;
+  }
+  .card-sensory a{color:#2F5C8A;font-weight:600;white-space:nowrap;}
+  .card-sensory .when{color:#4F6B88;white-space:nowrap;}
   .vote-row.sound-row{grid-template-columns:repeat(5,minmax(0,1fr));}
   .sound-btn{
     font-size:15px;
@@ -1246,6 +1257,7 @@ const TAG_LABELS = {
   'water-play': 'Water play',
   picnic: 'Picnic',
   parking: 'Parking',
+  sensory: 'Sensory support',
 };
 const TAG_ORDER = Object.keys(TAG_LABELS);
 
@@ -1889,6 +1901,16 @@ function ageBadge(v){
   return `<span class="age-badge" title="${esc(v.age)}">${esc(ageLabel(v))}</span>`;
 }
 
+// "Sensory support": what the venue's own accessibility page says it offers for
+// noise- or crowd-sensitive kids (headphones, quiet room, sensory hours...).
+function sensoryHtml(v){
+  const s = v.sensory_support;
+  if(!s || !s.note) return '';
+  const link = s.url ? ` <a href="${esc(s.url)}" target="_blank" rel="noopener">Details</a>` : '';
+  const when = formatCheckedDate(s.checked);
+  return `<div class="card-sensory"><b>Sensory support:</b> ${esc(s.note)}${link}${when ? ` <span class="when">(checked ${esc(when)})</span>` : ''}</div>`;
+}
+
 function tagsHtml(v){
   if(!v.tags || !v.tags.length) return '';
   const pills = v.tags.map(t => `<span class="tag-pill">${esc(tagLabels()[t] || t)}</span>`).join('');
@@ -1909,6 +1931,7 @@ function menuItems(v){
 function baseSearchText(v){
   // Care entries are also searchable by insurance ("delta") and service ("sedation").
   const extra = inCare() ? [v.insurance, (v.tags || []).map(t => CARE_TAG_LABELS[t] || t).join(' ')] : [];
+  if(v.sensory_support && v.sensory_support.note) extra.push(v.sensory_support.note);
   return [v.name, v.note, v.category, v.address].concat(extra).join(' ').toLowerCase();
 }
 
@@ -2007,6 +2030,7 @@ function buildCard(v, inPopup){
       ${ageBadge(v)}
     </div>
     ${tagsHtml(v)}
+    ${sensoryHtml(v)}
     ${v.note ? `<p class="card-note">${esc(v.note)}</p>` : ''}
     <div class="card-meta">
       ${dist ? `<span class="card-dist">${dist}</span>` : ''}
