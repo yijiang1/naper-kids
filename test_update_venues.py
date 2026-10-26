@@ -68,6 +68,11 @@ def main():
     before["candidates"] = []
     for v in before["venues"]:
         v.pop("place_id", None)
+    # Same for the care list: the weekly bot fills in place_id/rating/rating_count,
+    # and the "wrong match must stay blank" asserts below need them to start empty.
+    for c in before["care"]:
+        for key in ("place_id", "rating", "rating_count"):
+            c.pop(key, None)
     with io.open(path, "w", encoding="utf-8") as f:
         json.dump(before, f, indent=2, ensure_ascii=False)
     before_ids = [v["id"] for v in before["venues"]]
